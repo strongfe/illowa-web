@@ -1,0 +1,17 @@
+{
+  "eyebrow": "Free Snack Bar",
+  "title": "Nouilles à volonté et petit-déjeuner",
+  "description": [
+    "Au snack-bar du B1, profitez de plus de 100 types de nouilles instantanées disponibles 24h/24.",
+    "Découvrez les avantages F&B signature d’ILLOWA: dessert d’accueil au lobby et café à volonté."
+  ],
+  "features": [
+    "100+ variétés de nouilles instantanées, 24h/24",
+    "Set ramen du matin (œuf, dumplings)",
+    "Machine à café premium et cheesecake de bienvenue"
+  ],
+  "image": {
+    "src": "/images/숙소시설_1.webp",
+    "alt": "Snack-bar illimité ILLOWA HOTEL"
+  }
+}

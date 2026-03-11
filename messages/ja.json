@@ -1,0 +1,141 @@
+{
+  "Hero": {
+    "eyebrow": "安養駅・徒歩5分",
+    "title_il": "IL",
+    "title_o": "O",
+    "title_wa": "WA",
+    "subtitle": "イロワホテル",
+    "desc_short": "安養駅徒歩5分・42室プレミアムスイート",
+    "btn_rooms": "客室を見る",
+    "btn_rates": "料金を確認",
+    "scroll": "スクロール"
+  },
+  "Header": {
+    "brand_main": "ILLOWA",
+    "brand_sub": "Hotel",
+    "nav_rooms": "客室",
+    "nav_rates": "料金",
+    "nav_amenities": "施設",
+    "nav_gallery": "ギャラリー",
+    "nav_contact": "アクセス",
+    "cta_call": "📞 予約お問い合わせ",
+    "menu_aria": "メニューを開く",
+    "mobile_rooms": "客室案内",
+    "mobile_rates": "料金案内",
+    "mobile_amenities": "施設案内",
+    "mobile_gallery": "ギャラリー",
+    "mobile_contact": "アクセス",
+    "mobile_call": "電話予約"
+  },
+  "Information": {
+    "map_placeholder": "地図エリア（Kakao Map API連携予定）",
+    "map_naver": "Naver地図",
+    "map_kakao": "Kakao地図",
+    "eyebrow": "Location",
+    "title": "アクセス",
+    "label_address": "Address",
+    "label_transport": "Transport",
+    "label_contact_frontdesk": "Contact & Front Desk"
+  },
+  "Footer": {
+    "brand": "Illowa Hotel",
+    "company_name": "商号",
+    "representative": "代表者",
+    "business_number": "事業者登録番号",
+    "address": "住所",
+    "phone": "電話",
+    "email": "メール",
+    "rights_reserved": "ALL RIGHTS RESERVED.",
+    "terms": "利用規約",
+    "privacy": "プライバシーポリシー",
+    "cookies": "クッキーポリシー"
+  },
+  "Rooms": {
+    "eyebrow": "Our Suites",
+    "title": "Rooms & Suites",
+    "tab_all": "全客室",
+    "tab_standard": "スタンダード/デラックス",
+    "tab_gaming": "ゲーミングゾーン",
+    "tab_premier": "プレミア",
+    "tab_special": "特価/連泊",
+    "view_details": "詳細を見る"
+  },
+  "RoomModal": {
+    "close": "閉じる",
+    "facilities": "客室設備",
+    "rate_info": "料金情報 (KRW)",
+    "weekday": "平日",
+    "friday": "金曜日",
+    "saturday_holiday": "土曜/祝前日",
+    "description": "客室説明"
+  },
+  "Rates": {
+    "eyebrow": "Room Rates",
+    "title": "料金案内",
+    "table_room_type": "客室タイプ",
+    "table_weekday": "平日（日〜木）",
+    "table_friday": "金曜日",
+    "table_saturday": "土曜/祝前日",
+    "currency": "KRW",
+    "note_standard_occupancy": "* 表示料金は2名基準です。追加人数には追加料金が発生する場合があります。",
+    "note_seasonal_change": "* 繁忙期・特定日には料金が変動する場合があります。"
+  },
+  "Amenities": {
+    "eyebrow": "Facilities",
+    "title": "施設・サービス"
+  },
+  "Gallery": {
+    "eyebrow": "Gallery",
+    "title": "ホテルギャラリー"
+  },
+  "BookingCTA": {
+    "title": "予約",
+    "description_line1": "海外のお客様向けに最適化されたチャネルから素早く予約できます。",
+    "description_line2": "上段に高転換OTAを配置し、比較・ローカルチャネルを補助導線として提供します。",
+    "btn_yanolja": "ヤノルジャ",
+    "btn_yeogi": "ヨギオッテ",
+    "btn_call": "電話で問い合わせ",
+    "group_primary_title": "主要予約チャネル",
+    "group_primary_description": "海外旅行者の予約転換が高い優先チャネル",
+    "group_secondary_title": "比較予約チャネル",
+    "group_secondary_description": "料金やプランを比較するための第2優先チャネル",
+    "group_support_title": "補助チャネル",
+    "group_support_description": "口コミ確認・韓国OTA・電話問い合わせ",
+    "badge_priority": "優先",
+    "badge_secondary": "比較",
+    "badge_reference": "口コミ",
+    "badge_local": "韓国国内",
+    "btn_google_hotels": "Google Hotels",
+    "sub_google_hotels": "Google Travel経由で素早く遷移",
+    "btn_booking": "Booking.com",
+    "sub_booking": "世界的に利用される主要OTA",
+    "btn_agoda": "Agoda",
+    "sub_agoda": "アジア圏旅行者に強いチャネル",
+    "btn_tripcom": "Trip.com",
+    "sub_tripcom": "中華圏・グローバルユーザーに強い",
+    "btn_expedia": "Expedia",
+    "sub_expedia": "パッケージ/バンドル需要に対応",
+    "btn_hotelscombined": "HotelsCombined",
+    "sub_hotelscombined": "メタ検索による価格比較流入",
+    "btn_tripadvisor": "Tripadvisor",
+    "sub_tripadvisor": "口コミベースで信頼を獲得",
+    "sub_yanolja": "韓国国内OTA予約",
+    "sub_yeogi": "韓国国内OTA予約",
+    "aria_open_platform": "{platform} の予約ページを新しいタブで開く",
+    "aria_call": "フロントデスクへ電話する"
+  },
+  "StatsBar": {
+    "premium_suites": "プレミアムスイート",
+    "gaming_rooms": "ゲーミングルーム",
+    "snack_bar": "スナックバー"
+  },
+  "ChineseSection": {
+    "title": "安養 イロワホテル",
+    "line1": "安養イロワホテルは中国からのお客様をいつでも歓迎します。",
+    "line2": "フロントでは24時間中国語対応が可能で、全客室で無料高速Wi-Fiをご利用いただけます。",
+    "line3": "100種類以上のラーメンスナックバーと高性能2PC客室（一部タイプ）で快適な滞在を提供します。",
+    "badge_cn_service": "中国語サービス対応",
+    "badge_anyang_5min": "安養駅から徒歩5分",
+    "badge_unionpay": "銀聯/クレジットカード利用可"
+  }
+}

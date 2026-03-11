@@ -1,0 +1,62 @@
+[
+  {
+    "key": "std",
+    "name": "Padrão",
+    "prices": {
+      "weekday": "50,000",
+      "fri": "70,000",
+      "sat": "85,000",
+      "sun": "50,000"
+    }
+  },
+  {
+    "key": "gstd",
+    "name": "Padrão Gamer",
+    "prices": {
+      "weekday": "50,000",
+      "fri": "75,000",
+      "sat": "85,000",
+      "sun": "50,000"
+    }
+  },
+  {
+    "key": "dlx",
+    "name": "Luxo",
+    "prices": {
+      "weekday": "60,000",
+      "fri": "85,000",
+      "sat": "90,000",
+      "sun": "60,000"
+    }
+  },
+  {
+    "key": "gdlx",
+    "name": "Luxo Gamer",
+    "prices": {
+      "weekday": "60,000",
+      "fri": "85,000",
+      "sat": "90,000",
+      "sun": "60,000"
+    }
+  },
+  {
+    "key": "pm",
+    "name": "Premium",
+    "prices": {
+      "weekday": "70,000",
+      "fri": "90,000",
+      "sat": "95,000",
+      "sun": "70,000"
+    }
+  },
+  {
+    "key": "pmt",
+    "name": "Premium Duas Camas",
+    "prices": {
+      "weekday": "75,000",
+      "fri": "95,000",
+      "sat": "99,000",
+      "sun": "75,000"
+    }
+  }
+]

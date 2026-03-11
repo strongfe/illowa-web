@@ -1,0 +1,309 @@
+{
+  "std": {
+    "name": "Standard",
+    "sub": "Chambre Standard",
+    "badge": "STANDARD",
+    "stay": "15:00 ~ 13:00",
+    "feats": [
+      "Lit Queen",
+      "OTT",
+      "ordinateur",
+      "Literie premium"
+    ],
+    "ci": "Arrivée 15:00 · Départ 13:00 (ven/sam 12:00)",
+    "prices": {
+      "weekday": "50,000",
+      "fri": "70,000",
+      "sat": "85,000",
+      "sun": "50,000"
+    },
+    "photos": [
+      "/images/스탠다드_1.webp",
+      "/images/스탠다드_10.webp",
+      "/images/스탠다드_11.webp",
+      "/images/스탠다드_12.webp",
+      "/images/스탠다드_13.webp",
+      "/images/스탠다드_14.webp"
+    ]
+  },
+  "gstd": {
+    "name": "Standard Jeu",
+    "sub": "Standard Jeu",
+    "badge": "JEU",
+    "stay": "15:00 ~ 13:00",
+    "feats": [
+      "RTX 3060",
+      "2 postes · double écran",
+      "Configuration sans disque",
+      "Lit Queen",
+      "OTT"
+    ],
+    "ci": "Arrivée 15:00 · Départ 13:00 (ven/sam 12:00)",
+    "prices": {
+      "weekday": "50,000",
+      "fri": "75,000",
+      "sat": "85,000",
+      "sun": "50,000"
+    },
+    "photos": [
+      "/images/게이밍_스탠다드_1.webp",
+      "/images/게이밍_스탠다드_10.webp",
+      "/images/게이밍_스탠다드_11.webp",
+      "/images/게이밍_스탠다드_12.webp",
+      "/images/게이밍_스탠다드_13.webp",
+      "/images/게이밍_스탠다드_14.webp"
+    ]
+  },
+  "dlx": {
+    "name": "De Luxe",
+    "sub": "Chambre De Luxe",
+    "badge": "DE LUXE",
+    "stay": "15:00 ~ 13:00",
+    "feats": [
+      "Lit Queen",
+      "OTT",
+      "Baignoire",
+      "ordinateur",
+      "Douche pluie"
+    ],
+    "ci": "Arrivée 15:00 · Départ 13:00 (ven/sam 12:00)",
+    "prices": {
+      "weekday": "60,000",
+      "fri": "85,000",
+      "sat": "90,000",
+      "sun": "60,000"
+    },
+    "photos": [
+      "/images/디럭스_1.webp",
+      "/images/디럭스_10.webp",
+      "/images/디럭스_11.webp",
+      "/images/디럭스_12.webp",
+      "/images/디럭스_13.webp",
+      "/images/디럭스_14.webp"
+    ]
+  },
+  "gdlx": {
+    "name": "De Luxe Jeu",
+    "sub": "De Luxe Jeu",
+    "badge": "JEU",
+    "stay": "15:00 ~ 13:00",
+    "feats": [
+      "RTX 3060",
+      "2 postes · double écran",
+      "Configuration sans disque",
+      "Lit Queen",
+      "OTT",
+      "Baignoire"
+    ],
+    "ci": "Arrivée 15:00 · Départ 13:00 (ven/sam 12:00)",
+    "prices": {
+      "weekday": "60,000",
+      "fri": "85,000",
+      "sat": "90,000",
+      "sun": "60,000"
+    },
+    "photos": [
+      "/images/게이밍_디럭스_(넷플릭스,_2PC)_1.webp",
+      "/images/게이밍_디럭스_(넷플릭스,_2PC)_10.webp",
+      "/images/게이밍_디럭스_(넷플릭스,_2PC)_11.webp",
+      "/images/게이밍_디럭스_(넷플릭스,_2PC)_12.webp",
+      "/images/게이밍_디럭스_(넷플릭스,_2PC)_13.webp",
+      "/images/게이밍_디럭스_(넷플릭스,_2PC)_14.webp"
+    ]
+  },
+  "pm": {
+    "name": "Premium",
+    "sub": "Chambre Premium",
+    "badge": "PREMIUM",
+    "stay": "15:00 ~ 13:00",
+    "feats": [
+      "Lit Queen",
+      "OTT",
+      "Baignoire",
+      "Fauteuil massant",
+      "Douche pluie",
+      "ordinateur"
+    ],
+    "ci": "Arrivée 15:00 · Départ 13:00 (ven/sam 12:00)",
+    "prices": {
+      "weekday": "70,000",
+      "fri": "90,000",
+      "sat": "95,000",
+      "sun": "70,000"
+    },
+    "photos": [
+      "/images/프리미어_1.webp",
+      "/images/프리미어_10.webp",
+      "/images/프리미어_11.webp",
+      "/images/프리미어_12.webp",
+      "/images/프리미어_13.webp",
+      "/images/프리미어_14.webp"
+    ]
+  },
+  "pmt": {
+    "name": "Premium Deux Lits",
+    "sub": "Premium Deux Lits",
+    "badge": "DEUX LITS",
+    "stay": "15:00 ~ 13:00",
+    "feats": [
+      "Lits jumeaux",
+      "OTT",
+      "Baignoire",
+      "Fauteuil massant",
+      "ordinateur"
+    ],
+    "ci": "Arrivée 15:00 · Départ 13:00 (ven/sam 12:00)",
+    "prices": {
+      "weekday": "75,000",
+      "fri": "95,000",
+      "sat": "99,000",
+      "sun": "75,000"
+    },
+    "photos": [
+      "/images/프리미어_트윈_1.webp",
+      "/images/프리미어_트윈_10.webp",
+      "/images/프리미어_트윈_11.webp",
+      "/images/프리미어_트윈_12.webp",
+      "/images/프리미어_트윈_13.webp",
+      "/images/프리미어_트윈_14.webp"
+    ]
+  },
+  "dj": {
+    "name": "Offre du jour (sans réservation)",
+    "sub": "Offre du jour",
+    "badge": "OFFRE",
+    "stay": "18:00 ~ 12:00",
+    "feats": [
+      "Attribution aléatoire",
+      "OTT",
+      "Queen/Deux lits",
+      "Réservation du jour sans réservation préalable"
+    ],
+    "ci": "Arrivée 18:00 (sam 21:00) · Départ 12:00 (sam 11:00)",
+    "prices": {
+      "weekday": "45,000",
+      "fri": "70,000",
+      "sat": "80,000",
+      "sun": "45,000"
+    },
+    "photos": [
+      "/images/당일특가_도보전용★랜덤배정★_1.webp",
+      "/images/당일특가_도보전용★랜덤배정★_2.webp"
+    ]
+  },
+  "lstd": {
+    "name": "Long séjour Standard",
+    "sub": "Long séjour · Standard",
+    "badge": "LONG SÉJOUR",
+    "stay": "15:00 ~ lendemain 13:00",
+    "feats": [
+      "Lit Queen",
+      "OTT",
+      "Baignoire",
+      "ordinateur",
+      "Tarif exclusif long séjour"
+    ],
+    "ci": "Arrivée 15:00 · Départ lendemain 13:00 (ven/sam 12:00)",
+    "prices": {
+      "weekday": "50,000",
+      "fri": "70,000",
+      "sat": "120,000",
+      "sun": "110,000"
+    },
+    "photos": [
+      "/images/연박_-_스탠다드_1.webp",
+      "/images/연박_-_스탠다드_2.webp",
+      "/images/연박_-_스탠다드_3.webp",
+      "/images/연박_-_스탠다드_4.webp",
+      "/images/연박_-_스탠다드_5.webp",
+      "/images/연박_-_스탠다드_6.webp"
+    ]
+  },
+  "ldlx": {
+    "name": "Long séjour De Luxe",
+    "sub": "Long séjour · De Luxe",
+    "badge": "LONG SÉJOUR",
+    "stay": "15:00 ~ lendemain 13:00",
+    "feats": [
+      "Lit Queen",
+      "OTT",
+      "Baignoire",
+      "ordinateur",
+      "Douche pluie",
+      "Tarif long séjour"
+    ],
+    "ci": "Arrivée 15:00 · Départ lendemain 13:00 (ven/sam 12:00)",
+    "prices": {
+      "weekday": "60,000",
+      "fri": "85,000",
+      "sat": "125,000",
+      "sun": "115,000"
+    },
+    "photos": [
+      "/images/연박_-_디럭스_1.webp",
+      "/images/연박_-_디럭스_10.webp",
+      "/images/연박_-_디럭스_11.webp",
+      "/images/연박_-_디럭스_12.webp",
+      "/images/연박_-_디럭스_2.webp",
+      "/images/연박_-_디럭스_3.webp"
+    ]
+  },
+  "lpm": {
+    "name": "Long séjour Premium",
+    "sub": "Long séjour · Premium",
+    "badge": "LONG SÉJOUR",
+    "stay": "15:00 ~ lendemain 13:00",
+    "feats": [
+      "Lit Queen",
+      "OTT",
+      "Baignoire",
+      "Fauteuil massant",
+      "ordinateur",
+      "Douche pluie"
+    ],
+    "ci": "Arrivée 15:00 · Départ lendemain 13:00 (ven/sam 12:00)",
+    "prices": {
+      "weekday": "70,000",
+      "fri": "90,000",
+      "sat": "130,000",
+      "sun": "120,000"
+    },
+    "photos": [
+      "/images/연박_-_프리미어_1.webp",
+      "/images/연박_-_프리미어_10.webp",
+      "/images/연박_-_프리미어_11.webp",
+      "/images/연박_-_프리미어_12.webp",
+      "/images/연박_-_프리미어_13.webp",
+      "/images/연박_-_프리미어_2.webp"
+    ]
+  },
+  "lpmt": {
+    "name": "Long séjour Premium Deux Lits",
+    "sub": "Long séjour · Premium Deux Lits",
+    "badge": "LONG SÉJOUR",
+    "stay": "15:00 ~ lendemain 13:00",
+    "feats": [
+      "Lits jumeaux",
+      "OTT",
+      "Baignoire",
+      "Fauteuil massant",
+      "ordinateur",
+      "Tarif long séjour"
+    ],
+    "ci": "Arrivée 15:00 · Départ lendemain 13:00 (ven/sam 12:00)",
+    "prices": {
+      "weekday": "75,000",
+      "fri": "95,000",
+      "sat": "135,000",
+      "sun": "125,000"
+    },
+    "photos": [
+      "/images/연박_-_프리미어_트윈_1.webp",
+      "/images/연박_-_프리미어_트윈_2.webp",
+      "/images/연박_-_프리미어_트윈_3.webp",
+      "/images/연박_-_프리미어_트윈_4.webp",
+      "/images/연박_-_프리미어_트윈_5.webp",
+      "/images/연박_-_프리미어_트윈_6.webp"
+    ]
+  }
+}

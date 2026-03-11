@@ -1,0 +1,47 @@
+[
+  {
+    "icon": "🎮",
+    "title": "Jogos de alta performance",
+    "desc": "RTX 3060 · i5 12ª geração\nSistema sem disco · 2 computadores"
+  },
+  {
+    "icon": "📺",
+    "title": "OTT em todos os quartos",
+    "desc": "Netflix · Wavve · TVING\nGrátis em todos os quartos"
+  },
+  {
+    "icon": "🍜",
+    "title": "Snack bar gratuito",
+    "desc": "B1: 100 tipos de ramen · café da manhã\nAutoatendimento 24h"
+  },
+  {
+    "icon": "🛁",
+    "title": "Banheiro premium",
+    "desc": "Banheira e chuveiro tipo chuva (Luxo e acima)\nCadeira de massagem exclusiva Premium"
+  },
+  {
+    "icon": "☕",
+    "title": "Serviço de boas-vindas",
+    "desc": "Cheesecake e muffins no lobby\nCafé coado grátis"
+  },
+  {
+    "icon": "🧼",
+    "title": "Higiene em primeiro lugar",
+    "desc": "Parceria CESCO\nRoupa de cama trocada diariamente"
+  },
+  {
+    "icon": "💳",
+    "title": "Pagamento flexível",
+    "desc": "Dinheiro · cartão · cartão corporativo\nNota fiscal disponível"
+  },
+  {
+    "icon": "🛎️",
+    "title": "Recepção 24h",
+    "desc": "Aberto 24h · coreano · chinês\nentrada/saída rápida"
+  },
+  {
+    "icon": "🚶",
+    "title": "Localização próxima à estação",
+    "desc": "Estação Anyang linha 1 saída 1\n500 m a pé (5 min)"
+  }
+]

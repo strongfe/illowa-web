@@ -1,0 +1,14 @@
+{
+  "business_name": "일로와(illOwa)",
+  "address": "경기도 안양시 만안구 안양로268번길 41 (안양동 622-19)",
+  "transport": "수도권 1호선 안양역 1번 출구 도보 500m (약 5분)",
+  "phone": "0503-5051-6355",
+  "email": "chon9129@naver.com",
+  "front_desk": "24시간 연중무휴",
+  "business_number": "123-36-55369",
+  "representative": "전대홍",
+  "map_links": {
+    "kakao": "https://map.kakao.com/link/search/일로와호텔",
+    "naver": "https://map.naver.com/p/search/%EC%9D%BC%EB%A1%9C%EC%99%80%ED%98%B8%ED%85%94"
+  }
+}

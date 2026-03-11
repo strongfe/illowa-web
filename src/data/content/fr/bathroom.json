@@ -1,0 +1,17 @@
+{
+  "eyebrow": "Premium Bathroom",
+  "title": "Une expérience spa relaxante",
+  "description": [
+    "L’ambiance premium en ton sombre de la salle de bain vous aide à relâcher la fatigue de la journée.",
+    "Les chambres De Luxe et supérieures disposent d’une grande baignoire et d’une douche pluie pour un spa en chambre."
+  ],
+  "features": [
+    "Grande baignoire (De Luxe et plus)",
+    "Finition moderne en carrelage sombre",
+    "Produits d’accueil premium inclus"
+  ],
+  "image": {
+    "src": "/images/스탠다드_5.webp",
+    "alt": "Salle de bain ILLOWA HOTEL"
+  }
+}

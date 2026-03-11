@@ -1,0 +1,18 @@
+{
+  "eyebrow": "Business & Rest",
+  "title": "Designed for Professionals",
+  "description": [
+    "Sleep deeply on comfortable mattresses with premium bedding.",
+    "Every room includes a PC and free Wi-Fi for efficient work and communication.",
+    "We also provide long-stay options with late checkout and tax invoice issuance for business guests."
+  ],
+  "features": [
+    "Corporate card payment and tax invoice support",
+    "Styler and massage-chair rooms (Premier)",
+    "High-speed Wi-Fi & PC in all rooms"
+  ],
+  "image": {
+    "src": "/images/프리미어_10.webp",
+    "alt": "ILLOWA HOTEL business amenities"
+  }
+}

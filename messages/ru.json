@@ -1,0 +1,141 @@
+{
+  "Hero": {
+    "eyebrow": "Станция Anyang · 5 минут пешком",
+    "title_il": "IL",
+    "title_o": "O",
+    "title_wa": "WA",
+    "subtitle": "ILLOWA HOTEL",
+    "desc_short": "5 минут пешком от станции Anyang · 42 премиум-сьюта",
+    "btn_rooms": "Смотреть номера",
+    "btn_rates": "Смотреть цены",
+    "scroll": "Прокрутка"
+  },
+  "Header": {
+    "brand_main": "ILLOWA",
+    "brand_sub": "Hotel",
+    "nav_rooms": "Номера",
+    "nav_rates": "Тарифы",
+    "nav_amenities": "Удобства",
+    "nav_gallery": "Галерея",
+    "nav_contact": "Как добраться",
+    "cta_call": "📞 Бронирование",
+    "menu_aria": "Открыть меню",
+    "mobile_rooms": "О номерах",
+    "mobile_rates": "О тарифах",
+    "mobile_amenities": "Удобства",
+    "mobile_gallery": "Галерея",
+    "mobile_contact": "Как добраться",
+    "mobile_call": "Позвонить для брони"
+  },
+  "Information": {
+    "map_placeholder": "Зона карты (интеграция Kakao Map API в процессе)",
+    "map_naver": "Карта Naver",
+    "map_kakao": "Карта Kakao",
+    "eyebrow": "Location",
+    "title": "Как добраться",
+    "label_address": "Address",
+    "label_transport": "Transport",
+    "label_contact_frontdesk": "Contact & Front Desk"
+  },
+  "Footer": {
+    "brand": "Illowa Hotel",
+    "company_name": "Компания",
+    "representative": "Представитель",
+    "business_number": "Регистрационный номер",
+    "address": "Адрес",
+    "phone": "Телефон",
+    "email": "Email",
+    "rights_reserved": "ВСЕ ПРАВА ЗАЩИЩЕНЫ.",
+    "terms": "Условия использования",
+    "privacy": "Политика конфиденциальности",
+    "cookies": "Политика cookie"
+  },
+  "Rooms": {
+    "eyebrow": "Наши сьюты",
+    "title": "Номера и сьюты",
+    "tab_all": "Все номера",
+    "tab_standard": "Стандарт/Делюкс",
+    "tab_gaming": "Игровая зона",
+    "tab_premier": "Премьер",
+    "tab_special": "Спецпредложение/Длительное проживание",
+    "view_details": "Подробнее"
+  },
+  "RoomModal": {
+    "close": "Закрыть",
+    "facilities": "Оснащение номера",
+    "rate_info": "Информация о тарифах (KRW)",
+    "weekday": "Будни",
+    "friday": "Пятница",
+    "saturday_holiday": "Суббота / предпраздничный день",
+    "description": "Описание номера"
+  },
+  "Rates": {
+    "eyebrow": "Тарифы",
+    "title": "Тарифы",
+    "table_room_type": "Тип номера",
+    "table_weekday": "Будни (Вс~Чт)",
+    "table_friday": "Пятница",
+    "table_saturday": "Суббота / предпраздничный день",
+    "currency": "KRW",
+    "note_standard_occupancy": "* Указанные цены рассчитаны на 2 гостей. За дополнительных гостей может взиматься доплата.",
+    "note_seasonal_change": "* В высокий сезон и особые даты цены могут изменяться."
+  },
+  "Amenities": {
+    "eyebrow": "Удобства",
+    "title": "Удобства и сервисы"
+  },
+  "Gallery": {
+    "eyebrow": "Галерея",
+    "title": "Галерея отеля"
+  },
+  "BookingCTA": {
+    "title": "Бронирование",
+    "description_line1": "Бронируйте быстрее через каналы, оптимизированные для иностранных гостей.",
+    "description_line2": "Верхний блок отдает приоритет OTA с высокой конверсией, ниже доступны каналы сравнения и локальные варианты.",
+    "btn_yanolja": "Yanolja (야놀자)",
+    "btn_yeogi": "Yeogi-eottae (여기어때)",
+    "btn_call": "Позвонить в отель",
+    "group_primary_title": "Основные каналы бронирования",
+    "group_primary_description": "Приоритетные каналы с высокой конверсией для иностранных гостей",
+    "group_secondary_title": "Каналы для сравнения",
+    "group_secondary_description": "Второй приоритет для сравнения цен и пакетов",
+    "group_support_title": "Дополнительные каналы",
+    "group_support_description": "Отзывы, локальные OTA и звонок на стойку",
+    "badge_priority": "Приоритет",
+    "badge_secondary": "Сравнить",
+    "badge_reference": "Отзывы",
+    "badge_local": "Локально",
+    "btn_google_hotels": "Google Hotels",
+    "sub_google_hotels": "Быстрый переход через экосистему Google Travel",
+    "btn_booking": "Booking.com",
+    "sub_booking": "Один из главных мировых OTA-каналов",
+    "btn_agoda": "Agoda",
+    "sub_agoda": "Сильный канал для поездок по Азии",
+    "btn_tripcom": "Trip.com",
+    "sub_tripcom": "Широкий охват в Азии и по миру",
+    "btn_expedia": "Expedia",
+    "sub_expedia": "Подходит для пакетных предложений",
+    "btn_hotelscombined": "HotelsCombined",
+    "sub_hotelscombined": "Мета-поиск для сравнения цен",
+    "btn_tripadvisor": "Tripadvisor",
+    "sub_tripadvisor": "Канал доверия на основе отзывов",
+    "sub_yanolja": "Локальное OTA в Корее",
+    "sub_yeogi": "Локальное OTA в Корее",
+    "aria_open_platform": "Открыть страницу бронирования {platform} в новой вкладке",
+    "aria_call": "Позвонить на стойку регистрации"
+  },
+  "StatsBar": {
+    "premium_suites": "ПРЕМИАЛЬНЫЕ ЛЮКСЫ",
+    "gaming_rooms": "ИГРОВЫЕ НОМЕРА",
+    "snack_bar": "СНЕК-БАР"
+  },
+  "ChineseSection": {
+    "title": "Отель ILLOWA в Аньяне",
+    "line1": "Отель ILLOWA в Аньяне всегда рад гостям из Китая.",
+    "line2": "На стойке регистрации доступна поддержка на китайском 24/7, во всех номерах есть бесплатный высокоскоростной Wi-Fi.",
+    "line3": "Более 100 видов лапши в снек-баре и номера с двумя мощными ПК (в некоторых категориях) обеспечат комфортный отдых.",
+    "badge_cn_service": "Поддержка на китайском языке",
+    "badge_anyang_5min": "5 минут пешком от станции Anyang",
+    "badge_unionpay": "UnionPay / банковские карты"
+  }
+}

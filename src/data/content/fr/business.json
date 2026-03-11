@@ -1,0 +1,18 @@
+{
+  "eyebrow": "Business & Rest",
+  "title": "Pensé pour les professionnels",
+  "description": [
+    "Profitez d’un sommeil profond grâce à une literie premium et des matelas confortables.",
+    "Toutes les chambres disposent d’un ordinateur et du Wi‑Fi gratuit pour travailler efficacement.",
+    "Nous proposons aussi des offres long séjour avec départ tardif et émission de facture fiscale."
+  ],
+  "features": [
+    "Paiement par carte entreprise et facture fiscale",
+    "Chambres avec Styler et fauteuil massant (Premium)",
+    "Wi‑Fi haut débit et ordinateur dans toutes les chambres"
+  ],
+  "image": {
+    "src": "/images/프리미어_10.webp",
+    "alt": "Équipements business ILLOWA HOTEL"
+  }
+}

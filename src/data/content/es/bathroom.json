@@ -1,0 +1,17 @@
+{
+  "eyebrow": "Premium Bathroom",
+  "title": "Experiencia de spa relajante",
+  "description": [
+    "El baño premium en tonos oscuros te ayuda a relajarte por completo tras un día largo.",
+    "Las habitaciones De Lujo y superiores incluyen bañera grande y ducha tipo lluvia para un cómodo spa en la habitación."
+  ],
+  "features": [
+    "Bañera grande (De Lujo o superior)",
+    "Acabado moderno de azulejo oscuro",
+    "Amenities premium incluidos"
+  ],
+  "image": {
+    "src": "/images/스탠다드_5.webp",
+    "alt": "Baño de ILLOWA HOTEL"
+  }
+}

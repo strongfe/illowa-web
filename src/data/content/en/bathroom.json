@@ -1,0 +1,17 @@
+{
+  "eyebrow": "Premium Bathroom",
+  "title": "Relaxing Spa Experience",
+  "description": [
+    "Dark-toned premium bathroom interiors help you unwind after a long day.",
+    "Deluxe rooms and above are equipped with large bathtubs and rain shower heads for a comfortable in-room spa experience."
+  ],
+  "features": [
+    "Large soaking bathtub (Deluxe and above)",
+    "Modern dark-tile interior finish",
+    "Premium hotel amenities included"
+  ],
+  "image": {
+    "src": "/images/스탠다드_5.webp",
+    "alt": "ILLOWA HOTEL bathroom"
+  }
+}

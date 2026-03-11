@@ -1,0 +1,17 @@
+{
+  "eyebrow": "Premium Bathroom",
+  "title": "Experiência relaxante de spa",
+  "description": [
+    "O banheiro premium em tons escuros ajuda você a relaxar após um dia intenso.",
+    "Os quartos Luxo e superiores contam com banheira ampla e chuveiro tipo rain para um spa confortável no quarto."
+  ],
+  "features": [
+    "Banheira ampla (Luxo e acima)",
+    "Acabamento moderno em azulejo escuro",
+    "Amenities premium incluídas"
+  ],
+  "image": {
+    "src": "/images/스탠다드_5.webp",
+    "alt": "Banheiro do ILLOWA HOTEL"
+  }
+}

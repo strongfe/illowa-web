@@ -1,0 +1,141 @@
+{
+  "Hero": {
+    "eyebrow": "अनयांग स्टेशन · 5 मिनट पैदल",
+    "title_il": "IL",
+    "title_o": "O",
+    "title_wa": "WA",
+    "subtitle": "ILLOWA HOTEL",
+    "desc_short": "अनयांग स्टेशन से 5 मिनट पैदल · 42 प्रीमियम सुइट",
+    "btn_rooms": "कमरे देखें",
+    "btn_rates": "दरें देखें",
+    "scroll": "स्क्रॉल"
+  },
+  "Header": {
+    "brand_main": "ILLOWA",
+    "brand_sub": "Hotel",
+    "nav_rooms": "कमरे",
+    "nav_rates": "दरें",
+    "nav_amenities": "सुविधाएं",
+    "nav_gallery": "गैलरी",
+    "nav_contact": "लोकेशन",
+    "cta_call": "📞 बुकिंग पूछताछ",
+    "menu_aria": "मेन्यू खोलें",
+    "mobile_rooms": "कमरा गाइड",
+    "mobile_rates": "दर गाइड",
+    "mobile_amenities": "सुविधाएं",
+    "mobile_gallery": "गैलरी",
+    "mobile_contact": "लोकेशन",
+    "mobile_call": "फोन से बुकिंग"
+  },
+  "Information": {
+    "map_placeholder": "मैप क्षेत्र (Kakao Map API इंटीग्रेशन लंबित)",
+    "map_naver": "Naver मैप",
+    "map_kakao": "Kakao मैप",
+    "eyebrow": "Location",
+    "title": "कैसे पहुंचें",
+    "label_address": "Address",
+    "label_transport": "Transport",
+    "label_contact_frontdesk": "Contact & Front Desk"
+  },
+  "Footer": {
+    "brand": "Illowa Hotel",
+    "company_name": "कंपनी",
+    "representative": "प्रतिनिधि",
+    "business_number": "व्यवसाय पंजीकरण संख्या",
+    "address": "पता",
+    "phone": "फ़ोन",
+    "email": "ईमेल",
+    "rights_reserved": "सर्वाधिकार सुरक्षित।",
+    "terms": "सेवा की शर्तें",
+    "privacy": "गोपनीयता नीति",
+    "cookies": "कुकी नीति"
+  },
+  "Rooms": {
+    "eyebrow": "हमारी सुइट्स",
+    "title": "कमरे और सुइट्स",
+    "tab_all": "सभी कमरे",
+    "tab_standard": "स्टैंडर्ड/डीलक्स",
+    "tab_gaming": "गेमिंग ज़ोन",
+    "tab_premier": "प्रीमियर",
+    "tab_special": "स्पेशल/लंबा प्रवास",
+    "view_details": "विवरण देखें"
+  },
+  "RoomModal": {
+    "close": "बंद करें",
+    "facilities": "कमरे की सुविधाएं",
+    "rate_info": "किराया जानकारी (KRW)",
+    "weekday": "कार्यदिवस",
+    "friday": "शुक्रवार",
+    "saturday_holiday": "शनिवार / अवकाश पूर्व दिवस",
+    "description": "कमरे का विवरण"
+  },
+  "Rates": {
+    "eyebrow": "किराया",
+    "title": "दर गाइड",
+    "table_room_type": "कमरे का प्रकार",
+    "table_weekday": "कार्यदिवस (रवि~गुरु)",
+    "table_friday": "शुक्रवार",
+    "table_saturday": "शनिवार / अवकाश पूर्व दिवस",
+    "currency": "KRW",
+    "note_standard_occupancy": "* दरें 2 मेहमानों की मानक क्षमता पर आधारित हैं। अतिरिक्त मेहमानों पर अतिरिक्त शुल्क लग सकता है।",
+    "note_seasonal_change": "* पीक सीज़न और विशेष तिथियों पर दरें बदल सकती हैं।"
+  },
+  "Amenities": {
+    "eyebrow": "सुविधाएं",
+    "title": "सुविधाएं और सेवाएं"
+  },
+  "Gallery": {
+    "eyebrow": "गैलरी",
+    "title": "होटल गैलरी"
+  },
+  "BookingCTA": {
+    "title": "आरक्षण",
+    "description_line1": "अंतरराष्ट्रीय मेहमानों के लिए अनुकूलित चैनलों से जल्दी बुक करें।",
+    "description_line2": "ऊपर हाई-कन्वर्जन OTA को प्राथमिकता दी गई है, और तुलना/लोकल चैनल सपोर्ट विकल्प के रूप में दिए गए हैं।",
+    "btn_yanolja": "Yanolja (야놀자)",
+    "btn_yeogi": "Yeogi-eottae (여기어때)",
+    "btn_call": "फोन से बुकिंग पूछताछ",
+    "group_primary_title": "प्राथमिक बुकिंग चैनल",
+    "group_primary_description": "विदेशी यात्रियों के लिए उच्च कन्वर्जन वाले प्राथमिक चैनल",
+    "group_secondary_title": "तुलना चैनल",
+    "group_secondary_description": "रेट और पैकेज तुलना के लिए द्वितीय प्राथमिकता चैनल",
+    "group_support_title": "सहायक चैनल",
+    "group_support_description": "रिव्यू, लोकल OTA और फोन संपर्क",
+    "badge_priority": "प्राथमिक",
+    "badge_secondary": "तुलना",
+    "badge_reference": "रिव्यू",
+    "badge_local": "लोकल",
+    "btn_google_hotels": "Google Hotels",
+    "sub_google_hotels": "Google Travel इकोसिस्टम से तेज़ एंट्री",
+    "btn_booking": "Booking.com",
+    "sub_booking": "हाई कन्वर्जन वाला ग्लोबल OTA",
+    "btn_agoda": "Agoda",
+    "sub_agoda": "एशिया-केंद्रित यात्रियों के लिए मजबूत चैनल",
+    "btn_tripcom": "Trip.com",
+    "sub_tripcom": "APAC और ग्लोबल यूज़र्स तक अच्छी पहुंच",
+    "btn_expedia": "Expedia",
+    "sub_expedia": "पैकेज/बंडल बुकिंग के लिए उपयुक्त",
+    "btn_hotelscombined": "HotelsCombined",
+    "sub_hotelscombined": "कीमत तुलना के लिए मेटा-सर्च चैनल",
+    "btn_tripadvisor": "Tripadvisor",
+    "sub_tripadvisor": "रिव्यू आधारित भरोसेमंद चैनल",
+    "sub_yanolja": "कोरिया का लोकल OTA बुकिंग",
+    "sub_yeogi": "कोरिया का लोकल OTA बुकिंग",
+    "aria_open_platform": "{platform} बुकिंग पेज को नए टैब में खोलें",
+    "aria_call": "बुकिंग के लिए फ्रंट डेस्क पर कॉल करें"
+  },
+  "StatsBar": {
+    "premium_suites": "प्रीमियम सुइट्स",
+    "gaming_rooms": "गेमिंग रूम्स",
+    "snack_bar": "स्नैक बार"
+  },
+  "ChineseSection": {
+    "title": "अनयांग ILLOWA होटल",
+    "line1": "अनयांग ILLOWA होटल चीन से आने वाले मेहमानों का स्वागत करता है।",
+    "line2": "फ्रंट डेस्क पर 24 घंटे चीनी भाषा सहायता उपलब्ध है, और सभी कमरों में मुफ्त हाई-स्पीड Wi-Fi है।",
+    "line3": "100+ नूडल स्नैक बार और हाई-स्पेक डुअल-PC कमरे (कुछ प्रकार) के साथ हम आरामदायक ठहराव प्रदान करते हैं।",
+    "badge_cn_service": "चीनी भाषा सहायता",
+    "badge_anyang_5min": "अनयांग स्टेशन से 5 मिनट पैदल",
+    "badge_unionpay": "UnionPay / क्रेडिट कार्ड स्वीकार्य"
+  }
+}

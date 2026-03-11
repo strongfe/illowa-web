@@ -1,0 +1,141 @@
+{
+  "Hero": {
+    "eyebrow": "安养站 · 步行5分钟",
+    "title_il": "IL",
+    "title_o": "O",
+    "title_wa": "WA",
+    "subtitle": "一路来酒店",
+    "desc_short": "安养站步行5分钟 · 42间高级套房",
+    "btn_rooms": "查看客房",
+    "btn_rates": "查看价格",
+    "scroll": "滚动"
+  },
+  "Header": {
+    "brand_main": "ILLOWA",
+    "brand_sub": "Hotel",
+    "nav_rooms": "客房",
+    "nav_rates": "价格",
+    "nav_amenities": "设施",
+    "nav_gallery": "图库",
+    "nav_contact": "交通",
+    "cta_call": "📞 预约咨询",
+    "menu_aria": "打开菜单",
+    "mobile_rooms": "客房介绍",
+    "mobile_rates": "价格说明",
+    "mobile_amenities": "便利设施",
+    "mobile_gallery": "图库",
+    "mobile_contact": "交通信息",
+    "mobile_call": "电话预订"
+  },
+  "Information": {
+    "map_placeholder": "地图区域（计划接入 Kakao Map API）",
+    "map_naver": "Naver 地图",
+    "map_kakao": "Kakao 地图",
+    "eyebrow": "Location",
+    "title": "交通指南",
+    "label_address": "Address",
+    "label_transport": "Transport",
+    "label_contact_frontdesk": "Contact & Front Desk"
+  },
+  "Footer": {
+    "brand": "Illowa Hotel",
+    "company_name": "商号",
+    "representative": "代表",
+    "business_number": "营业执照号",
+    "address": "地址",
+    "phone": "电话",
+    "email": "邮箱",
+    "rights_reserved": "ALL RIGHTS RESERVED.",
+    "terms": "服务条款",
+    "privacy": "隐私政策",
+    "cookies": "Cookie 政策"
+  },
+  "Rooms": {
+    "eyebrow": "Our Suites",
+    "title": "Rooms & Suites",
+    "tab_all": "全部客房",
+    "tab_standard": "标准/豪华",
+    "tab_gaming": "电竞专区",
+    "tab_premier": "尊享房",
+    "tab_special": "特价/连住",
+    "view_details": "查看详情"
+  },
+  "RoomModal": {
+    "close": "关闭",
+    "facilities": "客房设施",
+    "rate_info": "价格信息 (KRW)",
+    "weekday": "平日",
+    "friday": "周五",
+    "saturday_holiday": "周六/节假日前",
+    "description": "客房说明"
+  },
+  "Rates": {
+    "eyebrow": "Room Rates",
+    "title": "价格指南",
+    "table_room_type": "房型",
+    "table_weekday": "平日（周日~周四）",
+    "table_friday": "周五",
+    "table_saturday": "周六/节假日前",
+    "currency": "KRW",
+    "note_standard_occupancy": "* 以上价格为2人标准入住价格，增加人数可能会产生额外费用。",
+    "note_seasonal_change": "* 旺季及特定日期价格可能变动。"
+  },
+  "Amenities": {
+    "eyebrow": "Facilities",
+    "title": "便利设施与服务"
+  },
+  "Gallery": {
+    "eyebrow": "Gallery",
+    "title": "酒店图库"
+  },
+  "BookingCTA": {
+    "title": "立即预订",
+    "description_line1": "通过面向海外客人的高转化渠道快速完成预订。",
+    "description_line2": "顶部优先展示核心OTA，并提供比价与本地渠道作为辅助入口。",
+    "btn_yanolja": "Yanolja（야놀자）",
+    "btn_yeogi": "Yeogi-eottae（여기어때）",
+    "btn_call": "电话咨询",
+    "group_primary_title": "核心预订渠道",
+    "group_primary_description": "海外客人转化率更高的优先渠道",
+    "group_secondary_title": "比价预订渠道",
+    "group_secondary_description": "用于比较房价与套餐的第二优先渠道",
+    "group_support_title": "辅助渠道",
+    "group_support_description": "查看点评、本地OTA与电话咨询",
+    "badge_priority": "优先",
+    "badge_secondary": "比价",
+    "badge_reference": "点评",
+    "badge_local": "本地",
+    "btn_google_hotels": "Google Hotels",
+    "sub_google_hotels": "通过 Google Travel 快速进入",
+    "btn_booking": "Booking.com",
+    "sub_booking": "全球常用的主流OTA",
+    "btn_agoda": "Agoda",
+    "sub_agoda": "对亚洲客群转化优势明显",
+    "btn_tripcom": "Trip.com",
+    "sub_tripcom": "覆盖华语及全球用户",
+    "btn_expedia": "Expedia",
+    "sub_expedia": "适合套餐/打包预订需求",
+    "btn_hotelscombined": "HotelsCombined",
+    "sub_hotelscombined": "元搜索比价流量入口",
+    "btn_tripadvisor": "Tripadvisor",
+    "sub_tripadvisor": "点评导向的信任渠道",
+    "sub_yanolja": "韩国本地OTA预订",
+    "sub_yeogi": "韩国本地OTA预订",
+    "aria_open_platform": "在新标签页打开 {platform} 预订页面",
+    "aria_call": "致电前台咨询预订"
+  },
+  "StatsBar": {
+    "premium_suites": "高级套房",
+    "gaming_rooms": "电竞客房",
+    "snack_bar": "零食吧"
+  },
+  "ChineseSection": {
+    "title": "安养 一路来 酒店",
+    "line1": "安养 一路来 酒店 随时欢迎中国游客的到来。",
+    "line2": "前台提供24小时中文服务，全客房配备免费超高速 Wi-Fi。",
+    "line3": "100余种拉面试吃区、2台高配置电脑（部分房型），为您在韩国的旅途提供最舒适的休息空间。",
+    "badge_cn_service": "提供中文服务",
+    "badge_anyang_5min": "距离安养站步行5分钟",
+    "badge_unionpay": "中国银联/信用卡支付"
+  }
+}

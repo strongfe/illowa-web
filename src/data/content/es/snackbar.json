@@ -1,0 +1,17 @@
+{
+  "eyebrow": "Free Snack Bar",
+  "title": "Ramen ilimitado y desayuno",
+  "description": [
+    "Disfruta de más de 100 tipos de ramen en el snack bar de B1, disponible las 24 horas.",
+    "Vive los beneficios F&B de ILLOWA, como postre de bienvenida en lobby y café ilimitado."
+  ],
+  "features": [
+    "100+ tipos de ramen instantáneo, 24/7",
+    "Set de ramen matutino (huevo y dumplings)",
+    "Cafetera premium y cheesecake de bienvenida"
+  ],
+  "image": {
+    "src": "/images/숙소시설_1.webp",
+    "alt": "Snack bar ilimitado de ILLOWA HOTEL"
+  }
+}

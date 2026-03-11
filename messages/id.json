@@ -1,0 +1,141 @@
+{
+  "Hero": {
+    "eyebrow": "Stasiun Anyang · 5 menit berjalan kaki",
+    "title_il": "IL",
+    "title_o": "O",
+    "title_wa": "WA",
+    "subtitle": "ILLOWA HOTEL",
+    "desc_short": "5 menit jalan kaki dari Stasiun Anyang · 42 suite premium",
+    "btn_rooms": "Lihat kamar",
+    "btn_rates": "Lihat tarif",
+    "scroll": "Gulir"
+  },
+  "Header": {
+    "brand_main": "ILLOWA",
+    "brand_sub": "Hotel",
+    "nav_rooms": "Kamar",
+    "nav_rates": "Tarif",
+    "nav_amenities": "Fasilitas",
+    "nav_gallery": "Galeri",
+    "nav_contact": "Lokasi",
+    "cta_call": "📞 Reservasi",
+    "menu_aria": "Buka menu",
+    "mobile_rooms": "Panduan kamar",
+    "mobile_rates": "Panduan tarif",
+    "mobile_amenities": "Fasilitas",
+    "mobile_gallery": "Galeri",
+    "mobile_contact": "Lokasi",
+    "mobile_call": "Telepon reservasi"
+  },
+  "Information": {
+    "map_placeholder": "Area peta (integrasi Kakao Map API sedang disiapkan)",
+    "map_naver": "Peta Naver",
+    "map_kakao": "Peta Kakao",
+    "eyebrow": "Location",
+    "title": "Cara menuju lokasi",
+    "label_address": "Address",
+    "label_transport": "Transport",
+    "label_contact_frontdesk": "Contact & Front Desk"
+  },
+  "Footer": {
+    "brand": "Illowa Hotel",
+    "company_name": "Perusahaan",
+    "representative": "Perwakilan",
+    "business_number": "Nomor registrasi bisnis",
+    "address": "Alamat",
+    "phone": "Telepon",
+    "email": "Email",
+    "rights_reserved": "SEMUA HAK DILINDUNGI.",
+    "terms": "Syarat penggunaan",
+    "privacy": "Kebijakan privasi",
+    "cookies": "Kebijakan Cookie"
+  },
+  "Rooms": {
+    "eyebrow": "Suite kami",
+    "title": "Kamar & suite",
+    "tab_all": "Semua kamar",
+    "tab_standard": "Standar/Deluks",
+    "tab_gaming": "Zona game",
+    "tab_premier": "Premium",
+    "tab_special": "Spesial/Inap panjang",
+    "view_details": "Lihat detail"
+  },
+  "RoomModal": {
+    "close": "Tutup",
+    "facilities": "Fitur & fasilitas kamar",
+    "rate_info": "Informasi tarif (KRW)",
+    "weekday": "Hari kerja",
+    "friday": "Jumat",
+    "saturday_holiday": "Sabtu / malam hari libur",
+    "description": "Deskripsi kamar"
+  },
+  "Rates": {
+    "eyebrow": "Tarif kamar",
+    "title": "Panduan tarif",
+    "table_room_type": "Tipe kamar",
+    "table_weekday": "Hari kerja (Min~Kam)",
+    "table_friday": "Jumat",
+    "table_saturday": "Sabtu / malam hari libur",
+    "currency": "KRW",
+    "note_standard_occupancy": "* Tarif berdasarkan okupansi standar (2 tamu). Biaya tambahan mungkin berlaku untuk tamu ekstra.",
+    "note_seasonal_change": "* Tarif dapat berubah pada musim puncak dan tanggal tertentu."
+  },
+  "Amenities": {
+    "eyebrow": "Fasilitas",
+    "title": "Fasilitas & layanan"
+  },
+  "Gallery": {
+    "eyebrow": "Galeri",
+    "title": "Galeri hotel"
+  },
+  "BookingCTA": {
+    "title": "Reservasi",
+    "description_line1": "Pesan lebih cepat melalui kanal yang dioptimalkan untuk tamu internasional.",
+    "description_line2": "OTA dengan konversi tertinggi diprioritaskan di atas, kanal perbandingan/lokal disediakan sebagai pendukung.",
+    "btn_yanolja": "Yanolja",
+    "btn_yeogi": "Yeogi-eottae",
+    "btn_call": "Hubungi untuk reservasi",
+    "group_primary_title": "Kanal utama",
+    "group_primary_description": "Kanal prioritas dengan konversi tinggi untuk tamu internasional",
+    "group_secondary_title": "Kanal perbandingan",
+    "group_secondary_description": "Prioritas kedua untuk membandingkan harga dan paket",
+    "group_support_title": "Kanal pendukung",
+    "group_support_description": "Ulasan, OTA lokal, dan kontak telepon",
+    "badge_priority": "Prioritas",
+    "badge_secondary": "Bandingkan",
+    "badge_reference": "Ulasan",
+    "badge_local": "Lokal",
+    "btn_google_hotels": "Google Hotels",
+    "sub_google_hotels": "Akses cepat melalui ekosistem Google Travel",
+    "btn_booking": "Booking.com",
+    "sub_booking": "OTA global dengan konversi tinggi",
+    "btn_agoda": "Agoda",
+    "sub_agoda": "Kuat untuk wisatawan kawasan Asia",
+    "btn_tripcom": "Trip.com",
+    "sub_tripcom": "Jangkauan luas APAC dan global",
+    "btn_expedia": "Expedia",
+    "sub_expedia": "Cocok untuk kebutuhan paket/bundel",
+    "btn_hotelscombined": "HotelsCombined",
+    "sub_hotelscombined": "Meta-search untuk perbandingan harga",
+    "btn_tripadvisor": "Tripadvisor",
+    "sub_tripadvisor": "Kanal kepercayaan berbasis ulasan",
+    "sub_yanolja": "Pemesanan OTA lokal Korea",
+    "sub_yeogi": "Pemesanan OTA lokal Korea",
+    "aria_open_platform": "Buka halaman pemesanan {platform} di tab baru",
+    "aria_call": "Hubungi front desk untuk reservasi"
+  },
+  "StatsBar": {
+    "premium_suites": "SUITE PREMIUM",
+    "gaming_rooms": "KAMAR GAMING",
+    "snack_bar": "SNACK BAR"
+  },
+  "ChineseSection": {
+    "title": "Hotel ILLOWA Anyang",
+    "line1": "Hotel ILLOWA Anyang menyambut hangat tamu dari Tiongkok.",
+    "line2": "Resepsionis menyediakan dukungan bahasa Mandarin 24 jam, dan semua kamar dilengkapi Wi-Fi berkecepatan tinggi gratis.",
+    "line3": "Dengan snack bar lebih dari 100 jenis mi dan kamar dengan dual PC spesifikasi tinggi (tipe tertentu), kami menghadirkan pengalaman menginap yang nyaman.",
+    "badge_cn_service": "Layanan bahasa Mandarin",
+    "badge_anyang_5min": "5 menit jalan kaki dari Stasiun Anyang",
+    "badge_unionpay": "UnionPay / kartu kredit diterima"
+  }
+}

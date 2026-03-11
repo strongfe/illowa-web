@@ -1,0 +1,17 @@
+{
+  "eyebrow": "Premium Bathroom",
+  "title": "Pengalaman spa yang menenangkan",
+  "description": [
+    "Interior kamar mandi premium bernuansa gelap membantu Anda relaks setelah hari yang panjang.",
+    "Kamar Deluks ke atas dilengkapi bathtub besar dan rain shower untuk pengalaman spa nyaman di kamar."
+  ],
+  "features": [
+    "Bathtub besar (Deluks ke atas)",
+    "Finishing ubin gelap modern",
+    "Amenitas hotel premium"
+  ],
+  "image": {
+    "src": "/images/스탠다드_5.webp",
+    "alt": "Kamar mandi ILLOWA HOTEL"
+  }
+}

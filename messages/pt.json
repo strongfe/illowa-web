@@ -1,0 +1,141 @@
+{
+  "Hero": {
+    "eyebrow": "Estação Anyang · 5 min a pé",
+    "title_il": "IL",
+    "title_o": "O",
+    "title_wa": "WA",
+    "subtitle": "ILLOWA HOTEL",
+    "desc_short": "A 5 minutos a pé da estação Anyang · 42 suítes premium",
+    "btn_rooms": "Ver quartos",
+    "btn_rates": "Ver tarifas",
+    "scroll": "Rolar"
+  },
+  "Header": {
+    "brand_main": "ILLOWA",
+    "brand_sub": "Hotel",
+    "nav_rooms": "Quartos",
+    "nav_rates": "Tarifas",
+    "nav_amenities": "Comodidades",
+    "nav_gallery": "Galeria",
+    "nav_contact": "Localização",
+    "cta_call": "📞 Reservas",
+    "menu_aria": "Abrir menu",
+    "mobile_rooms": "Guia de quartos",
+    "mobile_rates": "Guia de tarifas",
+    "mobile_amenities": "Comodidades",
+    "mobile_gallery": "Galeria",
+    "mobile_contact": "Localização",
+    "mobile_call": "Ligar para reservar"
+  },
+  "Information": {
+    "map_placeholder": "Área do mapa (integração com Kakao Map API pendente)",
+    "map_naver": "Mapa Naver",
+    "map_kakao": "Mapa Kakao",
+    "eyebrow": "Location",
+    "title": "Como chegar",
+    "label_address": "Address",
+    "label_transport": "Transport",
+    "label_contact_frontdesk": "Contact & Front Desk"
+  },
+  "Footer": {
+    "brand": "Illowa Hotel",
+    "company_name": "Empresa",
+    "representative": "Representante",
+    "business_number": "N.º de registro comercial",
+    "address": "Endereço",
+    "phone": "Telefone",
+    "email": "E-mail",
+    "rights_reserved": "TODOS OS DIREITOS RESERVADOS.",
+    "terms": "Termos de uso",
+    "privacy": "Política de privacidade",
+    "cookies": "Política de cookies"
+  },
+  "Rooms": {
+    "eyebrow": "Nossas suítes",
+    "title": "Quartos e suítes",
+    "tab_all": "Todos os quartos",
+    "tab_standard": "Padrão/Luxo",
+    "tab_gaming": "Zona gamer",
+    "tab_premier": "Premium",
+    "tab_special": "Especial/Longa estadia",
+    "view_details": "Ver detalhes"
+  },
+  "RoomModal": {
+    "close": "Fechar",
+    "facilities": "Comodidades do quarto",
+    "rate_info": "Informações de tarifa (KRW)",
+    "weekday": "Dias úteis",
+    "friday": "Sexta-feira",
+    "saturday_holiday": "Sábado / véspera de feriado",
+    "description": "Descrição do quarto"
+  },
+  "Rates": {
+    "eyebrow": "Tarifas",
+    "title": "Guia de tarifas",
+    "table_room_type": "Tipo de quarto",
+    "table_weekday": "Dias úteis (Dom~Qui)",
+    "table_friday": "Sexta-feira",
+    "table_saturday": "Sábado / véspera de feriado",
+    "currency": "KRW",
+    "note_standard_occupancy": "* As tarifas consideram ocupação padrão de 2 hóspedes. Podem haver cobranças extras.",
+    "note_seasonal_change": "* As tarifas podem variar na alta temporada e em datas especiais."
+  },
+  "Amenities": {
+    "eyebrow": "Comodidades",
+    "title": "Comodidades e serviços"
+  },
+  "Gallery": {
+    "eyebrow": "Galeria",
+    "title": "Galeria do hotel"
+  },
+  "BookingCTA": {
+    "title": "Reserva",
+    "description_line1": "Reserve rapidamente por canais otimizados para hóspedes internacionais.",
+    "description_line2": "Priorizamos OTAs de maior conversão no topo e deixamos comparação/canais locais como apoio.",
+    "btn_yanolja": "Yanolja",
+    "btn_yeogi": "Yeogi-eottae",
+    "btn_call": "Ligar para reservar",
+    "group_primary_title": "Canais principais",
+    "group_primary_description": "Canais prioritários com melhor conversão internacional",
+    "group_secondary_title": "Canais de comparação",
+    "group_secondary_description": "Segunda prioridade para comparar tarifas e pacotes",
+    "group_support_title": "Canais de apoio",
+    "group_support_description": "Avaliações, OTAs locais e contato por telefone",
+    "badge_priority": "Prioridade",
+    "badge_secondary": "Comparar",
+    "badge_reference": "Avaliações",
+    "badge_local": "Local",
+    "btn_google_hotels": "Google Hotels",
+    "sub_google_hotels": "Entrada rápida pelo ecossistema Google Travel",
+    "btn_booking": "Booking.com",
+    "sub_booking": "OTA global com alta conversão",
+    "btn_agoda": "Agoda",
+    "sub_agoda": "Forte para viajantes focados na Ásia",
+    "btn_tripcom": "Trip.com",
+    "sub_tripcom": "Bom alcance na Ásia e global",
+    "btn_expedia": "Expedia",
+    "sub_expedia": "Útil para reservas em pacote",
+    "btn_hotelscombined": "HotelsCombined",
+    "sub_hotelscombined": "Meta-busca para comparar preços",
+    "btn_tripadvisor": "Tripadvisor",
+    "sub_tripadvisor": "Canal de confiança baseado em avaliações",
+    "sub_yanolja": "OTA local da Coreia",
+    "sub_yeogi": "OTA local da Coreia",
+    "aria_open_platform": "Abrir a página de reserva do {platform} em nova aba",
+    "aria_call": "Ligar para a recepção para reservar"
+  },
+  "StatsBar": {
+    "premium_suites": "SUÍTES PREMIUM",
+    "gaming_rooms": "QUARTOS GAMING",
+    "snack_bar": "SNACK BAR"
+  },
+  "ChineseSection": {
+    "title": "Hotel ILLOWA Anyang",
+    "line1": "O Hotel ILLOWA Anyang recebe calorosamente visitantes da China.",
+    "line2": "A recepção oferece suporte em chinês 24 horas e todos os quartos incluem Wi-Fi gratuito de alta velocidade.",
+    "line3": "Com snack bar com mais de 100 tipos de ramen e quartos com 2 PCs de alta performance (alguns tipos), oferecemos uma estadia confortável.",
+    "badge_cn_service": "Suporte em chinês",
+    "badge_anyang_5min": "5 min a pé da estação Anyang",
+    "badge_unionpay": "UnionPay / cartão de crédito aceito"
+  }
+}

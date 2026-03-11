@@ -1,0 +1,18 @@
+{
+  "eyebrow": "Business & Rest",
+  "title": "Projetado para profissionais",
+  "description": [
+    "Durma melhor com colchões confortáveis e roupa de cama premium.",
+    "Todos os quartos contam com computador e Wi‑Fi grátis para trabalho eficiente.",
+    "Também oferecemos opções de longa estadia com late checkout e emissão de fatura fiscal."
+  ],
+  "features": [
+    "Pagamento com cartão corporativo e emissão fiscal",
+    "Quartos com Styler e cadeira de massagem (Premium)",
+    "Wi‑Fi de alta velocidade e computador em todos os quartos"
+  ],
+  "image": {
+    "src": "/images/프리미어_10.webp",
+    "alt": "Estrutura de negócios do ILLOWA HOTEL"
+  }
+}

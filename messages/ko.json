@@ -1,0 +1,141 @@
+{
+  "Hero": {
+    "eyebrow": "Anyang Station · 5 Min Walk",
+    "title_il": "IL",
+    "title_o": "O",
+    "title_wa": "WA",
+    "subtitle": "일로와 호텔",
+    "desc_short": "안양역 도보 5분 · 42실 프리미엄 스위트",
+    "btn_rooms": "객실 보기",
+    "btn_rates": "요금 확인",
+    "scroll": "스크롤"
+  },
+  "Header": {
+    "brand_main": "ILLOWA",
+    "brand_sub": "Hotel",
+    "nav_rooms": "객실",
+    "nav_rates": "요금",
+    "nav_amenities": "시설",
+    "nav_gallery": "갤러리",
+    "nav_contact": "오시는 길",
+    "cta_call": "📞 예약문의",
+    "menu_aria": "메뉴 열기",
+    "mobile_rooms": "객실 안내",
+    "mobile_rates": "요금 안내",
+    "mobile_amenities": "편의 시설",
+    "mobile_gallery": "갤러리",
+    "mobile_contact": "오시는 길",
+    "mobile_call": "전화 예약"
+  },
+  "Information": {
+    "map_placeholder": "지도 영역 (카카오맵 API 연동 예정)",
+    "map_naver": "네이버 지도",
+    "map_kakao": "카카오 맵",
+    "eyebrow": "Location",
+    "title": "오시는 길",
+    "label_address": "Address",
+    "label_transport": "Transport",
+    "label_contact_frontdesk": "Contact & Front Desk"
+  },
+  "Footer": {
+    "brand": "Illowa Hotel",
+    "company_name": "상호명",
+    "representative": "대표자",
+    "business_number": "사업자등록번호",
+    "address": "주소",
+    "phone": "전화",
+    "email": "이메일",
+    "rights_reserved": "ALL RIGHTS RESERVED.",
+    "terms": "이용약관",
+    "privacy": "개인정보처리방침",
+    "cookies": "쿠키 정책"
+  },
+  "Rooms": {
+    "eyebrow": "Our Suites",
+    "title": "Rooms & Suites",
+    "tab_all": "전체 객실",
+    "tab_standard": "스탠다드/디럭스",
+    "tab_gaming": "게이밍 존",
+    "tab_premier": "프리미어",
+    "tab_special": "특가/연박",
+    "view_details": "자세히 보기"
+  },
+  "RoomModal": {
+    "close": "닫기",
+    "facilities": "객실 비품 및 시설",
+    "rate_info": "요금 정보 (KRW)",
+    "weekday": "평일",
+    "friday": "금요일",
+    "saturday_holiday": "토/공휴일 전일",
+    "description": "객실 설명"
+  },
+  "Rates": {
+    "eyebrow": "Room Rates",
+    "title": "요금 안내",
+    "table_room_type": "객실 타입",
+    "table_weekday": "평일 (일~목)",
+    "table_friday": "금요일",
+    "table_saturday": "토요일/공휴일 전일",
+    "currency": "KRW",
+    "note_standard_occupancy": "* 위 요금은 기준 인원(2인) 요금이며, 인원 추가 시 추가 요금이 발생할 수 있습니다.",
+    "note_seasonal_change": "* 성수기, 특정일에는 요금이 변동될 수 있습니다."
+  },
+  "Amenities": {
+    "eyebrow": "Facilities",
+    "title": "편의 시설 및 서비스"
+  },
+  "Gallery": {
+    "eyebrow": "Gallery",
+    "title": "호텔 갤러리"
+  },
+  "BookingCTA": {
+    "title": "예약하기",
+    "description_line1": "외국인 고객에게 최적화된 채널에서 빠르게 예약하세요.",
+    "description_line2": "핵심 OTA를 상단에 배치해 즉시 예약 전환을 돕고, 비교 채널과 로컬 채널을 보조로 제공합니다.",
+    "btn_yanolja": "야놀자",
+    "btn_yeogi": "여기어때",
+    "btn_call": "전화 문의하기",
+    "group_primary_title": "핵심 예약 채널",
+    "group_primary_description": "해외 고객 전환율이 높은 우선 채널",
+    "group_secondary_title": "비교 예약 채널",
+    "group_secondary_description": "추가 요금/패키지 비교를 위한 2순위 채널",
+    "group_support_title": "보조 채널",
+    "group_support_description": "리뷰 확인, 국내 OTA, 전화 문의",
+    "badge_priority": "Priority",
+    "badge_secondary": "Compare",
+    "badge_reference": "Review",
+    "badge_local": "Local",
+    "btn_google_hotels": "Google Hotels",
+    "sub_google_hotels": "구글 여행 생태계 기반 빠른 진입",
+    "btn_booking": "Booking.com",
+    "sub_booking": "글로벌 숙소 예약 대표 채널",
+    "btn_agoda": "Agoda",
+    "sub_agoda": "아시아권 여행자 전환 강점",
+    "btn_tripcom": "Trip.com",
+    "sub_tripcom": "중화권 및 글로벌 사용자 접근",
+    "btn_expedia": "Expedia",
+    "sub_expedia": "패키지/번들 예약 수요 대응",
+    "btn_hotelscombined": "HotelsCombined",
+    "sub_hotelscombined": "메타 비교로 가격 탐색 유입",
+    "btn_tripadvisor": "Tripadvisor",
+    "sub_tripadvisor": "리뷰 기반 신뢰 확보 채널",
+    "sub_yanolja": "국내 OTA 예약",
+    "sub_yeogi": "국내 OTA 예약",
+    "aria_open_platform": "{platform} 예약 페이지 새 탭 열기",
+    "aria_call": "프런트 데스크로 전화 연결"
+  },
+  "StatsBar": {
+    "premium_suites": "프리미엄 스위트",
+    "gaming_rooms": "게이밍 룸",
+    "snack_bar": "스낵바"
+  },
+  "ChineseSection": {
+    "title": "안양 일로와 호텔",
+    "line1": "안양 일로와 호텔은 중국 고객 여러분을 언제나 환영합니다.",
+    "line2": "프런트 데스크에서 24시간 중국어 응대가 가능하며, 전 객실 무료 초고속 Wi-Fi를 제공합니다.",
+    "line3": "100여 종 라면 스낵바와 고사양 2PC 객실(일부 타입)로 한국 여행 중 편안한 휴식을 제공합니다.",
+    "badge_cn_service": "중국어 서비스 제공",
+    "badge_anyang_5min": "안양역 도보 5분",
+    "badge_unionpay": "유니온페이/신용카드 결제"
+  }
+}

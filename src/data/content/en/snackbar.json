@@ -1,0 +1,17 @@
+{
+  "eyebrow": "Free Snack Bar",
+  "title": "Unlimited Noodles & Breakfast",
+  "description": [
+    "Enjoy unlimited instant noodles from over 100 selections at our B1 snack bar, available around the clock.",
+    "Experience ILLOWA's signature F&B perks including welcome desserts in the lobby and unlimited coffee."
+  ],
+  "features": [
+    "100+ cup noodle options, available 24/7",
+    "Morning ramen breakfast set (egg, dumplings)",
+    "Premium coffee machine & welcome cheesecake"
+  ],
+  "image": {
+    "src": "/images/숙소시설_1.webp",
+    "alt": "ILLOWA HOTEL unlimited snack bar"
+  }
+}
