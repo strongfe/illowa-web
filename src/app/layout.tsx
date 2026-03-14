@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import { hasLocale } from 'next-intl';
+import { Analytics } from '@vercel/analytics/react';
 import { routing } from '@/i18n/routing';
 import './globals.css';
 
@@ -39,6 +40,7 @@ export default async function RootLayout({
     <html lang={localeTags[locale]} className="scroll-smooth">
       <body className="antialiased bg-[#0A0A0A] text-[#F5F2EC] font-montserrat overflow-x-hidden">
         {children}
+        <Analytics />
       </body>
     </html>
   );
