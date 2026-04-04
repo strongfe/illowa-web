@@ -55,6 +55,7 @@ export default function ChatWidget() {
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const sessionId = useRef<string>(crypto.randomUUID());
 
   const greeting = GREETING[locale] ?? GREETING.en;
   const placeholder = PLACEHOLDER[locale] ?? PLACEHOLDER.en;
@@ -88,7 +89,7 @@ export default function ChatWidget() {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: apiMessages, locale }),
+        body: JSON.stringify({ messages: apiMessages, locale, session_id: sessionId.current }),
       });
 
       if (!res.ok || !res.body) throw new Error('Network error');

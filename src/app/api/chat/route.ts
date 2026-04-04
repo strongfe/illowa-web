@@ -1,7 +1,13 @@
 import { NextRequest } from 'next/server';
 import OpenAI from 'openai';
+import { createClient } from '@supabase/supabase-js';
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_SECRET_KEY!
+);
 
 const HOTEL_CONTEXT = `
 ## 일로와 호텔 (ILLOWA HOTEL) 정보
@@ -71,7 +77,9 @@ BEHAVIOR GUIDELINES:
 - Use friendly tone appropriate for a hotel concierge`;
 
 export async function POST(req: NextRequest) {
-  const { messages, locale } = await req.json();
+  const { messages, locale, session_id } = await req.json();
+
+  const userMessage = messages[messages.length - 1]?.content ?? '';
 
   const stream = await client.chat.completions.create({
     model: 'gpt-4o-mini',
@@ -85,15 +93,26 @@ export async function POST(req: NextRequest) {
   });
 
   const encoder = new TextEncoder();
+  let assistantResponse = '';
+
   const readable = new ReadableStream({
     async start(controller) {
       for await (const chunk of stream) {
         const text = chunk.choices[0]?.delta?.content ?? '';
         if (text) {
+          assistantResponse += text;
           controller.enqueue(encoder.encode(text));
         }
       }
       controller.close();
+
+      // 스트리밍 완료 후 Supabase에 로그 저장
+      await supabase.from('chat_logs').insert({
+        session_id: session_id ?? null,
+        locale: locale ?? 'ko',
+        user_message: userMessage,
+        assistant_response: assistantResponse,
+      });
     },
   });
 
