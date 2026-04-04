@@ -57,6 +57,7 @@ const MARKET_ITEMS = [
     desc: '673개 점포 · 도보 7분',
     edesc: '673 shops · 7 min walk',
     tags: ['김밥로', '곱창골목', '떡볶이골목'],
+    map: 'https://map.naver.com/v5/search/안양중앙시장',
   },
   {
     img: 'https://images.unsplash.com/photo-1551218808-94e220e084d2?w=600&q=80',
@@ -65,6 +66,7 @@ const MARKET_ITEMS = [
     desc: '3,000~5,000원 · K-디저트',
     edesc: '₩3,000~5,000 · K-Dessert',
     tags: ['바삭', '고소', '포토제닉'],
+    map: 'https://map.naver.com/v5/search/안양중앙시장',
   },
   {
     img: 'https://images.unsplash.com/photo-1635363638580-c2809d049eee?w=600&q=80',
@@ -73,6 +75,7 @@ const MARKET_ITEMS = [
     desc: '3,000~5,000원',
     edesc: '₩3,000~5,000',
     tags: ['골목 먹방', '길거리음식'],
+    map: 'https://map.naver.com/v5/search/안양중앙시장',
   },
   {
     img: 'https://images.unsplash.com/photo-1547592180-85f173990554?w=600&q=80',
@@ -81,6 +84,7 @@ const MARKET_ITEMS = [
     desc: '5,500~9,000원',
     edesc: '₩5,500~9,000',
     tags: ['노포', '가성비', '24h 일부'],
+    map: 'https://map.naver.com/v5/search/안양중앙시장+순대국',
   },
 ];
 
@@ -92,6 +96,7 @@ const BEAUTY_ITEMS = [
     desc: '도보 10분 · Tax Free 즉시환급',
     edesc: '10 min walk · Tax Free Refund',
     tags: ['선크림', '세럼', '마스크팩'],
+    map: 'https://map.naver.com/v5/search/올리브영+안양사거리점',
   },
   {
     img: 'https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?w=600&q=80',
@@ -100,6 +105,7 @@ const BEAUTY_ITEMS = [
     desc: '500개 점포 · 백화점 대비 30~50% 저렴',
     edesc: '500 shops · 30-50% cheaper',
     tags: ['의류', '액세서리', '화장품'],
+    map: 'https://map.naver.com/v5/search/안양지하상가+일번가몰',
   },
   {
     img: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=600&q=80',
@@ -108,6 +114,7 @@ const BEAUTY_ITEMS = [
     desc: '안양역 직결 · 30~70% 할인',
     edesc: 'Connected to station · 30-70% off',
     tags: ['SPAO', 'Nike', 'Adidas'],
+    map: 'https://map.naver.com/v5/search/엔터식스+안양',
   },
 ];
 
@@ -119,6 +126,7 @@ const ART_ITEMS = [
     desc: '입장 무료 · 세계 건축가 60여명 참여',
     edesc: 'Free entry · 60+ world architects',
     tags: ['알바루 시자', 'MVRDV', '스탬프투어'],
+    map: 'https://map.naver.com/v5/search/안양예술공원',
   },
   {
     img: 'https://images.unsplash.com/photo-1522383225653-ed111181a951?w=600&q=80',
@@ -127,6 +135,7 @@ const ART_ITEMS = [
     desc: '4월 초 만개 · 약 10km 벚꽃 터널',
     edesc: 'Early April · 10km blossom tunnel',
     tags: ['봄 명소', '야간 조명', '산책로'],
+    map: 'https://map.naver.com/v5/search/안양천',
   },
   {
     img: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80',
@@ -135,15 +144,16 @@ const ART_ITEMS = [
     desc: '왕복 2~3시간 · 계곡+작품 감상',
     edesc: '2~3 hrs round trip · Valley + Art',
     tags: ['등산', '계곡', '자연'],
+    map: 'https://map.naver.com/v5/search/삼성산',
   },
 ];
 
 const COURSE_STEPS = [
-  { time: '10:00', icon: '🌿', place: '안양예술공원', en: 'Anyang Art Park', desc: 'APAP 작품 감상 + 스탬프투어 + 트레킹 (2~3시간)', edesc: 'Art viewing + Stamp tour + Trekking (2-3 hrs)' },
-  { time: '13:00', icon: '🍜', place: '안양중앙시장', en: 'Anyang Central Market', desc: '누룽지 + 호떡 + 어묵 + 순대국 먹방 투어', edesc: 'Street food tour: rice crust, hotteok, fish cake, sundaeguk' },
-  { time: '15:00', icon: '💄', place: '올리브영', en: 'Olive Young', desc: 'K-뷰티 쇼핑 + Tax Free 즉시환급', edesc: 'K-Beauty shopping + instant Tax Free refund' },
-  { time: '16:00', icon: '🛍️', place: '일번가몰 + 엔터식스', en: 'Ilbeon-ga + Enter6', desc: '패션 쇼핑 + 기념품 구매', edesc: 'Fashion shopping + souvenirs' },
-  { time: '17:30', icon: '🌸', place: '안양천 산책로', en: 'Anyangcheon Stream', desc: '계절별 산책 + 일몰 감상', edesc: 'Seasonal walk + sunset view' },
+  { time: '10:00', icon: '🌿', place: '안양예술공원', en: 'Anyang Art Park', desc: 'APAP 작품 감상 + 스탬프투어 + 트레킹 (2~3시간)', edesc: 'Art viewing + Stamp tour + Trekking (2-3 hrs)', map: 'https://map.naver.com/v5/search/안양예술공원' },
+  { time: '13:00', icon: '🍜', place: '안양중앙시장', en: 'Anyang Central Market', desc: '누룽지 + 호떡 + 어묵 + 순대국 먹방 투어', edesc: 'Street food tour: rice crust, hotteok, fish cake, sundaeguk', map: 'https://map.naver.com/v5/search/안양중앙시장' },
+  { time: '15:00', icon: '💄', place: '올리브영', en: 'Olive Young', desc: 'K-뷰티 쇼핑 + Tax Free 즉시환급', edesc: 'K-Beauty shopping + instant Tax Free refund', map: 'https://map.naver.com/v5/search/올리브영+안양사거리점' },
+  { time: '16:00', icon: '🛍️', place: '일번가몰 + 엔터식스', en: 'Ilbeon-ga + Enter6', desc: '패션 쇼핑 + 기념품 구매', edesc: 'Fashion shopping + souvenirs', map: 'https://map.naver.com/v5/search/안양지하상가+일번가몰' },
+  { time: '17:30', icon: '🌸', place: '안양천 산책로', en: 'Anyangcheon Stream', desc: '계절별 산책 + 일몰 감상', edesc: 'Seasonal walk + sunset view', map: 'https://map.naver.com/v5/search/안양천' },
 ];
 
 export default function TouristGuideModal() {
@@ -203,7 +213,7 @@ export default function TouristGuideModal() {
             {/* Tabs */}
             <div className="flex border-b border-white/10 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
               {TABS.map((t) => (
-                <button key={t.id} onClick={() => setTab(t.tabId)}
+                <button key={t.tabId} onClick={() => setTab(t.tabId)}
                   className="flex items-center gap-1.5 px-4 py-3 text-xs font-medium tracking-wide whitespace-nowrap transition-all flex-shrink-0"
                   style={{
                     color: tab === t.tabId ? '#b8964a' : '#666',
@@ -238,11 +248,16 @@ export default function TouristGuideModal() {
                         </div>
                         <div className="px-3 py-2.5">
                           <p className="text-xs mb-1.5" style={{ color: '#b8964a' }}>{isKo ? item.desc : item.edesc}</p>
-                          <div className="flex flex-wrap gap-1">
+                          <div className="flex flex-wrap gap-1 mb-2">
                             {item.tags.map((tag, j) => (
                               <span key={j} className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: '#222', color: '#aaa' }}>{tag}</span>
                             ))}
                           </div>
+                          <a href={item.map} target="_blank" rel="noreferrer noopener"
+                            className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full transition-opacity hover:opacity-80"
+                            style={{ background: 'rgba(3,199,90,0.15)', color: '#03C75A', border: '1px solid rgba(3,199,90,0.3)' }}>
+                            📍 {isKo ? '네이버 지도' : 'Naver Map'}
+                          </a>
                         </div>
                       </div>
                     ))}
@@ -274,10 +289,15 @@ export default function TouristGuideModal() {
                         <div className="py-3 pr-3 flex-1">
                           <p className="text-sm font-semibold text-white mb-1">{isKo ? item.title : item.en}</p>
                           <p className="text-xs mb-2" style={{ color: '#b8964a' }}>{isKo ? item.desc : item.edesc}</p>
-                          <div className="flex flex-wrap gap-1">
+                          <div className="flex flex-wrap items-center gap-1">
                             {item.tags.map((tag, j) => (
                               <span key={j} className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: '#222', color: '#aaa' }}>{tag}</span>
                             ))}
+                            <a href={item.map} target="_blank" rel="noreferrer noopener"
+                              className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full transition-opacity hover:opacity-80"
+                              style={{ background: 'rgba(3,199,90,0.15)', color: '#03C75A', border: '1px solid rgba(3,199,90,0.3)' }}>
+                              📍 {isKo ? '네이버 지도' : 'Naver Map'}
+                            </a>
                           </div>
                         </div>
                       </div>
@@ -311,10 +331,15 @@ export default function TouristGuideModal() {
                             <p className="text-xs mt-0.5" style={{ color: '#b8964a' }}>{isKo ? item.desc : item.edesc}</p>
                           </div>
                         </div>
-                        <div className="px-4 py-2.5 flex gap-1.5">
+                        <div className="px-4 py-2.5 flex flex-wrap items-center gap-1.5">
                           {item.tags.map((tag, j) => (
                             <span key={j} className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: '#222', color: '#aaa' }}>{tag}</span>
                           ))}
+                          <a href={item.map} target="_blank" rel="noreferrer noopener"
+                            className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full transition-opacity hover:opacity-80"
+                            style={{ background: 'rgba(3,199,90,0.15)', color: '#03C75A', border: '1px solid rgba(3,199,90,0.3)' }}>
+                            📍 {isKo ? '네이버 지도' : 'Naver Map'}
+                          </a>
                         </div>
                       </div>
                     ))}
@@ -341,7 +366,14 @@ export default function TouristGuideModal() {
                             {step.icon}
                           </div>
                           <div className="flex-1 pb-1">
-                            <p className="text-sm font-semibold text-white">{isKo ? step.place : step.en}</p>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="text-sm font-semibold text-white">{isKo ? step.place : step.en}</p>
+                              <a href={step.map} target="_blank" rel="noreferrer noopener"
+                                className="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full transition-opacity hover:opacity-80"
+                                style={{ background: 'rgba(3,199,90,0.15)', color: '#03C75A', border: '1px solid rgba(3,199,90,0.3)' }}>
+                                📍 {isKo ? '지도' : 'Map'}
+                              </a>
+                            </div>
                             <p className="text-xs mt-0.5" style={{ color: '#888' }}>{isKo ? step.desc : step.edesc}</p>
                           </div>
                         </div>
