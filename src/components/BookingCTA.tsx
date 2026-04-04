@@ -1,8 +1,25 @@
+'use client';
+
 import linksData from '@/data/bookingLinks.json';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
+
+const GUIDE_LABEL: Record<string, string> = {
+  ko: '🗺️ 호텔 주변 둘러보기 — 시장, K-뷰티, 예술공원 안내',
+  en: '🗺️ Explore the area — Markets, K-Beauty, Art Park & more',
+  ja: '🗺️ 周辺を探索 — 市場・K-ビューティー・芸術公園など',
+  zh: '🗺️ 探索周边 — 市场、K-美妆、艺术公园等',
+  ru: '🗺️ Исследуйте окрестности — Рынки, K-Beauty, Арт-парк',
+  es: '🗺️ Explora los alrededores — Mercados, K-Beauty, Parque de Arte',
+  fr: '🗺️ Explorer les environs — Marchés, K-Beauté, Parc d\'Art',
+  pt: '🗺️ Explore a área — Mercados, K-Beauty, Parque de Arte',
+  id: '🗺️ Jelajahi sekitar — Pasar, K-Beauty, Taman Seni',
+  hi: '🗺️ आसपास घूमें — बाज़ार, K-ब्यूटी, आर्ट पार्क',
+};
 
 export default function BookingCTA() {
     const t = useTranslations('BookingCTA');
+    const locale = useLocale();
+    const guideLabel = GUIDE_LABEL[locale] ?? GUIDE_LABEL.en;
     const groups = [
         {
             title: t('group_primary_title'),
@@ -54,6 +71,15 @@ export default function BookingCTA() {
                     {t('description_line1')}<br />
                     {t('description_line2')}
                 </p>
+
+                {/* 관광 가이드 트리거 */}
+                <button
+                    onClick={() => window.dispatchEvent(new CustomEvent('open-tourist-guide'))}
+                    className="w-full mb-6 py-3 px-5 rounded-xl text-sm tracking-wide transition-all hover:opacity-80 active:scale-[0.99] flex items-center justify-center gap-2"
+                    style={{ background: 'rgba(184,150,74,0.08)', border: '1px solid rgba(184,150,74,0.35)', color: '#b8964a' }}
+                >
+                    {guideLabel}
+                </button>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-6">
                     {groups.map((group) => (
