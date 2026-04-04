@@ -27,6 +27,8 @@ const localeTags: Record<(typeof routing.locales)[number], string> = {
 const GTM_ID = 'GTM-KS2PGX4';
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID || '';             // G-XXXXXXXXXX
 const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID || ''; // 15자리 숫자
+const GADS_ID = process.env.NEXT_PUBLIC_GADS_ID || '';         // AW-XXXXXXXXX
+const NAVER_ACCOUNT_ID = process.env.NEXT_PUBLIC_NAVER_ACCOUNT_ID || ''; // 네이버 광고 공통 전환 스크립트 계정 ID
 
 /* ── Schema.org 구조화 데이터 ── */
 const HOTEL_SCHEMA = {
@@ -220,6 +222,42 @@ export default async function RootLayout({
                 fbq('init','${META_PIXEL_ID}');fbq('track','PageView');`,
             }}
           />
+        )}
+
+        {/* ── Google Ads 전환 추적 (gtag.js) ── */}
+        {GADS_ID && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${GADS_ID}`}
+              strategy="afterInteractive"
+            />
+            <Script
+              id="gads-config"
+              strategy="afterInteractive"
+              dangerouslySetInnerHTML={{
+                __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}
+                  gtag('js',new Date());gtag('config','${GADS_ID}');`,
+              }}
+            />
+          </>
+        )}
+
+        {/* ── 네이버 광고 공통 전환 추적 스크립트 (wcslog) ── */}
+        {NAVER_ACCOUNT_ID && (
+          <>
+            <Script
+              src="https://wcs.naver.net/wcslog.js"
+              strategy="afterInteractive"
+            />
+            <Script
+              id="naver-wcs"
+              strategy="afterInteractive"
+              dangerouslySetInnerHTML={{
+                __html: `if(!wcs_add)var wcs_add={};wcs_add["wa"]="${NAVER_ACCOUNT_ID}";
+                  if(window.wcs){wcs_do();}`,
+              }}
+            />
+          </>
         )}
       </body>
     </html>

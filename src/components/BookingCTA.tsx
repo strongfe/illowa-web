@@ -29,6 +29,16 @@ const GUIDE_LABEL: Record<string, string> = {
   hi: '🗺️ आसपास घूमें — बाज़ार, K-ब्यूटी, आर्ट पार्क',
 };
 
+function trackConversion(platform: string) {
+    // Google Ads conversion (dataLayer for GTM + gtag fallback)
+    const w = window as unknown as { dataLayer?: object[]; gtag?: (...args: unknown[]) => void };
+    w.dataLayer?.push({ event: 'booking_click', platform });
+    w.gtag?.('event', 'conversion', { send_to: `${process.env.NEXT_PUBLIC_GADS_ID}/booking_click` });
+    // Naver conversion
+    const wcs = (window as unknown as { wcs?: { event: (t: string, p: string, v: string) => void } }).wcs;
+    wcs?.event('send', 'booking_click', platform);
+}
+
 export default function BookingCTA() {
     const t = useTranslations('BookingCTA');
     const locale = useLocale();
@@ -118,6 +128,7 @@ export default function BookingCTA() {
                                         aria-label={t('aria_open_platform', { platform: button.label })}
                                         className={`block w-full rounded-lg px-4 py-3 transition-colors ${button.buttonClass}`}
                                         data-track={button.track}
+                                        onClick={() => trackConversion(button.label)}
                                     >
                                         <div className="flex items-center justify-between gap-3">
                                             <span className="font-montserrat text-sm tracking-wide">{button.label}</span>
@@ -139,6 +150,7 @@ export default function BookingCTA() {
                         aria-label={t('aria_call')}
                         className="block w-full rounded-xl py-4 bg-gold text-black font-noto-kr tracking-wide text-sm font-medium hover:bg-gold-light transition-colors text-center"
                         data-track="click_call_footer"
+                        onClick={() => trackConversion('direct_call')}
                     >
                         {t('btn_call')}
                     </a>
