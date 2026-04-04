@@ -58,7 +58,8 @@
     "tab_gaming": "Zone jeu",
     "tab_premier": "Premium",
     "tab_special": "Offre spéciale/Long séjour",
-    "view_details": "Voir les détails"
+    "view_details": "Voir les détails",
+    "book_now": "Réserver"
   },
   "RoomModal": {
     "close": "Fermer",

@@ -58,7 +58,8 @@
     "tab_gaming": "Игровая зона",
     "tab_premier": "Премьер",
     "tab_special": "Спецпредложение/Длительное проживание",
-    "view_details": "Подробнее"
+    "view_details": "Подробнее",
+    "book_now": "Забронировать"
   },
   "RoomModal": {
     "close": "Закрыть",

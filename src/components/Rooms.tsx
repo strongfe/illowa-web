@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { ChevronRight } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import RoomModal from './RoomModal';
+import linksData from '@/data/bookingLinks.json';
 import {
     resolveLocalized,
     roomsByLocale as localizedRoomsByLocale
@@ -105,8 +106,20 @@ export default function Rooms() {
                                     ))}
                                 </ul>
                                 <div className="flex items-center justify-between pt-4 border-t border-[#333] group-hover:border-gold/30 transition-colors">
-                                    <div className="text-gold text-sm font-noto-kr">{t('view_details')}</div>
-                                    <ChevronRight className="text-gold w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                    <div className="flex items-center gap-1 text-gold text-sm font-noto-kr">
+                                        {t('view_details')}
+                                        <ChevronRight className="text-gold w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                    </div>
+                                    <a
+                                        href={linksData.booking}
+                                        target="_blank"
+                                        rel="noreferrer noopener"
+                                        onClick={(e) => e.stopPropagation()}
+                                        className="bg-gold text-black text-[11px] font-semibold tracking-wide px-4 py-1.5 hover:bg-gold-light transition-colors"
+                                        data-track="click_room_card_booking"
+                                    >
+                                        {t('book_now')}
+                                    </a>
                                 </div>
                             </div>
                         </div>

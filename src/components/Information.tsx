@@ -9,13 +9,27 @@ export default function Information() {
     return (
         <section id="contact" className="py-24 px-5 bg-black border-t border-[#111]">
             <div className="max-w-[1200px] mx-auto flex flex-col md:flex-row gap-12">
-                {/* Map Placeholder */}
-                <div className="md:w-1/2 h-[400px] bg-[#1a1a1a] rounded-sm relative border border-gold/30 flex items-center justify-center flex-col">
-                    <div className="text-gold text-4xl mb-4">📍</div>
-                    <p className="text-white2 font-noto-kr">{t('map_placeholder')}</p>
-                    <div className="flex gap-4 mt-6">
-                        <a href={contactData.map_links.naver} target="_blank" rel="noreferrer" className="text-black bg-gold py-2 px-6 text-sm font-noto-kr">{t('map_naver')}</a>
-                        <a href={contactData.map_links.kakao} target="_blank" rel="noreferrer" className="text-black bg-white py-2 px-6 text-sm font-noto-kr">{t('map_kakao')}</a>
+                {/* Map Embed */}
+                <div className="md:w-1/2 h-[400px] rounded-sm relative border border-gold/30 overflow-hidden">
+                    <iframe
+                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3172.1!2d126.9274!3d37.3977!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x357b5f6b3b3b3b3b%3A0x0!2z7J247L2U7JiB7Zi4IOyEseyLnA!5e0!3m2!1sko!2skr!4v1700000000000!5m2!1sko!2skr&q=경기도+안양시+만안구+안양로268번길+41"
+                        width="100%"
+                        height="100%"
+                        style={{ border: 0, filter: 'invert(90%) hue-rotate(180deg)' }}
+                        allowFullScreen
+                        loading="lazy"
+                        referrerPolicy="no-referrer-when-downgrade"
+                        title="ILLOWA Hotel Location"
+                    />
+                    <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-3">
+                        <a href={contactData.map_links.naver} target="_blank" rel="noreferrer"
+                            className="text-black bg-gold py-2 px-5 text-xs font-noto-kr shadow-lg hover:bg-gold-light transition-colors">
+                            {t('map_naver')}
+                        </a>
+                        <a href={contactData.map_links.kakao} target="_blank" rel="noreferrer"
+                            className="text-black bg-white py-2 px-5 text-xs font-noto-kr shadow-lg hover:bg-gray-100 transition-colors">
+                            {t('map_kakao')}
+                        </a>
                     </div>
                 </div>
 

@@ -58,7 +58,8 @@
     "tab_gaming": "Zona gamer",
     "tab_premier": "Prémium",
     "tab_special": "Especial/Larga estancia",
-    "view_details": "Ver detalles"
+    "view_details": "Ver detalles",
+    "book_now": "Reservar"
   },
   "RoomModal": {
     "close": "Cerrar",

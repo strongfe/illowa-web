@@ -58,7 +58,8 @@
     "tab_gaming": "ゲーミングゾーン",
     "tab_premier": "プレミア",
     "tab_special": "特価/連泊",
-    "view_details": "詳細を見る"
+    "view_details": "詳細を見る",
+    "book_now": "予約する"
   },
   "RoomModal": {
     "close": "閉じる",

@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
 import ChatWidget from '@/components/ChatWidget';
 import TouristGuideModal from '@/components/TouristGuideModal';
+import StickyBookingBar from '@/components/StickyBookingBar';
 
 type Locale = (typeof routing.locales)[number];
 
@@ -227,6 +228,7 @@ export default async function LocaleLayout({ children, params }: Props) {
   return (
     <NextIntlClientProvider locale={resolvedLocale} messages={messages}>
       {children}
+      <StickyBookingBar />
       <TouristGuideModal />
       <ChatWidget />
     </NextIntlClientProvider>
