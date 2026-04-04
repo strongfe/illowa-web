@@ -3,6 +3,19 @@
 import linksData from '@/data/bookingLinks.json';
 import { useTranslations, useLocale } from 'next-intl';
 
+const CHAT_LABEL: Record<string, string> = {
+  ko: '💬 궁금한 점이 있으신가요?',
+  en: '💬 Have a question?',
+  ja: '💬 ご不明な点はありますか？',
+  zh: '💬 有问题吗？',
+  ru: '💬 Есть вопросы?',
+  es: '💬 ¿Tiene alguna pregunta?',
+  fr: '💬 Une question ?',
+  pt: '💬 Tem alguma dúvida?',
+  id: '💬 Ada pertanyaan?',
+  hi: '💬 कोई सवाल है?',
+};
+
 const GUIDE_LABEL: Record<string, string> = {
   ko: '🗺️ 호텔 주변 둘러보기 — 시장, K-뷰티, 예술공원 안내',
   en: '🗺️ Explore the area — Markets, K-Beauty, Art Park & more',
@@ -72,14 +85,23 @@ export default function BookingCTA() {
                     {t('description_line2')}
                 </p>
 
-                {/* 관광 가이드 트리거 */}
-                <button
-                    onClick={() => window.dispatchEvent(new CustomEvent('open-tourist-guide'))}
-                    className="w-full mb-6 py-3 px-5 rounded-xl text-sm tracking-wide transition-all hover:opacity-80 active:scale-[0.99] flex items-center justify-center gap-2"
-                    style={{ background: 'rgba(184,150,74,0.08)', border: '1px solid rgba(184,150,74,0.35)', color: '#b8964a' }}
-                >
-                    {guideLabel}
-                </button>
+                {/* 관광 가이드 + 챗봇 트리거 */}
+                <div className="flex flex-col sm:flex-row gap-3 mb-6">
+                    <button
+                        onClick={() => window.dispatchEvent(new CustomEvent('open-tourist-guide'))}
+                        className="flex-1 py-3 px-4 rounded-xl text-sm tracking-wide transition-all hover:opacity-80 active:scale-[0.99] flex items-center justify-center gap-2"
+                        style={{ background: 'rgba(184,150,74,0.08)', border: '1px solid rgba(184,150,74,0.35)', color: '#b8964a' }}
+                    >
+                        {guideLabel}
+                    </button>
+                    <button
+                        onClick={() => window.dispatchEvent(new CustomEvent('open-chatbot'))}
+                        className="sm:flex-none py-3 px-4 rounded-xl text-sm tracking-wide transition-all hover:opacity-80 active:scale-[0.99] flex items-center justify-center gap-2 whitespace-nowrap"
+                        style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.15)', color: '#aaa' }}
+                    >
+                        {CHAT_LABEL[locale] ?? CHAT_LABEL.en}
+                    </button>
+                </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-6">
                     {groups.map((group) => (

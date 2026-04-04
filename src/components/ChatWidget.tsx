@@ -131,6 +131,21 @@ const QUICK_REPLIES: Record<string, { label: string; text: string }[]> = {
   ],
 };
 
+const ERROR_MSG: Record<string, string> = {
+  ko: '⚠️ 연결 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+  en: '⚠️ Connection error. Please try again in a moment.',
+  ja: '⚠️ 接続エラーが発生しました。しばらくしてから再度お試しください。',
+  zh: '⚠️ 连接出错，请稍后重试。',
+  ru: '⚠️ Ошибка соединения. Попробуйте ещё раз позже.',
+  es: '⚠️ Error de conexión. Inténtelo de nuevo en un momento.',
+  fr: '⚠️ Erreur de connexion. Veuillez réessayer dans un moment.',
+  pt: '⚠️ Erro de conexão. Por favor, tente novamente.',
+  id: '⚠️ Kesalahan koneksi. Silakan coba lagi sebentar lagi.',
+  hi: '⚠️ कनेक्शन त्रुटि। कृपया कुछ देर बाद पुनः प्रयास करें।',
+};
+
+const OPEN_CHAT_EVENT = 'open-chatbot';
+
 export default function ChatWidget() {
   const locale = useLocale();
   const [open, setOpen] = useState(false);
@@ -138,6 +153,7 @@ export default function ChatWidget() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [showQuickReplies, setShowQuickReplies] = useState(true);
+  const [bottomOffset, setBottomOffset] = useState(96); // default: bottom-24
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const sessionId = useRef<string>(crypto.randomUUID());
@@ -146,6 +162,25 @@ export default function ChatWidget() {
   const placeholder = PLACEHOLDER[locale] ?? PLACEHOLDER.en;
   const title = TITLE[locale] ?? TITLE.en;
   const quickReplies = QUICK_REPLIES[locale] ?? QUICK_REPLIES.en;
+
+  // 예약 섹션에서 챗봇 열기 이벤트 수신
+  useEffect(() => {
+    const handler = () => setOpen(true);
+    window.addEventListener(OPEN_CHAT_EVENT, handler);
+    return () => window.removeEventListener(OPEN_CHAT_EVENT, handler);
+  }, []);
+
+  // 모바일 키보드 대응 — visualViewport로 실제 화면 높이 추적
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.visualViewport) return;
+    const vv = window.visualViewport;
+    const onResize = () => {
+      const keyboardHeight = window.innerHeight - vv.height;
+      setBottomOffset(keyboardHeight > 50 ? keyboardHeight + 8 : 96);
+    };
+    vv.addEventListener('resize', onResize);
+    return () => vv.removeEventListener('resize', onResize);
+  }, []);
 
   useEffect(() => {
     if (open && messages.length === 0) {
@@ -210,7 +245,7 @@ export default function ChatWidget() {
       setLoading(false);
       setMessages((prev) => [
         ...prev,
-        { role: 'assistant', content: '⚠️ 연결 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' },
+        { role: 'assistant', content: ERROR_MSG[locale] ?? ERROR_MSG.en },
       ]);
     }
   }
@@ -233,8 +268,8 @@ export default function ChatWidget() {
       {/* Chat window */}
       {open && (
         <div
-          className="fixed bottom-24 right-4 z-50 w-[340px] max-w-[calc(100vw-2rem)] flex flex-col rounded-2xl shadow-2xl overflow-hidden border border-white/10"
-          style={{ background: '#1a1a1a', height: '520px' }}
+          className="fixed right-4 z-50 w-[340px] max-w-[calc(100vw-2rem)] flex flex-col rounded-2xl shadow-2xl overflow-hidden border border-white/10"
+          style={{ background: '#1a1a1a', height: '520px', bottom: `${bottomOffset}px`, transition: 'bottom 0.15s ease' }}
         >
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3" style={{ background: '#b8964a' }}>
