@@ -51,7 +51,7 @@ const TABS = [
 
 const MARKET_ITEMS = [
   {
-    img: 'https://images.unsplash.com/photo-1583242574151-e3d7c3b9eaad?w=600&q=80',
+    img: 'https://images.unsplash.com/photo-1534482421-64566f976cfa?w=600&q=80',
     title: '안양중앙시장',
     en: 'Anyang Central Market',
     desc: '673개 점포 · 도보 7분',
@@ -59,7 +59,7 @@ const MARKET_ITEMS = [
     tags: ['김밥로', '곱창골목', '떡볶이골목'],
   },
   {
-    img: 'https://images.unsplash.com/photo-1617196034183-421b4040ed20?w=600&q=80',
+    img: 'https://images.unsplash.com/photo-1551218808-94e220e084d2?w=600&q=80',
     title: '누룽지',
     en: 'Nurungji (Rice Crust)',
     desc: '3,000~5,000원 · K-디저트',
@@ -75,9 +75,9 @@ const MARKET_ITEMS = [
     tags: ['골목 먹방', '길거리음식'],
   },
   {
-    img: 'https://images.unsplash.com/photo-1569050467447-ce54b3bbc37d?w=600&q=80',
+    img: 'https://images.unsplash.com/photo-1547592180-85f173990554?w=600&q=80',
     title: '순대국 & 칼국수',
-    en: 'Korean Noodle Soup',
+    en: 'Sundaeguk & Kalguksu',
     desc: '5,500~9,000원',
     edesc: '₩5,500~9,000',
     tags: ['노포', '가성비', '24h 일부'],
