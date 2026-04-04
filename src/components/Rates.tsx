@@ -16,6 +16,10 @@ export default function Rates() {
                     <h2 className="font-cormorant text-4xl text-white font-light">{t('title')}</h2>
                 </div>
 
+                <p className="text-center text-sm font-noto-kr mb-8 px-2" style={{ color: '#b8964a' }}>
+                    {t('note_inclusions')}
+                </p>
+
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse min-w-[600px]">
                         <thead>

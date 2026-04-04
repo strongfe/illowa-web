@@ -78,6 +78,7 @@
     "table_friday": "Jumat",
     "table_saturday": "Sabtu / malam hari libur",
     "currency": "KRW",
+    "note_inclusions": "✓ Termasuk dalam semua tarif: streaming OTT · PC · Wi-Fi cepat · snack bar gratis (100+ jenis mi)",
     "note_standard_occupancy": "* Tarif berdasarkan okupansi standar (2 tamu). Biaya tambahan mungkin berlaku untuk tamu ekstra.",
     "note_seasonal_change": "* Tarif dapat berubah pada musim puncak dan tanggal tertentu."
   },
@@ -131,11 +132,11 @@
     "snack_bar": "SNACK BAR"
   },
   "ChineseSection": {
-    "title": "Hotel ILLOWA Anyang",
-    "line1": "Hotel ILLOWA Anyang menyambut hangat tamu dari Tiongkok.",
-    "line2": "Resepsionis menyediakan dukungan bahasa Mandarin 24 jam, dan semua kamar dilengkapi Wi-Fi berkecepatan tinggi gratis.",
+    "title": "Selamat Datang, Tamu dari Seluruh Dunia",
+    "line1": "ILLOWA HOTEL menyambut hangat tamu dari seluruh penjuru dunia.",
+    "line2": "Resepsionis menyediakan dukungan dalam 10 bahasa, dan semua kamar dilengkapi Wi-Fi berkecepatan tinggi gratis.",
     "line3": "Dengan snack bar lebih dari 100 jenis mi dan kamar dengan dual PC spesifikasi tinggi (tipe tertentu), kami menghadirkan pengalaman menginap yang nyaman.",
-    "badge_cn_service": "Layanan bahasa Mandarin",
+    "badge_cn_service": "Dukungan 10 bahasa",
     "badge_anyang_5min": "5 menit jalan kaki dari Stasiun Anyang",
     "badge_unionpay": "UnionPay / kartu kredit diterima"
   }

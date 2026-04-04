@@ -78,6 +78,7 @@
     "table_friday": "Vendredi",
     "table_saturday": "Samedi / veille de fête",
     "currency": "KRW",
+    "note_inclusions": "✓ Inclus dans tous les tarifs: streaming OTT · PC · Wi-Fi haut débit · snack-bar gratuit (100+ types de nouilles)",
     "note_standard_occupancy": "* Les tarifs sont basés sur 2 personnes. Des frais supplémentaires peuvent s'appliquer.",
     "note_seasonal_change": "* Les tarifs peuvent varier en haute saison et à certaines dates."
   },
@@ -131,11 +132,11 @@
     "snack_bar": "SNACK BAR"
   },
   "ChineseSection": {
-    "title": "Hôtel ILLOWA Anyang",
-    "line1": "L’hôtel ILLOWA Anyang accueille chaleureusement les visiteurs chinois.",
-    "line2": "La réception propose une assistance en chinois 24h/24 et toutes les chambres disposent du Wi-Fi haut débit gratuit.",
+    "title": "Bienvenue, clients du monde entier",
+    "line1": "L'hôtel ILLOWA accueille chaleureusement des clients du monde entier.",
+    "line2": "La réception propose une assistance en 10 langues et toutes les chambres disposent du Wi-Fi haut débit gratuit.",
     "line3": "Avec un snack-bar de plus de 100 nouilles et des chambres double PC hautes performances (certaines catégories), nous offrons un séjour confortable.",
-    "badge_cn_service": "Assistance en chinois",
+    "badge_cn_service": "Assistance en 10 langues",
     "badge_anyang_5min": "À 5 min à pied de la gare d’Anyang",
     "badge_unionpay": "UnionPay / carte bancaire acceptée"
   }

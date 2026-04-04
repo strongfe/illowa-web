@@ -5,7 +5,7 @@
     "title_o": "O",
     "title_wa": "WA",
     "subtitle": "일로와 호텔",
-    "desc_short": "안양역 도보 5분 · 42실 프리미엄 스위트",
+    "desc_short": "게이밍룸 · 라면 100종 · 안마의자 — 안양역 5분, 진짜 쉬는 밤",
     "btn_rooms": "객실 보기",
     "btn_rates": "요금 확인",
     "scroll": "스크롤"
@@ -78,6 +78,7 @@
     "table_friday": "금요일",
     "table_saturday": "토요일/공휴일 전일",
     "currency": "KRW",
+    "note_inclusions": "✓ 전 객실 공통 포함: OTT 스트리밍 · PC · 초고속 Wi-Fi · 무료 스낵바 (라면 100종)",
     "note_standard_occupancy": "* 위 요금은 기준 인원(2인) 요금이며, 인원 추가 시 추가 요금이 발생할 수 있습니다.",
     "note_seasonal_change": "* 성수기, 특정일에는 요금이 변동될 수 있습니다."
   },
@@ -91,15 +92,15 @@
   },
   "BookingCTA": {
     "title": "예약하기",
-    "description_line1": "외국인 고객에게 최적화된 채널에서 빠르게 예약하세요.",
-    "description_line2": "핵심 OTA를 상단에 배치해 즉시 예약 전환을 돕고, 비교 채널과 로컬 채널을 보조로 제공합니다.",
+    "description_line1": "원하는 채널에서 편하게 예약하세요.",
+    "description_line2": "해외 주요 OTA부터 국내 예약 앱까지 한 곳에서 확인할 수 있습니다.",
     "btn_yanolja": "야놀자",
     "btn_yeogi": "여기어때",
     "btn_call": "전화 문의하기",
     "group_primary_title": "핵심 예약 채널",
-    "group_primary_description": "해외 고객 전환율이 높은 우선 채널",
+    "group_primary_description": "해외 고객이 가장 많이 이용하는 채널",
     "group_secondary_title": "비교 예약 채널",
-    "group_secondary_description": "추가 요금/패키지 비교를 위한 2순위 채널",
+    "group_secondary_description": "요금 및 패키지 비교용",
     "group_support_title": "보조 채널",
     "group_support_description": "리뷰 확인, 국내 OTA, 전화 문의",
     "badge_priority": "Priority",
@@ -131,11 +132,11 @@
     "snack_bar": "스낵바"
   },
   "ChineseSection": {
-    "title": "안양 일로와 호텔",
-    "line1": "안양 일로와 호텔은 중국 고객 여러분을 언제나 환영합니다.",
-    "line2": "프런트 데스크에서 24시간 중국어 응대가 가능하며, 전 객실 무료 초고속 Wi-Fi를 제공합니다.",
+    "title": "전 세계 고객 여러분을 환영합니다",
+    "line1": "일로와 호텔은 전 세계 어디서 오신 고객이든 언제나 환영합니다.",
+    "line2": "10개 언어 다국어 안내와 전 객실 무료 초고속 Wi-Fi를 제공합니다.",
     "line3": "100여 종 라면 스낵바와 고사양 2PC 객실(일부 타입)로 한국 여행 중 편안한 휴식을 제공합니다.",
-    "badge_cn_service": "중국어 서비스 제공",
+    "badge_cn_service": "10개 언어 다국어 지원",
     "badge_anyang_5min": "안양역 도보 5분",
     "badge_unionpay": "유니온페이/신용카드 결제"
   }
