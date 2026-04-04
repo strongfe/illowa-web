@@ -146,6 +146,10 @@ const ERROR_MSG: Record<string, string> = {
 
 const OPEN_CHAT_EVENT = 'open-chatbot';
 
+function dlPush(event: string, params?: Record<string, unknown>) {
+  (window as unknown as { dataLayer?: object[] }).dataLayer?.push({ event, ...params });
+}
+
 export default function ChatWidget() {
   const locale = useLocale();
   const [open, setOpen] = useState(false);
@@ -157,6 +161,20 @@ export default function ChatWidget() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const sessionId = useRef<string>(crypto.randomUUID());
+  const openTimeRef = useRef<number | null>(null);
+
+  function openChat(source: string) {
+    setOpen(true);
+    openTimeRef.current = Date.now();
+    dlPush('chatbot_open', { source });
+  }
+
+  function closeChat(msgCount: number) {
+    setOpen(false);
+    const duration_ms = openTimeRef.current ? Date.now() - openTimeRef.current : undefined;
+    dlPush('chatbot_close', { duration_ms, message_count: msgCount });
+    openTimeRef.current = null;
+  }
 
   const greeting = GREETING[locale] ?? GREETING.en;
   const placeholder = PLACEHOLDER[locale] ?? PLACEHOLDER.en;
@@ -165,7 +183,10 @@ export default function ChatWidget() {
 
   // 예약 섹션에서 챗봇 열기 이벤트 수신
   useEffect(() => {
-    const handler = () => setOpen(true);
+    const handler = (e: Event) => {
+      const source = (e as CustomEvent).detail?.source ?? 'booking_cta';
+      openChat(source);
+    };
     window.addEventListener(OPEN_CHAT_EVENT, handler);
     return () => window.removeEventListener(OPEN_CHAT_EVENT, handler);
   }, []);
@@ -198,7 +219,7 @@ export default function ChatWidget() {
 
   function handleQuickReply(text: string) {
     if (text === '__GUIDE__') {
-      window.dispatchEvent(new CustomEvent('open-tourist-guide'));
+      window.dispatchEvent(new CustomEvent('open-tourist-guide', { detail: { source: 'chatbot' } }));
       return;
     }
     setShowQuickReplies(false);
@@ -212,6 +233,7 @@ export default function ChatWidget() {
     setInput('');
     setLoading(true);
     setShowQuickReplies(false);
+    dlPush('chatbot_message_sent', { language: locale, message_count: newMessages.filter((m) => m.role === 'user').length });
 
     const apiMessages = newMessages.map((m) => ({ role: m.role, content: m.content }));
 
@@ -277,7 +299,7 @@ export default function ChatWidget() {
               <div className="w-2 h-2 rounded-full bg-green-300 animate-pulse" />
               <span className="text-white font-semibold text-sm tracking-wide">{title}</span>
             </div>
-            <button onClick={() => setOpen(false)} className="text-white/80 hover:text-white text-xl leading-none">✕</button>
+            <button onClick={() => closeChat(messages.filter((m) => m.role === 'user').length)} className="text-white/80 hover:text-white text-xl leading-none">✕</button>
           </div>
 
           {/* Messages */}
@@ -356,7 +378,13 @@ export default function ChatWidget() {
 
       {/* Toggle button */}
       <button
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => {
+          if (open) {
+            closeChat(messages.filter((m) => m.role === 'user').length);
+          } else {
+            openChat('fab');
+          }
+        }}
         className="fixed bottom-6 right-4 z-50 w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-transform hover:scale-110 active:scale-95"
         style={{ background: '#b8964a' }}
         aria-label="Chat"

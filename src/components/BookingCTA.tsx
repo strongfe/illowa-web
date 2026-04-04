@@ -88,14 +88,14 @@ export default function BookingCTA() {
                 {/* 관광 가이드 + 챗봇 트리거 */}
                 <div className="flex flex-col sm:flex-row gap-3 mb-6">
                     <button
-                        onClick={() => window.dispatchEvent(new CustomEvent('open-tourist-guide'))}
+                        onClick={() => window.dispatchEvent(new CustomEvent('open-tourist-guide', { detail: { source: 'booking_cta' } }))}
                         className="flex-1 py-3 px-4 rounded-xl text-sm tracking-wide transition-all hover:opacity-80 active:scale-[0.99] flex items-center justify-center gap-2"
                         style={{ background: 'rgba(184,150,74,0.08)', border: '1px solid rgba(184,150,74,0.35)', color: '#b8964a' }}
                     >
                         {guideLabel}
                     </button>
                     <button
-                        onClick={() => window.dispatchEvent(new CustomEvent('open-chatbot'))}
+                        onClick={() => window.dispatchEvent(new CustomEvent('open-chatbot', { detail: { source: 'booking_cta' } }))}
                         className="sm:flex-none py-3 px-4 rounded-xl text-sm tracking-wide transition-all hover:opacity-80 active:scale-[0.99] flex items-center justify-center gap-2 whitespace-nowrap"
                         style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.15)', color: '#aaa' }}
                     >

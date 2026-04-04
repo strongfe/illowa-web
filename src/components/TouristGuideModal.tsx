@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLocale } from 'next-intl';
 
 const LABEL: Record<string, Record<string, string>> = {
@@ -156,13 +156,34 @@ const COURSE_STEPS = [
   { time: '17:30', icon: '🌸', place: '안양천 산책로', en: 'Anyangcheon Stream', desc: '계절별 산책 + 일몰 감상', edesc: 'Seasonal walk + sunset view', map: 'https://map.naver.com/v5/search/안양천' },
 ];
 
+function dlPush(event: string, params?: Record<string, unknown>) {
+  (window as unknown as { dataLayer?: object[] }).dataLayer?.push({ event, ...params });
+}
+
 export default function TouristGuideModal() {
   const locale = useLocale();
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<string>('market');
+  const openTimeRef = useRef<number | null>(null);
+
+  function openGuide(source: string) {
+    setOpen(true);
+    openTimeRef.current = Date.now();
+    dlPush('tourism_guide_open', { source });
+  }
+
+  function closeGuide() {
+    setOpen(false);
+    const duration_ms = openTimeRef.current ? Date.now() - openTimeRef.current : undefined;
+    dlPush('tourism_guide_close', { duration_ms });
+    openTimeRef.current = null;
+  }
 
   useEffect(() => {
-    const handler = () => setOpen(true);
+    const handler = (e: Event) => {
+      const source = (e as CustomEvent).detail?.source ?? 'booking_cta';
+      openGuide(source);
+    };
     window.addEventListener('open-tourist-guide', handler);
     return () => window.removeEventListener('open-tourist-guide', handler);
   }, []);
@@ -178,7 +199,7 @@ export default function TouristGuideModal() {
     <>
       {/* Floating trigger button */}
       <button
-        onClick={() => setOpen(true)}
+        onClick={() => openGuide('fab')}
         className="fixed bottom-24 right-20 z-50 flex items-center gap-1.5 px-3 py-2.5 rounded-full shadow-lg text-xs font-semibold tracking-wide transition-transform hover:scale-105 active:scale-95"
         style={{ background: '#1a1a1a', color: '#b8964a', border: '1px solid #b8964a' }}
         aria-label="Tourist Guide"
@@ -191,7 +212,7 @@ export default function TouristGuideModal() {
       {open && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4"
           style={{ background: 'rgba(0,0,0,0.85)' }}
-          onClick={(e) => e.target === e.currentTarget && setOpen(false)}>
+          onClick={(e) => e.target === e.currentTarget && closeGuide()}>
           <div className="relative w-full max-w-3xl max-h-[90vh] rounded-2xl overflow-hidden flex flex-col"
             style={{ background: '#111' }}>
 
@@ -206,14 +227,14 @@ export default function TouristGuideModal() {
                   {LABEL.subtitle[locale] ?? LABEL.subtitle.en}
                 </p>
               </div>
-              <button onClick={() => setOpen(false)}
+              <button onClick={closeGuide}
                 className="text-white/50 hover:text-white text-2xl leading-none w-8 h-8 flex items-center justify-center">✕</button>
             </div>
 
             {/* Tabs */}
             <div className="flex border-b border-white/10 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
               {TABS.map((t) => (
-                <button key={t.tabId} onClick={() => setTab(t.tabId)}
+                <button key={t.tabId} onClick={() => { setTab(t.tabId); dlPush('tourism_guide_tab_switch', { tab: t.tabId }); }}
                   className="flex items-center gap-1.5 px-4 py-3 text-xs font-medium tracking-wide whitespace-nowrap transition-all flex-shrink-0"
                   style={{
                     color: tab === t.tabId ? '#b8964a' : '#666',
@@ -240,7 +261,8 @@ export default function TouristGuideModal() {
                   </p>
                   <div className="grid grid-cols-2 gap-3">
                     {MARKET_ITEMS.map((item, i) => (
-                      <div key={i} className="rounded-xl overflow-hidden" style={{ background: '#1a1a1a', border: '1px solid #222' }}>
+                      <div key={i} className="rounded-xl overflow-hidden cursor-pointer" style={{ background: '#1a1a1a', border: '1px solid #222' }}
+                        onClick={() => dlPush('tourism_card_click', { card_name: item.en, tab: 'market' })}>
                         <div className="relative h-36 overflow-hidden">
                           <img src={item.img} alt={item.title} className="w-full h-full object-cover" />
                           <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.7), transparent)' }} />
@@ -254,6 +276,7 @@ export default function TouristGuideModal() {
                             ))}
                           </div>
                           <a href={item.map} target="_blank" rel="noreferrer noopener"
+                            onClick={(e) => { e.stopPropagation(); dlPush('tourism_map_click', { destination: item.en, tab: 'market' }); }}
                             className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full transition-opacity hover:opacity-80"
                             style={{ background: 'rgba(3,199,90,0.15)', color: '#03C75A', border: '1px solid rgba(3,199,90,0.3)' }}>
                             📍 {isKo ? '네이버 지도' : 'Naver Map'}
@@ -282,7 +305,8 @@ export default function TouristGuideModal() {
                   </p>
                   <div className="space-y-3">
                     {BEAUTY_ITEMS.map((item, i) => (
-                      <div key={i} className="flex gap-3 rounded-xl overflow-hidden" style={{ background: '#1a1a1a', border: '1px solid #222' }}>
+                      <div key={i} className="flex gap-3 rounded-xl overflow-hidden cursor-pointer" style={{ background: '#1a1a1a', border: '1px solid #222' }}
+                        onClick={() => dlPush('tourism_card_click', { card_name: item.en, tab: 'kbeauty' })}>
                         <div className="w-28 h-24 flex-shrink-0 overflow-hidden">
                           <img src={item.img} alt={item.title} className="w-full h-full object-cover" />
                         </div>
@@ -294,6 +318,7 @@ export default function TouristGuideModal() {
                               <span key={j} className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: '#222', color: '#aaa' }}>{tag}</span>
                             ))}
                             <a href={item.map} target="_blank" rel="noreferrer noopener"
+                              onClick={(e) => { e.stopPropagation(); dlPush('tourism_map_click', { destination: item.en, tab: 'kbeauty' }); }}
                               className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full transition-opacity hover:opacity-80"
                               style={{ background: 'rgba(3,199,90,0.15)', color: '#03C75A', border: '1px solid rgba(3,199,90,0.3)' }}>
                               📍 {isKo ? '네이버 지도' : 'Naver Map'}
@@ -322,7 +347,8 @@ export default function TouristGuideModal() {
                   </p>
                   <div className="grid grid-cols-1 gap-3">
                     {ART_ITEMS.map((item, i) => (
-                      <div key={i} className="rounded-xl overflow-hidden" style={{ background: '#1a1a1a', border: '1px solid #222' }}>
+                      <div key={i} className="rounded-xl overflow-hidden cursor-pointer" style={{ background: '#1a1a1a', border: '1px solid #222' }}
+                        onClick={() => dlPush('tourism_card_click', { card_name: item.en, tab: 'art' })}>
                         <div className="relative h-44 overflow-hidden">
                           <img src={item.img} alt={item.title} className="w-full h-full object-cover" />
                           <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.75), rgba(0,0,0,0.1))' }} />
@@ -336,6 +362,7 @@ export default function TouristGuideModal() {
                             <span key={j} className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: '#222', color: '#aaa' }}>{tag}</span>
                           ))}
                           <a href={item.map} target="_blank" rel="noreferrer noopener"
+                            onClick={(e) => { e.stopPropagation(); dlPush('tourism_map_click', { destination: item.en, tab: 'art' }); }}
                             className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full transition-opacity hover:opacity-80"
                             style={{ background: 'rgba(3,199,90,0.15)', color: '#03C75A', border: '1px solid rgba(3,199,90,0.3)' }}>
                             📍 {isKo ? '네이버 지도' : 'Naver Map'}
@@ -369,6 +396,7 @@ export default function TouristGuideModal() {
                             <div className="flex items-center gap-2 flex-wrap">
                               <p className="text-sm font-semibold text-white">{isKo ? step.place : step.en}</p>
                               <a href={step.map} target="_blank" rel="noreferrer noopener"
+                                onClick={() => dlPush('tourism_map_click', { destination: step.en, tab: 'course' })}
                                 className="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full transition-opacity hover:opacity-80"
                                 style={{ background: 'rgba(3,199,90,0.15)', color: '#03C75A', border: '1px solid rgba(3,199,90,0.3)' }}>
                                 📍 {isKo ? '지도' : 'Map'}
