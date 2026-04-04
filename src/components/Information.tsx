@@ -12,7 +12,7 @@ export default function Information() {
                 {/* Map Embed */}
                 <div className="md:w-1/2 h-[400px] rounded-sm relative border border-gold/30 overflow-hidden">
                     <iframe
-                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3172.1!2d126.9274!3d37.3977!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x357b5f6b3b3b3b3b%3A0x0!2z7J247L2U7JiB7Zi4IOyEseyLnA!5e0!3m2!1sko!2skr!4v1700000000000!5m2!1sko!2skr&q=경기도+안양시+만안구+안양로268번길+41"
+                        src="https://maps.google.com/maps?q=경기도+안양시+만안구+안양로268번길+41&z=17&hl=ko&output=embed"
                         width="100%"
                         height="100%"
                         style={{ border: 0, filter: 'invert(90%) hue-rotate(180deg)' }}
