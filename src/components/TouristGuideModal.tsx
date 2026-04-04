@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocale } from 'next-intl';
 
 const LABEL: Record<string, Record<string, string>> = {
@@ -150,6 +150,12 @@ export default function TouristGuideModal() {
   const locale = useLocale();
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<string>('market');
+
+  useEffect(() => {
+    const handler = () => setOpen(true);
+    window.addEventListener('open-tourist-guide', handler);
+    return () => window.removeEventListener('open-tourist-guide', handler);
+  }, []);
 
   const isKo = locale === 'ko';
   const t = (ko: string, en: string) => (isKo ? ko : en);
