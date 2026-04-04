@@ -3,6 +3,7 @@ import { NextIntlClientProvider, hasLocale } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
+import ChatWidget from '@/components/ChatWidget';
 
 type Locale = (typeof routing.locales)[number];
 
@@ -225,6 +226,7 @@ export default async function LocaleLayout({ children, params }: Props) {
   return (
     <NextIntlClientProvider locale={resolvedLocale} messages={messages}>
       {children}
+      <ChatWidget />
     </NextIntlClientProvider>
   );
 }
