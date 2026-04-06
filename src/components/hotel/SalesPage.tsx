@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Sale, SaleInput, Room, RoomType, SaleType } from '@/types/hotel';
-import { ROOM_TYPE_LABELS, OTA_CHANNELS, OTHER_CHANNELS, PAYMENT_METHODS } from '@/types/hotel';
+import { OTA_CHANNELS, OTHER_CHANNELS, PAYMENT_METHODS } from '@/types/hotel';
 
 const ROOM_TYPES: RoomType[] = ['GS', 'GD', 'S', 'D', 'P', 'PT'];
 
@@ -10,8 +10,13 @@ function today() {
   return new Date().toISOString().split('T')[0];
 }
 
-function formatAmount(n: number) {
+function fmt(n: number) {
   return n.toLocaleString('ko-KR');
+}
+
+function fmtTime(t: number | null) {
+  if (t == null) return '';
+  return Number.isInteger(t) ? String(t) : t.toFixed(1);
 }
 
 function formatPhoneInput(value: string): string {
@@ -50,28 +55,55 @@ const INITIAL_FORM: SaleInput = {
   memo: '',
 };
 
+// ─── 6파트 그리드 분류 ───
+interface SalesGroups {
+  yanolja_daesil: Sale[];
+  yanolja_sukbak: Sale[];
+  yeogi_daesil: Sale[];
+  yeogi_sukbak: Sale[];
+  etc_daesil: Sale[];
+  etc_sukbak: Sale[];
+}
+
+function groupSales(sales: Sale[]): SalesGroups {
+  const g: SalesGroups = {
+    yanolja_daesil: [], yanolja_sukbak: [],
+    yeogi_daesil: [], yeogi_sukbak: [],
+    etc_daesil: [], etc_sukbak: [],
+  };
+  for (const s of sales) {
+    if (s.channel === '야놀자') {
+      (s.sale_type === '대실' ? g.yanolja_daesil : g.yanolja_sukbak).push(s);
+    } else if (s.channel === '여기어때') {
+      (s.sale_type === '대실' ? g.yeogi_daesil : g.yeogi_sukbak).push(s);
+    } else {
+      (s.sale_type === '대실' ? g.etc_daesil : g.etc_sukbak).push(s);
+    }
+  }
+  return g;
+}
+
+function sumAmount(sales: Sale[]) {
+  return sales.reduce((s, r) => s + r.amount, 0);
+}
+
+// ═══════════════════════════════════════
+// Main Component
+// ═══════════════════════════════════════
 export default function SalesPage() {
-  const [form, setForm] = useState<SaleInput>({ ...INITIAL_FORM });
+  const [saleDate, setSaleDate] = useState(today());
   const [sales, setSales] = useState<Sale[]>([]);
   const [rooms, setRooms] = useState<Room[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [editId, setEditId] = useState<string | null>(null);
-  const [channelGroup, setChannelGroup] = useState<'ota' | 'other' | ''>('');
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editSale, setEditSale] = useState<Sale | null>(null);
 
-  // 고객 정보 상태
-  const [customerOpen, setCustomerOpen] = useState(false);
-  const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
-  const [marketingConsent, setMarketingConsent] = useState(false);
-  const [foundCustomer, setFoundCustomer] = useState<CustomerInfo | null>(null);
-  const [customerSearching, setCustomerSearching] = useState(false);
-  const [isNewCustomer, setIsNewCustomer] = useState(false);
-  const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // 모바일 접이식 상태
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
 
   const fetchSales = useCallback(async () => {
-    const res = await fetch(`/api/admin/hotel/sales?date=${form.sale_date}`);
+    const res = await fetch(`/api/admin/hotel/sales?date=${saleDate}`);
     if (res.ok) setSales(await res.json());
-  }, [form.sale_date]);
+  }, [saleDate]);
 
   const fetchRooms = useCallback(async () => {
     const res = await fetch(`/api/admin/hotel/rooms`);
@@ -81,13 +113,293 @@ export default function SalesPage() {
   useEffect(() => { fetchSales(); }, [fetchSales]);
   useEffect(() => { fetchRooms(); }, [fetchRooms]);
 
+  // 30초 자동 새로고침
+  useEffect(() => {
+    const interval = setInterval(fetchSales, 30000);
+    return () => clearInterval(interval);
+  }, [fetchSales]);
+
+  const groups = groupSales(sales);
+
+  const openNewSale = (channel: string, saleType: SaleType) => {
+    setEditSale(null);
+    setModalOpen(true);
+    // SaleModal에서 초기값 설정됨
+    modalDefaultRef.current = { channel, sale_type: saleType };
+  };
+
+  const openEditSale = (sale: Sale) => {
+    setEditSale(sale);
+    modalDefaultRef.current = null;
+    setModalOpen(true);
+  };
+
+  const handleSaved = () => {
+    setModalOpen(false);
+    setEditSale(null);
+    fetchSales();
+  };
+
+  const modalDefaultRef = useRef<{ channel: string; sale_type: SaleType } | null>(null);
+
+  const toggleCollapse = (key: string) => {
+    setCollapsed(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  // 전체 요약
+  const allDaesil = sales.filter(s => s.sale_type === '대실');
+  const allSukbak = sales.filter(s => s.sale_type === '숙박');
+
+  return (
+    <div className="space-y-4">
+      {/* 헤더 */}
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-[#C9A84C]">판매 현황판</h1>
+        <div className="flex items-center gap-3">
+          <input
+            type="date"
+            value={saleDate}
+            onChange={e => setSaleDate(e.target.value)}
+            className="bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2 text-sm"
+          />
+          <button
+            onClick={() => { setEditSale(null); modalDefaultRef.current = null; setModalOpen(true); }}
+            className="px-4 py-2 bg-[#C9A84C] text-black font-bold rounded-lg text-sm hover:bg-[#E8C96A] transition-colors"
+          >
+            + 판매 추가
+          </button>
+        </div>
+      </div>
+
+      {/* ─── 6파트 그리드 ─── */}
+      {/* 대실 행 */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+        <SalesPartPanel
+          title="야놀자" saleType="대실" sales={groups.yanolja_daesil} isEtc={false}
+          collapsed={collapsed['yd']} onToggle={() => toggleCollapse('yd')}
+          onClickRow={openEditSale} onAdd={() => openNewSale('야놀자', '대실')}
+        />
+        <SalesPartPanel
+          title="여기어때" saleType="대실" sales={groups.yeogi_daesil} isEtc={false}
+          collapsed={collapsed['ed']} onToggle={() => toggleCollapse('ed')}
+          onClickRow={openEditSale} onAdd={() => openNewSale('여기어때', '대실')}
+        />
+        <SalesPartPanel
+          title="기타" saleType="대실" sales={groups.etc_daesil} isEtc={true}
+          collapsed={collapsed['od']} onToggle={() => toggleCollapse('od')}
+          onClickRow={openEditSale} onAdd={() => openNewSale('워킹', '대실')}
+        />
+      </div>
+
+      {/* 숙박 행 */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+        <SalesPartPanel
+          title="야놀자" saleType="숙박" sales={groups.yanolja_sukbak} isEtc={false}
+          collapsed={collapsed['ys']} onToggle={() => toggleCollapse('ys')}
+          onClickRow={openEditSale} onAdd={() => openNewSale('야놀자', '숙박')}
+        />
+        <SalesPartPanel
+          title="여기어때" saleType="숙박" sales={groups.yeogi_sukbak} isEtc={false}
+          collapsed={collapsed['es']} onToggle={() => toggleCollapse('es')}
+          onClickRow={openEditSale} onAdd={() => openNewSale('여기어때', '숙박')}
+        />
+        <SalesPartPanel
+          title="기타" saleType="숙박" sales={groups.etc_sukbak} isEtc={true}
+          collapsed={collapsed['os']} onToggle={() => toggleCollapse('os')}
+          onClickRow={openEditSale} onAdd={() => openNewSale('워킹', '숙박')}
+        />
+      </div>
+
+      {/* 전체 요약 */}
+      <div className="bg-[#1a1a1a] rounded-xl border border-[#333] p-4">
+        <div className="flex flex-wrap gap-6 text-sm justify-center">
+          <span>대실 <b className="text-blue-400">{allDaesil.length}</b>건 <b className="text-blue-400">{fmt(sumAmount(allDaesil))}</b>원</span>
+          <span>숙박 <b className="text-green-400">{allSukbak.length}</b>건 <b className="text-green-400">{fmt(sumAmount(allSukbak))}</b>원</span>
+          <span>합계 <b className="text-[#C9A84C]">{sales.length}</b>건 <b className="text-[#C9A84C]">{fmt(sumAmount(sales))}</b>원</span>
+        </div>
+      </div>
+
+      {/* 입력/수정 모달 */}
+      {modalOpen && (
+        <SaleModal
+          saleDate={saleDate}
+          rooms={rooms}
+          editSale={editSale}
+          defaults={modalDefaultRef.current}
+          onClose={() => { setModalOpen(false); setEditSale(null); }}
+          onSaved={handleSaved}
+          onDeleted={handleSaved}
+        />
+      )}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════
+// 파트 패널 (하나의 채널×유형 영역)
+// ═══════════════════════════════════════
+function SalesPartPanel({ title, saleType, sales, isEtc, collapsed, onToggle, onClickRow, onAdd }: {
+  title: string;
+  saleType: SaleType;
+  sales: Sale[];
+  isEtc: boolean;
+  collapsed: boolean;
+  onToggle: () => void;
+  onClickRow: (sale: Sale) => void;
+  onAdd: () => void;
+}) {
+  const headerBg = saleType === '대실' ? 'bg-emerald-900/40' : 'bg-blue-900/40';
+  const total = sumAmount(sales);
+
+  return (
+    <div className="bg-[#1a1a1a] rounded-lg border border-[#333] overflow-hidden flex flex-col">
+      {/* 헤더 */}
+      <div className={`${headerBg} px-3 py-2 flex items-center justify-between`}>
+        <button onClick={onToggle} className="flex items-center gap-2 flex-1 text-left">
+          <span className="font-bold text-sm">{title}</span>
+          <span className={`text-xs px-1.5 py-0.5 rounded ${saleType === '대실' ? 'bg-emerald-800 text-emerald-200' : 'bg-blue-800 text-blue-200'}`}>
+            {saleType}
+          </span>
+          <span className="text-xs text-gray-400">({sales.length}건)</span>
+          <span className="xl:hidden text-gray-500 text-xs ml-auto">{collapsed ? '▼' : '▲'}</span>
+        </button>
+        <button onClick={onAdd} className="text-xs text-[#C9A84C] hover:text-[#E8C96A] ml-2 shrink-0">+추가</button>
+      </div>
+
+      {/* 테이블 */}
+      {!collapsed && (
+        <div className="flex-1 overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="bg-[#222] text-gray-500">
+                <th className="px-2 py-1.5 text-left w-6">#</th>
+                {isEtc && <th className="px-2 py-1.5 text-left">구분</th>}
+                <th className="px-2 py-1.5 text-left">성명</th>
+                <th className="px-2 py-1.5 text-center">타입</th>
+                <th className="px-2 py-1.5 text-center">입실</th>
+                <th className="px-2 py-1.5 text-center">퇴실</th>
+                {isEtc && <th className="px-2 py-1.5 text-center">결제</th>}
+                <th className="px-2 py-1.5 text-right">금액</th>
+                <th className="px-2 py-1.5 text-center">호실</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sales.length === 0 && (
+                <tr><td colSpan={isEtc ? 9 : 7} className="px-2 py-4 text-center text-gray-600">-</td></tr>
+              )}
+              {sales.map((sale, i) => {
+                const isOut = sale.status === 'checked_out';
+                return (
+                  <tr
+                    key={sale.id}
+                    onClick={() => onClickRow(sale)}
+                    className={`cursor-pointer border-t border-[#2a2a2a] transition-colors hover:bg-[#C9A84C]/10 ${isOut ? 'text-gray-600' : 'text-gray-200'}`}
+                  >
+                    <td className="px-2 py-1.5 text-gray-500">{i + 1}</td>
+                    {isEtc && <td className="px-2 py-1.5 text-gray-400">{sale.channel}</td>}
+                    <td className="px-2 py-1.5 truncate max-w-[80px]">
+                      {sale.guest_name || '-'}
+                      {sale.memo?.includes('당특') && (
+                        <span className="ml-1 px-1 py-0.5 rounded text-[10px] bg-red-900 text-red-300">당특</span>
+                      )}
+                    </td>
+                    <td className="px-2 py-1.5 text-center">{sale.room_type}</td>
+                    <td className="px-2 py-1.5 text-center">{fmtTime(sale.check_in_time)}</td>
+                    <td className="px-2 py-1.5 text-center">{fmtTime(sale.check_out_time)}</td>
+                    {isEtc && <td className="px-2 py-1.5 text-center text-gray-400">{sale.payment_method || ''}</td>}
+                    <td className="px-2 py-1.5 text-right font-medium">{fmt(sale.amount)}</td>
+                    <td className="px-2 py-1.5 text-center text-gray-400">{sale.room_number || ''}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          {/* 소계 */}
+          {sales.length > 0 && (
+            <div className="px-3 py-1.5 bg-[#222] text-xs text-gray-400 flex justify-between border-t border-[#333]">
+              <span>소계: {sales.length}건</span>
+              <span className="font-medium text-[#C9A84C]">{fmt(total)}원</span>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════
+// 입력/수정 모달
+// ═══════════════════════════════════════
+function SaleModal({ saleDate, rooms, editSale, defaults, onClose, onSaved, onDeleted }: {
+  saleDate: string;
+  rooms: Room[];
+  editSale: Sale | null;
+  defaults: { channel: string; sale_type: SaleType } | null;
+  onClose: () => void;
+  onSaved: () => void;
+  onDeleted: () => void;
+}) {
+  const isEdit = !!editSale;
+
+  const [form, setForm] = useState<SaleInput>(() => {
+    if (editSale) {
+      return {
+        sale_date: editSale.sale_date,
+        sale_type: editSale.sale_type,
+        channel: editSale.channel,
+        payment_method: editSale.payment_method || '',
+        guest_name: editSale.guest_name,
+        room_type: editSale.room_type,
+        check_in_time: editSale.check_in_time ?? undefined,
+        check_out_time: editSale.check_out_time ?? undefined,
+        amount: editSale.amount,
+        room_id: editSale.room_id ?? undefined,
+        room_number: editSale.room_number || '',
+        car_number: editSale.car_number,
+        memo: editSale.memo,
+      };
+    }
+    return {
+      ...INITIAL_FORM,
+      sale_date: saleDate,
+      sale_type: defaults?.sale_type || '대실',
+      channel: defaults?.channel || '',
+    };
+  });
+
+  const [channelGroup, setChannelGroup] = useState<'ota' | 'other' | ''>(() => {
+    const ch = editSale?.channel || defaults?.channel || '';
+    if (['야놀자', '여기어때'].includes(ch)) return 'ota';
+    if (ch) return 'other';
+    return '';
+  });
+
+  const [loading, setLoading] = useState(false);
+
+  // 고객 정보
+  const [customerOpen, setCustomerOpen] = useState(false);
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [marketingConsent, setMarketingConsent] = useState(false);
+  const [foundCustomer, setFoundCustomer] = useState<CustomerInfo | null>(null);
+  const [customerSearching, setCustomerSearching] = useState(false);
+  const [isNewCustomer, setIsNewCustomer] = useState(false);
+  const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const filteredRooms = rooms.filter(r => r.room_type === form.room_type);
 
   const setField = <K extends keyof SaleInput>(key: K, value: SaleInput[K]) => {
     setForm(prev => ({ ...prev, [key]: value }));
   };
 
-  // 전화번호 입력 시 자동 고객 검색
+  const selectChannel = (ch: string, group: 'ota' | 'other') => {
+    setChannelGroup(group);
+    setField('channel', ch);
+    if (group === 'ota') {
+      setField('payment_method', ch === '야놀자' ? '야놀자' : '여기어때');
+    }
+  };
+
   const handlePhoneChange = (raw: string) => {
     const formatted = formatPhoneInput(raw);
     setPhone(formatted);
@@ -107,13 +419,10 @@ export default function SalesPage() {
             setFoundCustomer(data.customer);
             setIsNewCustomer(false);
             setCustomerOpen(true);
-            // 기존 고객 이름 자동 채움
             if (data.customer.name && !form.guest_name) {
               setField('guest_name', data.customer.name);
             }
-            if (data.customer.email) {
-              setEmail(data.customer.email);
-            }
+            if (data.customer.email) setEmail(data.customer.email);
             setMarketingConsent(data.customer.marketing_consent || false);
           } else {
             setIsNewCustomer(true);
@@ -122,23 +431,6 @@ export default function SalesPage() {
         setCustomerSearching(false);
       }, 400);
     }
-  };
-
-  const selectChannel = (ch: string, group: 'ota' | 'other') => {
-    setChannelGroup(group);
-    setField('channel', ch);
-    if (group === 'ota') {
-      setField('payment_method', ch === '야놀자' ? '야놀자' : '여기어때');
-    }
-  };
-
-  const resetCustomerFields = () => {
-    setPhone('');
-    setEmail('');
-    setMarketingConsent(false);
-    setFoundCustomer(null);
-    setIsNewCustomer(false);
-    setCustomerOpen(false);
   };
 
   const handleSubmit = async () => {
@@ -150,7 +442,6 @@ export default function SalesPage() {
     if (!payload.check_out_time) delete payload.check_out_time;
     if (!payload.room_id) delete payload.room_id;
 
-    // 고객 정보 추가
     const phoneDigits = phone.replace(/\D/g, '');
     if (phoneDigits.length >= 10) {
       payload.phone = phoneDigits;
@@ -158,84 +449,51 @@ export default function SalesPage() {
       payload.marketing_consent = marketingConsent;
     }
 
-    const url = '/api/admin/hotel/sales';
-    const method = editId ? 'PUT' : 'POST';
-    const body = editId ? { id: editId, ...payload } : payload;
+    const method = isEdit ? 'PUT' : 'POST';
+    const body = isEdit ? { id: editSale!.id, ...payload } : payload;
 
-    await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    await fetch('/api/admin/hotel/sales', {
+      method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+    });
 
     setLoading(false);
-    setEditId(null);
-    setForm({ ...INITIAL_FORM, sale_date: form.sale_date, sale_type: form.sale_type });
-    setChannelGroup('');
-    resetCustomerFields();
-    fetchSales();
+    onSaved();
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('삭제하시겠습니까?')) return;
-    await fetch(`/api/admin/hotel/sales?id=${id}`, { method: 'DELETE' });
-    fetchSales();
+  const handleDelete = async () => {
+    if (!editSale || !confirm('삭제하시겠습니까?')) return;
+    await fetch(`/api/admin/hotel/sales?id=${editSale.id}`, { method: 'DELETE' });
+    onDeleted();
   };
 
-  const handleEdit = (sale: Sale) => {
-    setEditId(sale.id);
-    setForm({
-      sale_date: sale.sale_date,
-      sale_type: sale.sale_type,
-      channel: sale.channel,
-      payment_method: sale.payment_method || '',
-      guest_name: sale.guest_name,
-      room_type: sale.room_type,
-      check_in_time: sale.check_in_time ?? undefined,
-      check_out_time: sale.check_out_time ?? undefined,
-      amount: sale.amount,
-      room_id: sale.room_id ?? undefined,
-      room_number: sale.room_number || '',
-      car_number: sale.car_number,
-      memo: sale.memo,
-    });
-    if (['야놀자', '여기어때'].includes(sale.channel)) {
-      setChannelGroup('ota');
-    } else {
-      setChannelGroup('other');
-    }
-    // 수정 시 고객 정보 초기화 (기존 연결은 유지됨)
-    resetCustomerFields();
-  };
-
-  const handleCheckout = async (sale: Sale) => {
+  const handleCheckout = async () => {
+    if (!editSale) return;
     await fetch('/api/admin/hotel/sales', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: sale.id, status: 'checked_out' }),
+      body: JSON.stringify({ id: editSale.id, status: 'checked_out' }),
     });
-    fetchSales();
+    onSaved();
   };
 
-  const totalRevenue = sales.filter(s => s.status !== 'cancelled').reduce((sum, s) => sum + s.amount, 0);
-
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-[#C9A84C]">판매 입력</h1>
-        <input
-          type="date"
-          value={form.sale_date}
-          onChange={e => setField('sale_date', e.target.value)}
-          className="bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2 text-sm"
-        />
-      </div>
+    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 overflow-y-auto py-8" onClick={onClose}>
+      <div
+        className="bg-[#1a1a1a] rounded-xl border border-[#333] w-full max-w-lg mx-4 p-5 space-y-4"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold text-[#C9A84C]">{isEdit ? '판매 수정' : '판매 추가'}</h2>
+          <button onClick={onClose} className="text-gray-500 hover:text-white text-xl">&times;</button>
+        </div>
 
-      {/* 입력 폼 */}
-      <div className="bg-[#1a1a1a] rounded-xl p-5 border border-[#333] space-y-5">
-        {/* 대실/숙박 탭 */}
+        {/* 대실/숙박 */}
         <div className="flex gap-2">
           {(['대실', '숙박'] as SaleType[]).map(type => (
             <button
               key={type}
               onClick={() => setField('sale_type', type)}
-              className={`flex-1 py-3 rounded-lg text-lg font-bold transition-colors ${
+              className={`flex-1 py-2.5 rounded-lg font-bold transition-colors ${
                 form.sale_type === type
                   ? type === '대실' ? 'bg-blue-600 text-white' : 'bg-green-600 text-white'
                   : 'bg-[#2a2a2a] text-gray-400'
@@ -246,15 +504,14 @@ export default function SalesPage() {
           ))}
         </div>
 
-        {/* 채널 선택 */}
+        {/* 채널 */}
         <div>
-          <label className="block text-sm text-gray-400 mb-2">채널</label>
           <div className="flex gap-2 mb-2">
             {OTA_CHANNELS.map(ch => (
               <button
                 key={ch}
                 onClick={() => selectChannel(ch, 'ota')}
-                className={`flex-1 py-2.5 rounded-lg font-medium transition-colors ${
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
                   form.channel === ch
                     ? ch === '야놀자' ? 'bg-pink-600 text-white' : 'bg-red-600 text-white'
                     : 'bg-[#2a2a2a] text-gray-300 hover:bg-[#333]'
@@ -265,7 +522,7 @@ export default function SalesPage() {
             ))}
             <button
               onClick={() => { setChannelGroup('other'); if (!OTHER_CHANNELS.includes(form.channel as typeof OTHER_CHANNELS[number])) setField('channel', '워킹'); }}
-              className={`flex-1 py-2.5 rounded-lg font-medium transition-colors ${
+              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
                 channelGroup === 'other' ? 'bg-[#C9A84C] text-black' : 'bg-[#2a2a2a] text-gray-300 hover:bg-[#333]'
               }`}
             >
@@ -279,7 +536,7 @@ export default function SalesPage() {
                   <button
                     key={ch}
                     onClick={() => setField('channel', ch)}
-                    className={`flex-1 py-2 rounded-lg text-sm ${
+                    className={`flex-1 py-1.5 rounded-lg text-xs ${
                       form.channel === ch ? 'bg-[#555] text-white' : 'bg-[#2a2a2a] text-gray-400'
                     }`}
                   >
@@ -293,288 +550,145 @@ export default function SalesPage() {
                 className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2 text-sm"
               >
                 <option value="">결제수단 선택</option>
-                {PAYMENT_METHODS.map(pm => (
-                  <option key={pm} value={pm}>{pm}</option>
-                ))}
+                {PAYMENT_METHODS.map(pm => <option key={pm} value={pm}>{pm}</option>)}
               </select>
             </div>
           )}
         </div>
 
         {/* 객실타입 */}
-        <div>
-          <label className="block text-sm text-gray-400 mb-2">객실타입</label>
-          <div className="grid grid-cols-6 gap-2">
-            {ROOM_TYPES.map(rt => (
-              <button
-                key={rt}
-                onClick={() => { setField('room_type', rt); setField('room_id', undefined); setField('room_number', ''); }}
-                className={`py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                  form.room_type === rt ? 'bg-[#C9A84C] text-black' : 'bg-[#2a2a2a] text-gray-300'
-                }`}
-              >
-                {rt}
-              </button>
-            ))}
-          </div>
+        <div className="grid grid-cols-6 gap-2">
+          {ROOM_TYPES.map(rt => (
+            <button
+              key={rt}
+              onClick={() => { setField('room_type', rt); setField('room_id', undefined); setField('room_number', ''); }}
+              className={`py-2 rounded-lg text-sm font-medium transition-colors ${
+                form.room_type === rt ? 'bg-[#C9A84C] text-black' : 'bg-[#2a2a2a] text-gray-300'
+              }`}
+            >
+              {rt}
+            </button>
+          ))}
         </div>
 
         {/* 성명 + 금액 */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm text-gray-400 mb-1">성명</label>
-            <input
-              type="text"
-              value={form.guest_name || ''}
-              onChange={e => setField('guest_name', e.target.value)}
-              className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2.5"
-              placeholder="성명"
-            />
+            <label className="block text-xs text-gray-400 mb-1">성명</label>
+            <input type="text" value={form.guest_name || ''} onChange={e => setField('guest_name', e.target.value)}
+              className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2" placeholder="성명" />
           </div>
           <div>
-            <label className="block text-sm text-gray-400 mb-1">금액</label>
-            <input
-              type="number"
-              value={form.amount || ''}
-              onChange={e => setField('amount', Number(e.target.value))}
-              className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2.5"
-              placeholder="0"
-              step={1000}
-            />
+            <label className="block text-xs text-gray-400 mb-1">금액</label>
+            <input type="number" value={form.amount || ''} onChange={e => setField('amount', Number(e.target.value))}
+              className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2" placeholder="0" step={1000} />
           </div>
         </div>
 
-        {/* ─── 고객 정보 (접이식) ─── */}
+        {/* 고객 정보 (접이식) */}
         <div className="border border-[#333] rounded-lg overflow-hidden">
-          <button
-            type="button"
-            onClick={() => setCustomerOpen(!customerOpen)}
-            className="w-full flex items-center justify-between px-4 py-3 bg-[#222] hover:bg-[#2a2a2a] transition-colors"
-          >
-            <span className="text-sm text-gray-400 flex items-center gap-2">
-              고객 정보 추가
+          <button type="button" onClick={() => setCustomerOpen(!customerOpen)}
+            className="w-full flex items-center justify-between px-3 py-2 bg-[#222] hover:bg-[#2a2a2a] transition-colors">
+            <span className="text-xs text-gray-400 flex items-center gap-2">
+              고객 정보
               {foundCustomer && (
-                <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-[#C9A84C]/20 text-[#C9A84C] border border-[#C9A84C]/40">
+                <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-[#C9A84C]/20 text-[#C9A84C] border border-[#C9A84C]/40">
                   재방문 {foundCustomer.visit_count}회
                 </span>
               )}
               {isNewCustomer && phone.replace(/\D/g, '').length >= 10 && (
-                <span className="px-2 py-0.5 rounded-full text-xs bg-blue-900/40 text-blue-300 border border-blue-700/40">
-                  신규 고객
-                </span>
+                <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-blue-900/40 text-blue-300 border border-blue-700/40">신규</span>
               )}
             </span>
-            <span className="text-gray-500 text-sm">{customerOpen ? '▲' : '▼'}</span>
+            <span className="text-gray-500 text-xs">{customerOpen ? '▲' : '▼'}</span>
           </button>
-
           {customerOpen && (
-            <div className="p-4 space-y-4 bg-[#1a1a1a]">
-              {/* 전화번호 */}
-              <div>
-                <label className="block text-sm text-gray-400 mb-1">전화번호</label>
-                <div className="relative">
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={e => handlePhoneChange(e.target.value)}
-                    className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2.5 pr-10"
-                    placeholder="010-0000-0000"
-                    inputMode="numeric"
-                  />
-                  {customerSearching && (
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500">검색중...</span>
-                  )}
-                </div>
+            <div className="p-3 space-y-3 bg-[#1a1a1a]">
+              <div className="relative">
+                <input type="tel" value={phone} onChange={e => handlePhoneChange(e.target.value)}
+                  className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2 text-sm pr-16"
+                  placeholder="010-0000-0000" inputMode="numeric" />
+                {customerSearching && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-500">검색중...</span>}
               </div>
-
-              {/* 재방문 고객 정보 배지 */}
               {foundCustomer && (
-                <div className="bg-[#C9A84C]/10 border border-[#C9A84C]/30 rounded-lg p-3 space-y-1.5">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[#C9A84C] font-bold text-sm">재방문 고객!</span>
-                    <span className="text-xs text-gray-400">({foundCustomer.visit_count}회째)</span>
-                  </div>
-                  <div className="text-xs text-gray-300 space-y-0.5">
-                    {foundCustomer.preferred_room_type && (
-                      <p>선호: {foundCustomer.preferred_room_type}타입 | 누적: {formatAmount(foundCustomer.total_spent)}원</p>
-                    )}
-                    {foundCustomer.last_visit_date && (
-                      <p>최근 방문: {foundCustomer.last_visit_date}</p>
-                    )}
-                    {foundCustomer.memo && (
-                      <p className="text-yellow-400/80 mt-1">메모: {foundCustomer.memo}</p>
-                    )}
+                <div className="bg-[#C9A84C]/10 border border-[#C9A84C]/30 rounded-lg p-2.5 space-y-1">
+                  <div className="text-[#C9A84C] font-bold text-xs">재방문 고객! ({foundCustomer.visit_count}회째)</div>
+                  <div className="text-[10px] text-gray-300 space-y-0.5">
+                    {foundCustomer.preferred_room_type && <p>선호: {foundCustomer.preferred_room_type}타입 | 누적: {fmt(foundCustomer.total_spent)}원</p>}
+                    {foundCustomer.last_visit_date && <p>최근: {foundCustomer.last_visit_date}</p>}
+                    {foundCustomer.memo && <p className="text-yellow-400/80">메모: {foundCustomer.memo}</p>}
                   </div>
                 </div>
               )}
-
-              {/* 이메일 */}
-              <div>
-                <label className="block text-sm text-gray-400 mb-1">이메일</label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2.5"
-                  placeholder="선택 입력"
-                />
-              </div>
-
-              {/* 마케팅 수신동의 */}
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)}
+                className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2 text-sm" placeholder="이메일 (선택)" />
               <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={marketingConsent}
-                  onChange={e => setMarketingConsent(e.target.checked)}
-                  className="w-4 h-4 rounded border-[#444] bg-[#2a2a2a] accent-[#C9A84C]"
-                />
-                <span className="text-sm text-gray-400">마케팅 수신동의 (프로모션/할인 안내)</span>
+                <input type="checkbox" checked={marketingConsent} onChange={e => setMarketingConsent(e.target.checked)}
+                  className="w-3.5 h-3.5 rounded accent-[#C9A84C]" />
+                <span className="text-xs text-gray-400">마케팅 수신동의</span>
               </label>
             </div>
           )}
         </div>
 
-        {/* 입실/퇴실 시간 */}
+        {/* 입실/퇴실 */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm text-gray-400 mb-1">입실시간</label>
-            <input
-              type="number"
-              value={form.check_in_time ?? ''}
-              onChange={e => setField('check_in_time', e.target.value ? Number(e.target.value) : undefined)}
-              className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2.5"
-              placeholder="14.0"
-              step={0.5}
-              min={0}
-              max={24}
-            />
+            <label className="block text-xs text-gray-400 mb-1">입실시간</label>
+            <input type="number" value={form.check_in_time ?? ''} onChange={e => setField('check_in_time', e.target.value ? Number(e.target.value) : undefined)}
+              className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2" placeholder="14" step={0.5} min={0} max={24} />
           </div>
           <div>
-            <label className="block text-sm text-gray-400 mb-1">퇴실시간</label>
-            <input
-              type="number"
-              value={form.check_out_time ?? ''}
-              onChange={e => setField('check_out_time', e.target.value ? Number(e.target.value) : undefined)}
-              className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2.5"
-              placeholder="12.0"
-              step={0.5}
-              min={0}
-              max={24}
-            />
+            <label className="block text-xs text-gray-400 mb-1">퇴실시간</label>
+            <input type="number" value={form.check_out_time ?? ''} onChange={e => setField('check_out_time', e.target.value ? Number(e.target.value) : undefined)}
+              className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2" placeholder="12" step={0.5} min={0} max={24} />
           </div>
         </div>
 
         {/* 호실 + 차번호 */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm text-gray-400 mb-1">호실</label>
-            <select
-              value={form.room_id ?? ''}
-              onChange={e => {
-                const room = rooms.find(r => r.id === Number(e.target.value));
-                setField('room_id', room?.id);
-                setField('room_number', room?.room_number || '');
-              }}
-              className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2.5"
-            >
+            <label className="block text-xs text-gray-400 mb-1">호실</label>
+            <select value={form.room_id ?? ''} onChange={e => {
+              const room = rooms.find(r => r.id === Number(e.target.value));
+              setField('room_id', room?.id); setField('room_number', room?.room_number || '');
+            }} className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2">
               <option value="">선택 안함</option>
-              {filteredRooms.map(r => (
-                <option key={r.id} value={r.id}>{r.room_number}호</option>
-              ))}
+              {filteredRooms.map(r => <option key={r.id} value={r.id}>{r.room_number}호</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-sm text-gray-400 mb-1">차번호</label>
-            <input
-              type="text"
-              value={form.car_number || ''}
-              onChange={e => setField('car_number', e.target.value)}
-              className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2.5"
-              placeholder="차번호"
-            />
+            <label className="block text-xs text-gray-400 mb-1">차번호</label>
+            <input type="text" value={form.car_number || ''} onChange={e => setField('car_number', e.target.value)}
+              className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2" placeholder="차번호" />
           </div>
         </div>
 
         {/* 메모 */}
         <div>
-          <label className="block text-sm text-gray-400 mb-1">메모</label>
-          <input
-            type="text"
-            value={form.memo || ''}
-            onChange={e => setField('memo', e.target.value)}
-            className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2.5"
-            placeholder="메모"
-          />
+          <label className="block text-xs text-gray-400 mb-1">메모</label>
+          <input type="text" value={form.memo || ''} onChange={e => setField('memo', e.target.value)}
+            className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2" placeholder="메모" />
         </div>
 
-        {/* 저장 버튼 */}
-        <button
-          onClick={handleSubmit}
-          disabled={loading || !form.channel || !form.amount}
-          className="w-full py-3.5 rounded-lg font-bold text-lg transition-colors disabled:opacity-40 bg-[#C9A84C] text-black hover:bg-[#E8C96A]"
-        >
-          {loading ? '저장 중...' : editId ? '수정 저장' : '저장'}
-        </button>
-        {editId && (
-          <button
-            onClick={() => { setEditId(null); setForm({ ...INITIAL_FORM, sale_date: form.sale_date }); setChannelGroup(''); resetCustomerFields(); }}
-            className="w-full py-2 text-sm text-gray-400 hover:text-white"
-          >
-            수정 취소
+        {/* 액션 버튼들 */}
+        <div className="space-y-2 pt-2">
+          <button onClick={handleSubmit} disabled={loading || !form.channel || !form.amount}
+            className="w-full py-3 rounded-lg font-bold text-base bg-[#C9A84C] text-black hover:bg-[#E8C96A] transition-colors disabled:opacity-40">
+            {loading ? '저장 중...' : isEdit ? '수정 저장' : '저장'}
           </button>
-        )}
-      </div>
-
-      {/* 오늘 입력 목록 */}
-      <div className="bg-[#1a1a1a] rounded-xl border border-[#333]">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[#333]">
-          <h2 className="font-bold text-lg">
-            {form.sale_date} 판매 목록
-            <span className="ml-2 text-sm text-gray-400">({sales.length}건)</span>
-          </h2>
-          <span className="text-[#C9A84C] font-bold">{formatAmount(totalRevenue)}원</span>
-        </div>
-        <div className="divide-y divide-[#2a2a2a]">
-          {sales.length === 0 && (
-            <p className="px-5 py-8 text-center text-gray-500">입력된 판매가 없습니다</p>
+          {isEdit && editSale!.status === 'active' && (
+            <button onClick={handleCheckout}
+              className="w-full py-2.5 rounded-lg font-bold text-sm bg-orange-600 text-white hover:bg-orange-500 transition-colors">
+              퇴실 처리
+            </button>
           )}
-          {sales.map(sale => (
-            <div key={sale.id} className="px-5 py-3 flex items-center gap-3">
-              <span className={`px-2 py-0.5 rounded text-xs font-bold ${
-                sale.sale_type === '대실' ? 'bg-blue-900 text-blue-300' : 'bg-green-900 text-green-300'
-              }`}>
-                {sale.sale_type}
-              </span>
-              <span className="text-xs text-gray-400 w-14">{sale.channel}</span>
-              <span className="text-sm flex-1">
-                {sale.guest_name || '-'}
-                {sale.room_number && <span className="ml-1 text-gray-500">({sale.room_number}호)</span>}
-              </span>
-              <span className="text-sm font-medium text-[#C9A84C] w-24 text-right">
-                {formatAmount(sale.amount)}원
-              </span>
-              <span className={`text-xs px-1.5 py-0.5 rounded ${
-                sale.status === 'active' ? 'bg-emerald-900 text-emerald-300' :
-                sale.status === 'checked_out' ? 'bg-gray-700 text-gray-400' :
-                'bg-red-900 text-red-300'
-              }`}>
-                {sale.status === 'active' ? '사용중' : sale.status === 'checked_out' ? '퇴실' : '취소'}
-              </span>
-              <div className="flex gap-1">
-                {sale.status === 'active' && (
-                  <button onClick={() => handleCheckout(sale)} className="text-xs text-orange-400 hover:text-orange-300 px-2 py-1">
-                    퇴실
-                  </button>
-                )}
-                <button onClick={() => handleEdit(sale)} className="text-xs text-blue-400 hover:text-blue-300 px-2 py-1">
-                  수정
-                </button>
-                <button onClick={() => handleDelete(sale.id)} className="text-xs text-red-400 hover:text-red-300 px-2 py-1">
-                  삭제
-                </button>
-              </div>
-            </div>
-          ))}
+          {isEdit && (
+            <button onClick={handleDelete}
+              className="w-full py-2 rounded-lg text-sm text-red-400 hover:text-red-300 border border-red-900 hover:border-red-700 transition-colors">
+              삭제
+            </button>
+          )}
         </div>
       </div>
     </div>
