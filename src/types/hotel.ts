@@ -46,6 +46,7 @@ export interface Sale {
   memo: string;
   extra_payment_method: string | null;
   extra_amount: number;
+  booking_id: string | null;
   status: SaleStatus;
   created_at: string;
 }
@@ -165,6 +166,53 @@ export interface RoomStatus {
   room_status: 'vacant' | 'daesil' | 'sukbak' | 'both';
   // 복수 판매
   sales: RoomSaleInfo[];
+}
+
+// ── 연박 예약 ──
+export type SplitMethod = 'equal' | 'by_day' | 'manual';
+
+export interface Booking {
+  id: string;
+  guest_name: string;
+  room_type: RoomType;
+  room_id: number | null;
+  room_number: string | null;
+  channel: string;
+  payment_method: string | null;
+  check_in_date: string;
+  check_out_date: string;
+  total_nights: number;
+  total_amount: number;
+  split_method: SplitMethod;
+  customer_id: string | null;
+  memo: string;
+  status: string;
+  created_at: string;
+}
+
+export interface BookingInput {
+  guest_name: string;
+  room_type: RoomType;
+  room_id?: number;
+  room_number?: string;
+  channel: string;
+  payment_method?: string;
+  check_in_date: string;
+  check_out_date: string;
+  total_amount: number;
+  split_method: SplitMethod;
+  daily_amounts?: number[];
+  memo?: string;
+  phone?: string;
+  email?: string;
+  marketing_consent?: boolean;
+}
+
+export interface RoomRate {
+  id: number;
+  room_type: RoomType;
+  day_type: string;
+  rate: number;
 }
 
 // ── 현금 지출 ──

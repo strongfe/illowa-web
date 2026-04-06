@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import type { RoomStatus, RoomType } from '@/types/hotel';
+import type { RoomStatus, RoomType, Booking } from '@/types/hotel';
 import { ROOM_TYPE_LABELS } from '@/types/hotel';
 
 const STATUS_COLORS: Record<string, { bg: string; text: string; label: string }> = {
@@ -23,17 +23,26 @@ const TYPE_COLORS: Record<RoomType, string> = {
 
 export default function RoomsPage() {
   const [rooms, setRooms] = useState<RoomStatus[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedRoom, setSelectedRoom] = useState<RoomStatus | null>(null);
 
+  const todayStr = new Date().toISOString().split('T')[0];
+
   const fetchRooms = useCallback(async () => {
-    const res = await fetch('/api/admin/hotel/stats?date=' + new Date().toISOString().split('T')[0]);
-    if (res.ok) {
-      const data = await res.json();
+    const [statsRes, bookingsRes] = await Promise.all([
+      fetch('/api/admin/hotel/stats?date=' + todayStr),
+      fetch('/api/admin/hotel/bookings?date=' + todayStr + '&active=true'),
+    ]);
+    if (statsRes.ok) {
+      const data = await statsRes.json();
       setRooms(data.roomStatus || []);
     }
+    if (bookingsRes.ok) {
+      setBookings(await bookingsRes.json());
+    }
     setLoading(false);
-  }, []);
+  }, [todayStr]);
 
   useEffect(() => { fetchRooms(); }, [fetchRooms]);
 
@@ -109,6 +118,17 @@ export default function RoomsPage() {
                     const status = STATUS_COLORS[room.room_status] || STATUS_COLORS.vacant;
                     const typeColor = TYPE_COLORS[room.room_type];
                     const salesList = room.sales || [];
+                    // 연박 정보 찾기
+                    const roomBooking = bookings.find(b =>
+                      b.room_number === room.room_number && b.status === 'active'
+                    );
+                    let nightLabel = '';
+                    if (roomBooking) {
+                      const currentNight = Math.max(1, Math.round(
+                        (new Date(todayStr + 'T00:00:00').getTime() - new Date(roomBooking.check_in_date + 'T00:00:00').getTime()) / 86400000
+                      ) + 1);
+                      nightLabel = `${currentNight}/${roomBooking.total_nights}박`;
+                    }
                     return (
                       <button
                         key={room.room_id}
@@ -119,8 +139,13 @@ export default function RoomsPage() {
                         <div className="text-xs text-gray-500">{room.room_type}</div>
                         {room.room_status !== 'vacant' && room.room_status !== 'both' && (
                           <>
-                            <div className={`text-xs mt-1 ${status.text} font-medium`}>{status.label}</div>
+                            <div className={`text-xs mt-1 ${status.text} font-medium`}>
+                              {nightLabel ? `숙박 ${nightLabel}` : status.label}
+                            </div>
                             <div className="text-xs text-gray-500 truncate">{room.guest_name || '-'}</div>
+                            {roomBooking && (
+                              <div className="text-[10px] text-gray-600">~{roomBooking.check_out_date.slice(5)}</div>
+                            )}
                           </>
                         )}
                         {room.room_status === 'both' && (
