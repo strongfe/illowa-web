@@ -25,6 +25,7 @@ export default function RoomsPage() {
   const [rooms, setRooms] = useState<RoomStatus[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [todayReservations, setTodayReservations] = useState<Array<{ id: string; guest_name: string; room_type: string; room_number: string | null; channel: string; payment_timing: string; amount: number }>>([]);
+  const [complaintRooms, setComplaintRooms] = useState<Map<string, number>>(new Map());
   const [loading, setLoading] = useState(true);
   const [selectedRoom, setSelectedRoom] = useState<RoomStatus | null>(null);
 
@@ -46,6 +47,14 @@ export default function RoomsPage() {
     if (resvRes.ok) {
       const allResv = await resvRes.json();
       setTodayReservations(allResv.filter((r: { sale_date: string }) => r.sale_date === todayStr));
+    }
+    // 미처리 컴플레인
+    const compRes = await fetch('/api/admin/hotel/complaints?status=open');
+    if (compRes.ok) {
+      const comps: Array<{ room_number: string | null }> = await compRes.json();
+      const map = new Map<string, number>();
+      comps.forEach(c => { if (c.room_number) map.set(c.room_number, (map.get(c.room_number) || 0) + 1); });
+      setComplaintRooms(map);
     }
     setLoading(false);
   }, [todayStr]);
@@ -154,7 +163,12 @@ export default function RoomsPage() {
                         onClick={() => setSelectedRoom(room)}
                         className={`${status.bg} border-2 ${typeColor} rounded-lg p-3 text-center transition-transform hover:scale-105 active:scale-95`}
                       >
-                        <div className="text-lg font-bold">{room.room_number}</div>
+                        <div className="text-lg font-bold">
+                          {room.room_number}
+                          {complaintRooms.has(room.room_number) && (
+                            <span className="ml-1 text-xs text-red-400" title={`미처리 컴플레인 ${complaintRooms.get(room.room_number)}건`}>!</span>
+                          )}
+                        </div>
                         <div className="text-xs text-gray-500">{room.room_type}</div>
                         {room.room_status !== 'vacant' && room.room_status !== 'both' && (
                           <>

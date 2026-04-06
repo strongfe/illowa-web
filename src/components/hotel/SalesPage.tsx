@@ -111,6 +111,7 @@ export default function SalesPage() {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [availPopup, setAvailPopup] = useState(false);
   const [helpPopup, setHelpPopup] = useState(false);
+  const [complaintRooms, setComplaintRooms] = useState<Set<string>>(new Set());
 
   const fetchSales = useCallback(async () => {
     const res = await fetch(`/api/admin/hotel/sales?date=${saleDate}`);
@@ -122,8 +123,17 @@ export default function SalesPage() {
     if (res.ok) setRooms(await res.json());
   }, []);
 
+  const fetchComplaints = useCallback(async () => {
+    const res = await fetch('/api/admin/hotel/complaints?status=open');
+    if (res.ok) {
+      const data: Array<{ room_number: string | null }> = await res.json();
+      setComplaintRooms(new Set(data.map(c => c.room_number).filter(Boolean) as string[]));
+    }
+  }, []);
+
   useEffect(() => { fetchSales(); }, [fetchSales]);
   useEffect(() => { fetchRooms(); }, [fetchRooms]);
+  useEffect(() => { fetchComplaints(); }, [fetchComplaints]);
 
   // 30초 자동 새로고침
   useEffect(() => {
@@ -351,17 +361,17 @@ export default function SalesPage() {
         <SalesPartPanel
           title="야놀자" saleType="대실" sales={groups.yanolja_daesil} isEtc={false}
           collapsed={collapsed['yd']} onToggle={() => toggleCollapse('yd')}
-          onClickRow={openEditSale} onAdd={() => openNewSale('야놀자', '대실')} onToggleCheckout={handleToggleCheckout}
+          onClickRow={openEditSale} onAdd={() => openNewSale('야놀자', '대실')} onToggleCheckout={handleToggleCheckout} complaintRooms={complaintRooms}
         />
         <SalesPartPanel
           title="여기어때" saleType="대실" sales={groups.yeogi_daesil} isEtc={false}
           collapsed={collapsed['ed']} onToggle={() => toggleCollapse('ed')}
-          onClickRow={openEditSale} onAdd={() => openNewSale('여기어때', '대실')} onToggleCheckout={handleToggleCheckout}
+          onClickRow={openEditSale} onAdd={() => openNewSale('여기어때', '대실')} onToggleCheckout={handleToggleCheckout} complaintRooms={complaintRooms}
         />
         <SalesPartPanel
           title="기타" saleType="대실" sales={groups.etc_daesil} isEtc={true}
           collapsed={collapsed['od']} onToggle={() => toggleCollapse('od')}
-          onClickRow={openEditSale} onAdd={() => openNewSale('워킹', '대실')} onToggleCheckout={handleToggleCheckout}
+          onClickRow={openEditSale} onAdd={() => openNewSale('워킹', '대실')} onToggleCheckout={handleToggleCheckout} complaintRooms={complaintRooms}
         />
       </div>
 
@@ -370,17 +380,17 @@ export default function SalesPage() {
         <SalesPartPanel
           title="야놀자" saleType="숙박" sales={groups.yanolja_sukbak} isEtc={false}
           collapsed={collapsed['ys']} onToggle={() => toggleCollapse('ys')}
-          onClickRow={openEditSale} onAdd={() => openNewSale('야놀자', '숙박')} onToggleCheckout={handleToggleCheckout}
+          onClickRow={openEditSale} onAdd={() => openNewSale('야놀자', '숙박')} onToggleCheckout={handleToggleCheckout} complaintRooms={complaintRooms}
         />
         <SalesPartPanel
           title="여기어때" saleType="숙박" sales={groups.yeogi_sukbak} isEtc={false}
           collapsed={collapsed['es']} onToggle={() => toggleCollapse('es')}
-          onClickRow={openEditSale} onAdd={() => openNewSale('여기어때', '숙박')} onToggleCheckout={handleToggleCheckout}
+          onClickRow={openEditSale} onAdd={() => openNewSale('여기어때', '숙박')} onToggleCheckout={handleToggleCheckout} complaintRooms={complaintRooms}
         />
         <SalesPartPanel
           title="기타" saleType="숙박" sales={groups.etc_sukbak} isEtc={true}
           collapsed={collapsed['os']} onToggle={() => toggleCollapse('os')}
-          onClickRow={openEditSale} onAdd={() => openNewSale('워킹', '숙박')} onToggleCheckout={handleToggleCheckout}
+          onClickRow={openEditSale} onAdd={() => openNewSale('워킹', '숙박')} onToggleCheckout={handleToggleCheckout} complaintRooms={complaintRooms}
         />
       </div>
 
@@ -412,7 +422,7 @@ export default function SalesPage() {
 // ═══════════════════════════════════════
 // 파트 패널 (하나의 채널×유형 영역)
 // ═══════════════════════════════════════
-function SalesPartPanel({ title, saleType, sales, isEtc, collapsed, onToggle, onClickRow, onAdd, onToggleCheckout }: {
+function SalesPartPanel({ title, saleType, sales, isEtc, collapsed, onToggle, onClickRow, onAdd, onToggleCheckout, complaintRooms }: {
   title: string;
   saleType: SaleType;
   sales: Sale[];
@@ -422,6 +432,7 @@ function SalesPartPanel({ title, saleType, sales, isEtc, collapsed, onToggle, on
   onClickRow: (sale: Sale) => void;
   onAdd: () => void;
   onToggleCheckout: (sale: Sale) => void;
+  complaintRooms: Set<string>;
 }) {
   const headerBg = saleType === '대실' ? 'bg-emerald-900/40' : 'bg-blue-900/40';
   const total = sumAmount(sales);
@@ -509,7 +520,12 @@ function SalesPartPanel({ title, saleType, sales, isEtc, collapsed, onToggle, on
                         <span className="ml-1 px-1 py-0.5 rounded text-[10px] bg-green-900 text-green-300">완불</span>
                       )}
                     </td>
-                    <td className="px-2 py-1.5 text-center text-gray-400">{sale.room_number || ''}</td>
+                    <td className="px-2 py-1.5 text-center text-gray-400">
+                      {sale.room_number || ''}
+                      {sale.room_number && complaintRooms.has(sale.room_number) && (
+                        <span className="ml-0.5 text-red-400" title="미처리 컴플레인 있음">!</span>
+                      )}
+                    </td>
                     <td className="px-2 py-1.5 text-center">
                       <button
                         onClick={e => { e.stopPropagation(); onToggleCheckout(sale); }}
