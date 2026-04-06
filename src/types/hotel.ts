@@ -12,12 +12,12 @@ export type RoomType = 'T' | 'GS' | 'GD' | 'S' | 'D' | 'P' | 'PT';
 
 export const ROOM_TYPE_LABELS: Record<RoomType, string> = {
   T: '당특',
-  GS: '골드싱글',
-  GD: '골드더블',
-  S: '싱글',
-  D: '더블',
-  P: '프리미엄',
-  PT: '프리미엄트윈',
+  GS: '게이밍스탠다드',
+  GD: '게이밍디럭스',
+  S: '스탠다드',
+  D: '디럭스',
+  P: '프리미어',
+  PT: '프리미어트윈',
 };
 
 export const ROOM_TYPE_CAPACITY: Record<RoomType, number> = {
