@@ -150,6 +150,16 @@ export default function SalesPage() {
     fetchSales();
   };
 
+  const handleToggleCheckout = async (sale: Sale) => {
+    const newStatus = sale.status === 'checked_out' ? 'active' : 'checked_out';
+    await fetch('/api/admin/hotel/sales', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: sale.id, status: newStatus }),
+    });
+    fetchSales();
+  };
+
   const modalDefaultRef = useRef<{ channel: string; sale_type: SaleType } | null>(null);
 
   const toggleCollapse = (key: string) => {
@@ -187,17 +197,17 @@ export default function SalesPage() {
         <SalesPartPanel
           title="야놀자" saleType="대실" sales={groups.yanolja_daesil} isEtc={false}
           collapsed={collapsed['yd']} onToggle={() => toggleCollapse('yd')}
-          onClickRow={openEditSale} onAdd={() => openNewSale('야놀자', '대실')}
+          onClickRow={openEditSale} onAdd={() => openNewSale('야놀자', '대실')} onToggleCheckout={handleToggleCheckout}
         />
         <SalesPartPanel
           title="여기어때" saleType="대실" sales={groups.yeogi_daesil} isEtc={false}
           collapsed={collapsed['ed']} onToggle={() => toggleCollapse('ed')}
-          onClickRow={openEditSale} onAdd={() => openNewSale('여기어때', '대실')}
+          onClickRow={openEditSale} onAdd={() => openNewSale('여기어때', '대실')} onToggleCheckout={handleToggleCheckout}
         />
         <SalesPartPanel
           title="기타" saleType="대실" sales={groups.etc_daesil} isEtc={true}
           collapsed={collapsed['od']} onToggle={() => toggleCollapse('od')}
-          onClickRow={openEditSale} onAdd={() => openNewSale('워킹', '대실')}
+          onClickRow={openEditSale} onAdd={() => openNewSale('워킹', '대실')} onToggleCheckout={handleToggleCheckout}
         />
       </div>
 
@@ -206,17 +216,17 @@ export default function SalesPage() {
         <SalesPartPanel
           title="야놀자" saleType="숙박" sales={groups.yanolja_sukbak} isEtc={false}
           collapsed={collapsed['ys']} onToggle={() => toggleCollapse('ys')}
-          onClickRow={openEditSale} onAdd={() => openNewSale('야놀자', '숙박')}
+          onClickRow={openEditSale} onAdd={() => openNewSale('야놀자', '숙박')} onToggleCheckout={handleToggleCheckout}
         />
         <SalesPartPanel
           title="여기어때" saleType="숙박" sales={groups.yeogi_sukbak} isEtc={false}
           collapsed={collapsed['es']} onToggle={() => toggleCollapse('es')}
-          onClickRow={openEditSale} onAdd={() => openNewSale('여기어때', '숙박')}
+          onClickRow={openEditSale} onAdd={() => openNewSale('여기어때', '숙박')} onToggleCheckout={handleToggleCheckout}
         />
         <SalesPartPanel
           title="기타" saleType="숙박" sales={groups.etc_sukbak} isEtc={true}
           collapsed={collapsed['os']} onToggle={() => toggleCollapse('os')}
-          onClickRow={openEditSale} onAdd={() => openNewSale('워킹', '숙박')}
+          onClickRow={openEditSale} onAdd={() => openNewSale('워킹', '숙박')} onToggleCheckout={handleToggleCheckout}
         />
       </div>
 
@@ -248,7 +258,7 @@ export default function SalesPage() {
 // ═══════════════════════════════════════
 // 파트 패널 (하나의 채널×유형 영역)
 // ═══════════════════════════════════════
-function SalesPartPanel({ title, saleType, sales, isEtc, collapsed, onToggle, onClickRow, onAdd }: {
+function SalesPartPanel({ title, saleType, sales, isEtc, collapsed, onToggle, onClickRow, onAdd, onToggleCheckout }: {
   title: string;
   saleType: SaleType;
   sales: Sale[];
@@ -257,6 +267,7 @@ function SalesPartPanel({ title, saleType, sales, isEtc, collapsed, onToggle, on
   onToggle: () => void;
   onClickRow: (sale: Sale) => void;
   onAdd: () => void;
+  onToggleCheckout: (sale: Sale) => void;
 }) {
   const headerBg = saleType === '대실' ? 'bg-emerald-900/40' : 'bg-blue-900/40';
   const total = sumAmount(sales);
@@ -292,6 +303,7 @@ function SalesPartPanel({ title, saleType, sales, isEtc, collapsed, onToggle, on
                 {isEtc && <th className="px-2 py-1.5 text-center">결제</th>}
                 <th className="px-2 py-1.5 text-right">금액</th>
                 <th className="px-2 py-1.5 text-center">호실</th>
+                <th className="px-2 py-1.5 text-center">퇴실</th>
                 <th className="px-2 py-1.5 text-center">추결</th>
                 <th className="px-2 py-1.5 text-right">추금액</th>
                 <th className="px-2 py-1.5 text-left">메모</th>
@@ -299,7 +311,7 @@ function SalesPartPanel({ title, saleType, sales, isEtc, collapsed, onToggle, on
             </thead>
             <tbody>
               {sales.length === 0 && (
-                <tr><td colSpan={isEtc ? 12 : 10} className="px-2 py-4 text-center text-gray-600">-</td></tr>
+                <tr><td colSpan={isEtc ? 13 : 11} className="px-2 py-4 text-center text-gray-600">-</td></tr>
               )}
               {sales.map((sale, i) => {
                 const isOut = sale.status === 'checked_out';
@@ -324,6 +336,18 @@ function SalesPartPanel({ title, saleType, sales, isEtc, collapsed, onToggle, on
                     {isEtc && <td className="px-2 py-1.5 text-center text-gray-400">{sale.payment_method || ''}</td>}
                     <td className="px-2 py-1.5 text-right font-medium">{fmt(sale.amount)}</td>
                     <td className="px-2 py-1.5 text-center text-gray-400">{sale.room_number || ''}</td>
+                    <td className="px-2 py-1.5 text-center">
+                      <button
+                        onClick={e => { e.stopPropagation(); onToggleCheckout(sale); }}
+                        className={`px-1.5 py-0.5 rounded text-[10px] font-bold transition-colors ${
+                          isOut
+                            ? 'bg-orange-800/60 text-orange-300 hover:bg-orange-700/60'
+                            : 'text-gray-600 hover:bg-[#333] hover:text-gray-400'
+                        }`}
+                      >
+                        {isOut ? '퇴실' : '·'}
+                      </button>
+                    </td>
                     <td className="px-2 py-1.5 text-center text-gray-400">{sale.extra_payment_method || ''}</td>
                     <td className={`px-2 py-1.5 text-right ${hasExtra ? 'text-yellow-400 font-medium' : 'text-gray-600'}`}>
                       {hasExtra ? `+${fmt(sale.extra_amount)}` : ''}
