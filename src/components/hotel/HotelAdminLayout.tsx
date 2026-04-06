@@ -57,6 +57,9 @@ export default function HotelAdminLayout({ children }: { children: React.ReactNo
         </nav>
 
         <div className="flex items-center gap-3">
+          <Link href="/admin/hotel/audit" className="text-xs text-gray-500 hover:text-gray-300">
+            변경이력
+          </Link>
           <Link href="/admin/dashboard" className="text-xs text-gray-500 hover:text-gray-300">
             챗봇 관리
           </Link>

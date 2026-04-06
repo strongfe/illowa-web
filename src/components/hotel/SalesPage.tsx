@@ -1041,6 +1041,12 @@ function SaleModal({ saleDate, rooms, editSale, defaults, onClose, onSaved, onDe
                   {editSale!.booking_id ? '연박 전체 삭제' : '삭제'}
                 </button>
               )}
+              {isEdit && (
+                <a href={`/admin/hotel/audit?record_id=${editSale!.id}`} target="_blank"
+                  className="block w-full py-2 text-center rounded-lg text-xs text-gray-500 hover:text-gray-300 transition-colors">
+                  변경이력 보기
+                </a>
+              )}
             </div>
           </>
         )}
