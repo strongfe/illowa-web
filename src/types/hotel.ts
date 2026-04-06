@@ -76,7 +76,7 @@ export const OTA_CHANNELS = ['야놀자', '여기어때'] as const;
 export const OTHER_CHANNELS = ['워킹', '연장', '예약'] as const;
 
 export const PAYMENT_METHODS = [
-  '국민', '신한', '비씨', '현대국민', '삼성', '삼성현대', '현금', '계좌', '호스', '미수',
+  '국민', '신한', '비씨', '현대', '삼성', '농협', '하나', '롯데', '현금', '계좌', '호스', '미수',
 ] as const;
 
 // ── 일일 마감 ──
