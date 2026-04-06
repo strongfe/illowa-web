@@ -36,9 +36,32 @@ export default function ClosingPage() {
   const [newExpenseDesc, setNewExpenseDesc] = useState('');
   const [newExpenseAmt, setNewExpenseAmt] = useState(0);
 
+  // 미수 현황
+  const [receivableNew, setReceivableNew] = useState(0);
+  const [receivableNewCount, setReceivableNewCount] = useState(0);
+  const [receivableResolved, setReceivableResolved] = useState(0);
+  const [receivableResolvedCount, setReceivableResolvedCount] = useState(0);
+  const [receivableTotal, setReceivableTotal] = useState(0);
+  const [receivableTotalCount, setReceivableTotalCount] = useState(0);
+
   const fetchData = useCallback(async () => {
     setLoading(true);
-    const res = await fetch(`/api/admin/hotel/closing?date=${date}`);
+    const [res, recRes] = await Promise.all([
+      fetch(`/api/admin/hotel/closing?date=${date}`),
+      fetch(`/api/admin/hotel/receivables?status=all`),
+    ]);
+    if (recRes.ok) {
+      const recs: Array<{ sale_date: string; receivable_amount: number; resolved_at: string | null }> = await recRes.json();
+      const dayNew = recs.filter(r => r.sale_date === date && !r.resolved_at);
+      const dayResolved = recs.filter(r => r.resolved_at?.startsWith(date));
+      const allOpen = recs.filter(r => !r.resolved_at);
+      setReceivableNewCount(dayNew.length);
+      setReceivableNew(dayNew.reduce((s, r) => s + r.receivable_amount, 0));
+      setReceivableResolvedCount(dayResolved.length);
+      setReceivableResolved(dayResolved.reduce((s, r) => s + r.receivable_amount, 0));
+      setReceivableTotalCount(allOpen.length);
+      setReceivableTotal(allOpen.reduce((s, r) => s + r.receivable_amount, 0));
+    }
     if (res.ok) {
       const d: ClosingData = await res.json();
       setData(d);
@@ -286,6 +309,18 @@ export default function ClosingPage() {
             className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2.5 h-20 resize-none"
             placeholder="특이사항 메모"
           />
+        </div>
+      </div>
+
+      {/* 미수 현황 */}
+      <div className="bg-[#1a1a1a] rounded-xl border border-[#333] overflow-hidden">
+        <h2 className="px-5 py-4 font-bold border-b border-[#333]">미수 현황</h2>
+        <div className="p-5 space-y-2">
+          <Row label="당일 발생 미수" value={receivableNewCount > 0 ? `${receivableNewCount}건 / ${formatAmount(receivableNew)}원` : '없음'} />
+          <Row label="당일 수금 완료" value={receivableResolvedCount > 0 ? `${receivableResolvedCount}건 / ${formatAmount(receivableResolved)}원` : '없음'} />
+          <div className="border-t border-[#333] pt-2 mt-2">
+            <Row label="미수 잔액 (누적)" value={`${receivableTotalCount}건 / ${formatAmount(receivableTotal)}원`} bold />
+          </div>
         </div>
       </div>
 

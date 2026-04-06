@@ -47,6 +47,11 @@ export interface Sale {
   extra_payment_method: string | null;
   extra_amount: number;
   booking_id: string | null;
+  is_receivable: boolean;
+  receivable_amount: number;
+  resolved_at: string | null;
+  resolved_payment_method: string | null;
+  resolved_memo: string | null;
   status: SaleStatus;
   created_at: string;
 }
@@ -68,7 +73,31 @@ export interface SaleInput {
   memo?: string;
   extra_payment_method?: string;
   extra_amount?: number;
+  is_receivable?: boolean;
+  receivable_amount?: number;
   status?: SaleStatus;
+}
+
+// ── 미수금 ──
+export interface Receivable {
+  id: string;
+  sale_date: string;
+  sale_type: SaleType;
+  channel: string;
+  guest_name: string;
+  room_type: RoomType;
+  room_number: string | null;
+  amount: number;
+  receivable_amount: number;
+  resolved_at: string | null;
+  resolved_payment_method: string | null;
+  resolved_memo: string | null;
+  memo: string;
+  is_receivable: boolean;
+  phone: string | null;
+  customer_name: string | null;
+  receivable_status: '미수' | '주의' | '장기미수' | '수금완료';
+  days_overdue: number;
 }
 
 // ── 채널 / 결제수단 ──

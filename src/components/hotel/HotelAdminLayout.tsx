@@ -9,6 +9,7 @@ const NAV_ITEMS = [
   { href: '/admin/hotel/dashboard', label: '대시보드', icon: '📊' },
   { href: '/admin/hotel/closing', label: '일일 마감', icon: '📋' },
   { href: '/admin/hotel/rooms', label: '객실 현황', icon: '🏨' },
+  { href: '/admin/hotel/receivables', label: '미수 관리', icon: '💰' },
 ];
 
 export default function HotelAdminLayout({ children }: { children: React.ReactNode }) {

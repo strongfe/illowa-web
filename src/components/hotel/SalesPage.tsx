@@ -402,7 +402,15 @@ function SalesPartPanel({ title, saleType, sales, isEtc, collapsed, onToggle, on
                     <td className="px-2 py-1.5 text-center">{fmtTime(sale.check_in_time)}</td>
                     <td className="px-2 py-1.5 text-center">{fmtTime(sale.check_out_time)}</td>
                     {isEtc && <td className="px-2 py-1.5 text-center text-gray-400">{sale.payment_method || ''}</td>}
-                    <td className="px-2 py-1.5 text-right font-medium">{fmt(sale.amount)}</td>
+                    <td className="px-2 py-1.5 text-right font-medium">
+                      {fmt(sale.amount)}
+                      {sale.is_receivable && !sale.resolved_at && (
+                        <span className="ml-1 px-1 py-0.5 rounded text-[10px] bg-red-900 text-red-300">미수</span>
+                      )}
+                      {sale.is_receivable && sale.resolved_at && (
+                        <span className="ml-1 px-1 py-0.5 rounded text-[10px] bg-green-900 text-green-300">수금</span>
+                      )}
+                    </td>
                     <td className="px-2 py-1.5 text-center text-gray-400">{sale.room_number || ''}</td>
                     <td className="px-2 py-1.5 text-center">
                       <button
@@ -604,6 +612,11 @@ function SaleModal({ saleDate, rooms, editSale, defaults, onClose, onSaved, onDe
     if (!payload.check_in_time) delete payload.check_in_time;
     if (!payload.check_out_time) delete payload.check_out_time;
     if (!payload.room_id) delete payload.room_id;
+    // 미수 자동 처리
+    if (form.payment_method === '미수') {
+      payload.is_receivable = true;
+      payload.receivable_amount = form.amount;
+    }
     const phoneDigits = phone.replace(/\D/g, '');
     if (phoneDigits.length >= 10) {
       payload.phone = phoneDigits; payload.email = email || undefined; payload.marketing_consent = marketingConsent;
