@@ -8,6 +8,7 @@ const STATUS_COLORS: Record<string, { bg: string; text: string; label: string }>
   vacant: { bg: 'bg-[#2a2a2a]', text: 'text-gray-400', label: '공실' },
   daesil: { bg: 'bg-blue-900/50', text: 'text-blue-300', label: '대실' },
   sukbak: { bg: 'bg-green-900/50', text: 'text-green-300', label: '숙박' },
+  both: { bg: 'bg-purple-900/50', text: 'text-purple-300', label: '대실+숙박' },
 };
 
 const TYPE_COLORS: Record<RoomType, string> = {
@@ -105,8 +106,9 @@ export default function RoomsPage() {
                 {floorRooms
                   .sort((a, b) => a.room_number.localeCompare(b.room_number))
                   .map(room => {
-                    const status = STATUS_COLORS[room.room_status];
+                    const status = STATUS_COLORS[room.room_status] || STATUS_COLORS.vacant;
                     const typeColor = TYPE_COLORS[room.room_type];
+                    const salesList = room.sales || [];
                     return (
                       <button
                         key={room.room_id}
@@ -115,11 +117,20 @@ export default function RoomsPage() {
                       >
                         <div className="text-lg font-bold">{room.room_number}</div>
                         <div className="text-xs text-gray-500">{room.room_type}</div>
-                        {room.room_status !== 'vacant' && (
+                        {room.room_status !== 'vacant' && room.room_status !== 'both' && (
                           <>
                             <div className={`text-xs mt-1 ${status.text} font-medium`}>{status.label}</div>
                             <div className="text-xs text-gray-500 truncate">{room.guest_name || '-'}</div>
                           </>
+                        )}
+                        {room.room_status === 'both' && (
+                          <div className="mt-1 space-y-0.5">
+                            {salesList.map(s => (
+                              <div key={s.sale_id} className={`text-[10px] truncate ${s.sale_type === '대실' ? 'text-blue-400' : 'text-green-400'}`}>
+                                {s.sale_type}: {s.guest_name || '-'}
+                              </div>
+                            ))}
+                          </div>
                         )}
                       </button>
                     );
@@ -144,26 +155,50 @@ export default function RoomsPage() {
             <div className="space-y-2 text-sm">
               <Row label="타입" value={`${selectedRoom.room_type} (${ROOM_TYPE_LABELS[selectedRoom.room_type]})`} />
               <Row label="층" value={`${selectedRoom.floor}층`} />
-              <Row label="상태" value={STATUS_COLORS[selectedRoom.room_status].label} />
-              {selectedRoom.room_status !== 'vacant' && (
-                <>
+              <Row label="상태" value={(STATUS_COLORS[selectedRoom.room_status] || STATUS_COLORS.vacant).label} />
+              {selectedRoom.features && <Row label="특성" value={selectedRoom.features} />}
+            </div>
+            {/* 판매 목록 (복수 가능) */}
+            {(selectedRoom.sales || []).length > 0 ? (
+              <div className="space-y-3">
+                {(selectedRoom.sales || []).map(s => (
+                  <div key={s.sale_id} className="bg-[#222] rounded-lg p-3 space-y-1.5">
+                    <div className={`text-xs font-bold ${s.sale_type === '대실' ? 'text-blue-400' : 'text-green-400'}`}>
+                      {s.sale_type}
+                    </div>
+                    <div className="space-y-1 text-sm">
+                      <Row label="성명" value={s.guest_name || '-'} />
+                      <Row label="채널" value={s.channel || '-'} />
+                      <Row label="입실" value={s.check_in_time ? `${s.check_in_time}시` : '-'} />
+                      <Row label="퇴실" value={s.check_out_time ? `${s.check_out_time}시` : '-'} />
+                      <Row label="금액" value={s.amount ? `${s.amount.toLocaleString()}원` : '-'} />
+                    </div>
+                    <button
+                      onClick={() => handleCheckout(s.sale_id)}
+                      className="w-full py-2 rounded-lg text-xs font-bold bg-orange-600 text-white hover:bg-orange-500 transition-colors mt-2"
+                    >
+                      퇴실 처리
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : selectedRoom.room_status !== 'vacant' && selectedRoom.sale_id && (
+              <div className="space-y-2">
+                <div className="space-y-1 text-sm">
                   <Row label="유형" value={selectedRoom.sale_type || '-'} />
                   <Row label="성명" value={selectedRoom.guest_name || '-'} />
                   <Row label="채널" value={selectedRoom.channel || '-'} />
                   <Row label="입실" value={selectedRoom.check_in_time ? `${selectedRoom.check_in_time}시` : '-'} />
                   <Row label="퇴실" value={selectedRoom.check_out_time ? `${selectedRoom.check_out_time}시` : '-'} />
                   <Row label="금액" value={selectedRoom.amount ? `${selectedRoom.amount.toLocaleString()}원` : '-'} />
-                </>
-              )}
-              {selectedRoom.features && <Row label="특성" value={selectedRoom.features} />}
-            </div>
-            {selectedRoom.sale_id && selectedRoom.room_status !== 'vacant' && (
-              <button
-                onClick={() => handleCheckout(selectedRoom.sale_id!)}
-                className="w-full py-2.5 rounded-lg font-bold bg-orange-600 text-white hover:bg-orange-500 transition-colors"
-              >
-                퇴실 처리
-              </button>
+                </div>
+                <button
+                  onClick={() => handleCheckout(selectedRoom.sale_id!)}
+                  className="w-full py-2.5 rounded-lg font-bold bg-orange-600 text-white hover:bg-orange-500 transition-colors"
+                >
+                  퇴실 처리
+                </button>
+              </div>
             )}
           </div>
         </div>

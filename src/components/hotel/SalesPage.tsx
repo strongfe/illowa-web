@@ -345,7 +345,7 @@ function SalesPartPanel({ title, saleType, sales, isEtc, collapsed, onToggle, on
                             : 'text-gray-600 hover:bg-[#333] hover:text-gray-400'
                         }`}
                       >
-                        {isOut ? '퇴실' : '·'}
+                        {isOut ? '☑ 퇴실' : '☐'}
                       </button>
                     </td>
                     <td className="px-2 py-1.5 text-center text-gray-400">{sale.extra_payment_method || ''}</td>

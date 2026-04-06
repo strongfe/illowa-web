@@ -136,12 +136,24 @@ export interface ChannelRevenue {
   total_revenue: number;
 }
 
+export interface RoomSaleInfo {
+  sale_id: string;
+  sale_type: SaleType;
+  guest_name: string | null;
+  channel: string | null;
+  check_in_time: number | null;
+  check_out_time: number | null;
+  amount: number | null;
+  sale_status: SaleStatus;
+}
+
 export interface RoomStatus {
   room_id: number;
   room_number: string;
   room_type: RoomType;
   floor: number;
   features: string;
+  // 단일 판매 (하위호환)
   sale_id: string | null;
   sale_type: SaleType | null;
   guest_name: string | null;
@@ -150,7 +162,9 @@ export interface RoomStatus {
   check_out_time: number | null;
   amount: number | null;
   sale_status: SaleStatus | null;
-  room_status: 'vacant' | 'daesil' | 'sukbak';
+  room_status: 'vacant' | 'daesil' | 'sukbak' | 'both';
+  // 복수 판매
+  sales: RoomSaleInfo[];
 }
 
 // ── 현금 지출 ──
