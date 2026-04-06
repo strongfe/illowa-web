@@ -65,6 +65,8 @@ export interface SaleInput {
   room_number?: string;
   car_number?: string;
   memo?: string;
+  extra_payment_method?: string;
+  extra_amount?: number;
   status?: SaleStatus;
 }
 

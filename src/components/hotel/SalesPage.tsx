@@ -53,6 +53,8 @@ const INITIAL_FORM: SaleInput = {
   room_number: '',
   car_number: '',
   memo: '',
+  extra_payment_method: '',
+  extra_amount: 0,
 };
 
 // ─── 6파트 그리드 분류 ───
@@ -84,7 +86,15 @@ function groupSales(sales: Sale[]): SalesGroups {
 }
 
 function sumAmount(sales: Sale[]) {
+  return sales.reduce((s, r) => s + r.amount + (r.extra_amount || 0), 0);
+}
+
+function sumBaseAmount(sales: Sale[]) {
   return sales.reduce((s, r) => s + r.amount, 0);
+}
+
+function sumExtraAmount(sales: Sale[]) {
+  return sales.reduce((s, r) => s + (r.extra_amount || 0), 0);
 }
 
 // ═══════════════════════════════════════
@@ -250,6 +260,7 @@ function SalesPartPanel({ title, saleType, sales, isEtc, collapsed, onToggle, on
 }) {
   const headerBg = saleType === '대실' ? 'bg-emerald-900/40' : 'bg-blue-900/40';
   const total = sumAmount(sales);
+  const extraTotal = sumExtraAmount(sales);
 
   return (
     <div className="bg-[#1a1a1a] rounded-lg border border-[#333] overflow-hidden flex flex-col">
@@ -269,7 +280,7 @@ function SalesPartPanel({ title, saleType, sales, isEtc, collapsed, onToggle, on
       {/* 테이블 */}
       {!collapsed && (
         <div className="flex-1 overflow-x-auto">
-          <table className="w-full text-xs">
+          <table className="w-full text-xs whitespace-nowrap">
             <thead>
               <tr className="bg-[#222] text-gray-500">
                 <th className="px-2 py-1.5 text-left w-6">#</th>
@@ -281,14 +292,18 @@ function SalesPartPanel({ title, saleType, sales, isEtc, collapsed, onToggle, on
                 {isEtc && <th className="px-2 py-1.5 text-center">결제</th>}
                 <th className="px-2 py-1.5 text-right">금액</th>
                 <th className="px-2 py-1.5 text-center">호실</th>
+                <th className="px-2 py-1.5 text-center">추결</th>
+                <th className="px-2 py-1.5 text-right">추금액</th>
+                <th className="px-2 py-1.5 text-left">메모</th>
               </tr>
             </thead>
             <tbody>
               {sales.length === 0 && (
-                <tr><td colSpan={isEtc ? 9 : 7} className="px-2 py-4 text-center text-gray-600">-</td></tr>
+                <tr><td colSpan={isEtc ? 12 : 10} className="px-2 py-4 text-center text-gray-600">-</td></tr>
               )}
               {sales.map((sale, i) => {
                 const isOut = sale.status === 'checked_out';
+                const hasExtra = !!(sale.extra_amount && sale.extra_amount > 0);
                 return (
                   <tr
                     key={sale.id}
@@ -309,6 +324,13 @@ function SalesPartPanel({ title, saleType, sales, isEtc, collapsed, onToggle, on
                     {isEtc && <td className="px-2 py-1.5 text-center text-gray-400">{sale.payment_method || ''}</td>}
                     <td className="px-2 py-1.5 text-right font-medium">{fmt(sale.amount)}</td>
                     <td className="px-2 py-1.5 text-center text-gray-400">{sale.room_number || ''}</td>
+                    <td className="px-2 py-1.5 text-center text-gray-400">{sale.extra_payment_method || ''}</td>
+                    <td className={`px-2 py-1.5 text-right ${hasExtra ? 'text-yellow-400 font-medium' : 'text-gray-600'}`}>
+                      {hasExtra ? `+${fmt(sale.extra_amount)}` : ''}
+                    </td>
+                    <td className="px-2 py-1.5 text-gray-400 max-w-[60px] truncate" title={sale.memo || ''}>
+                      {sale.memo || ''}
+                    </td>
                   </tr>
                 );
               })}
@@ -318,7 +340,10 @@ function SalesPartPanel({ title, saleType, sales, isEtc, collapsed, onToggle, on
           {sales.length > 0 && (
             <div className="px-3 py-1.5 bg-[#222] text-xs text-gray-400 flex justify-between border-t border-[#333]">
               <span>소계: {sales.length}건</span>
-              <span className="font-medium text-[#C9A84C]">{fmt(total)}원</span>
+              <span className="font-medium text-[#C9A84C]">
+                {fmt(total)}원
+                {extraTotal > 0 && <span className="text-yellow-400 ml-1">(+{fmt(extraTotal)})</span>}
+              </span>
             </div>
           )}
         </div>
@@ -357,6 +382,8 @@ function SaleModal({ saleDate, rooms, editSale, defaults, onClose, onSaved, onDe
         room_number: editSale.room_number || '',
         car_number: editSale.car_number,
         memo: editSale.memo,
+        extra_payment_method: editSale.extra_payment_method || '',
+        extra_amount: editSale.extra_amount || 0,
       };
     }
     return {
@@ -664,11 +691,28 @@ function SaleModal({ saleDate, rooms, editSale, defaults, onClose, onSaved, onDe
           </div>
         </div>
 
+        {/* 추가결제 */}
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">추가결제수단</label>
+            <select value={form.extra_payment_method || ''} onChange={e => setField('extra_payment_method', e.target.value)}
+              className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2">
+              <option value="">없음</option>
+              {PAYMENT_METHODS.map(pm => <option key={pm} value={pm}>{pm}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">추가금액</label>
+            <input type="number" value={form.extra_amount || ''} onChange={e => setField('extra_amount', Number(e.target.value))}
+              className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2" placeholder="0" step={1000} />
+          </div>
+        </div>
+
         {/* 메모 */}
         <div>
           <label className="block text-xs text-gray-400 mb-1">메모</label>
           <input type="text" value={form.memo || ''} onChange={e => setField('memo', e.target.value)}
-            className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2" placeholder="메모" />
+            className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2" placeholder="시간연장, 추가인원, 차량추가 등" />
         </div>
 
         {/* 액션 버튼들 */}
