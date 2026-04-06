@@ -110,6 +110,7 @@ export default function SalesPage() {
   // 모바일 접이식 상태
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [availPopup, setAvailPopup] = useState(false);
+  const [helpPopup, setHelpPopup] = useState(false);
 
   const fetchSales = useCallback(async () => {
     const res = await fetch(`/api/admin/hotel/sales?date=${saleDate}`);
@@ -201,6 +202,12 @@ export default function SalesPage() {
           >
             잔여현황
           </button>
+          <button
+            onClick={() => setHelpPopup(true)}
+            className="px-3 py-1.5 bg-[#2a2a2a] border border-[#444] rounded-lg text-xs text-gray-300 hover:bg-[#333] transition-colors"
+          >
+            사용설명서
+          </button>
         </div>
         <div className="flex items-center gap-3">
           <input
@@ -251,6 +258,88 @@ export default function SalesPage() {
                   ))}
                 </tbody>
               </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 사용설명서 팝업 */}
+      {helpPopup && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 overflow-y-auto py-8" onClick={() => setHelpPopup(false)}>
+          <div className="bg-[#1a1a1a] rounded-xl border border-[#333] p-6 mx-4 max-w-2xl w-full space-y-6" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold text-[#C9A84C]">일로와 호텔 관리 시스템 사용설명서</h2>
+              <button onClick={() => setHelpPopup(false)} className="text-gray-500 hover:text-white text-xl">&times;</button>
+            </div>
+
+            <HelpSection title="1. 판매 입력 (이 페이지)" items={[
+              { label: '+ 판매 추가', desc: '상단 버튼 클릭 또는 각 파트의 +추가 클릭' },
+              { label: '1박 모드', desc: '대실/숙박 선택 > 채널 > 타입 > 성명/금액 입력 > 저장' },
+              { label: '연박 모드', desc: '연박 탭 > 입실일/퇴실일 > 총액 > 분배방식(균등/요일별/수동) > 저장' },
+              { label: '행 클릭', desc: '수정 모달 열림 (모든 필드 수정 + 퇴실처리 + 삭제)' },
+              { label: '퇴실(OUT)', desc: '테이블의 퇴실 컬럼 클릭으로 즉시 퇴실/복원 토글' },
+              { label: '잔여현황', desc: '타입별 대실/숙박 가능 객실 수 확인' },
+            ]} />
+
+            <HelpSection title="2. 결제수단" items={[
+              { label: '현장결제', desc: '당일 현장에서 결제 (기본값)' },
+              { label: '예약금', desc: '일부 선결제 > 숙박 예정일 설정 > 잔금은 체크인 시 수금' },
+              { label: '완불', desc: '전액 선결제 > 숙박 예정일 설정 > 해당일에 자동 매출 반영' },
+              { label: '미수', desc: '결제수단에서 "미수" 선택 > 미수관리 페이지에서 추적/수금' },
+            ]} />
+
+            <HelpSection title="3. 채널 구분" items={[
+              { label: '야놀자 / 여기어때', desc: 'OTA 예약 (결제수단 자동 설정)' },
+              { label: '기타 > 워킹', desc: '현장 방문 고객' },
+              { label: '기타 > 연장', desc: '대실에서 숙박으로 연장' },
+              { label: '기타 > 예약', desc: '전화/직접 예약 고객' },
+            ]} />
+
+            <HelpSection title="4. 고객 정보" items={[
+              { label: '전화번호 입력', desc: '자동으로 기존 고객 검색, 재방문 시 골드 배지 표시' },
+              { label: '신규 고객', desc: '전화번호 입력하면 자동 등록' },
+              { label: '마케팅 동의', desc: '프로모션/할인 안내 수신 동의 체크' },
+            ]} />
+
+            <HelpSection title="5. 대시보드" items={[
+              { label: '상단 카드', desc: '대실/숙박/총매출/공실 실시간 확인' },
+              { label: '타입별 현황', desc: 'GS/GD/S/D/P/PT별 예약/입실/퇴실/공실' },
+              { label: '채널별 매출', desc: '야놀자/여기어때/워킹 등 채널별 매출 합계' },
+              { label: '자동 갱신', desc: '30초마다 자동 새로고침' },
+            ]} />
+
+            <HelpSection title="6. 일일 마감" items={[
+              { label: '매출 자동 집계', desc: '대실/숙박 건수와 금액 자동 계산' },
+              { label: '카드 정산', desc: '카드사별 시스템 금액 vs 단말기 금액 대사' },
+              { label: '현금 정산', desc: '현금수입 + 전일시재 - 지출 = 잔액 vs 실제 시재' },
+              { label: '계좌 정산', desc: '계좌 합계 vs 실제 입금액 대사' },
+              { label: '마감 확인', desc: '모든 차액 0이면 초록 버튼, 차액 있으면 메모 기재 후 마감' },
+            ]} />
+
+            <HelpSection title="7. 객실 현황" items={[
+              { label: '층별 표시', desc: '9층~2층 객실 카드, 색상으로 상태 구분' },
+              { label: '파랑 = 대실', desc: '대실 사용중 객실' },
+              { label: '초록 = 숙박', desc: '숙박중 객실 (연박은 "3/17박" 표시)' },
+              { label: '보라 = 대실+숙박', desc: '같은 방에 대실 후 숙박 배정' },
+              { label: '카드 클릭', desc: '상세 정보 + 퇴실 처리' },
+            ]} />
+
+            <HelpSection title="8. 예약 현황" items={[
+              { label: '미래 예약 목록', desc: '예약금/완불로 입력한 미래 숙박 건 확인' },
+              { label: '잔금 수금', desc: '체크인 시 잔금 결제수단 선택하여 수금 처리' },
+              { label: '예약 취소', desc: '취소 사유 입력 후 처리 (환불 여부 메모)' },
+            ]} />
+
+            <HelpSection title="9. 미수 관리" items={[
+              { label: '미수 목록', desc: '미결제 건 추적 (경과일/상태 표시)' },
+              { label: '상태 구분', desc: '미수(7일내) > 주의(7~30일) > 장기미수(30일+)' },
+              { label: '수금 처리', desc: '"수금" 버튼 > 결제수단 선택 > 완료' },
+            ]} />
+
+            <div className="text-center pt-4 border-t border-[#333]">
+              <p className="text-xs text-gray-500">문의사항은 관리자에게 연락하세요</p>
+              <button onClick={() => setHelpPopup(false)}
+                className="mt-3 px-6 py-2 bg-[#C9A84C] text-black font-bold rounded-lg text-sm hover:bg-[#E8C96A]">닫기</button>
             </div>
           </div>
         </div>
@@ -1084,6 +1173,23 @@ function SaleModal({ saleDate, rooms, editSale, defaults, onClose, onSaved, onDe
             </button>
           </>
         )}
+      </div>
+    </div>
+  );
+}
+
+// 사용설명서 섹션 컴포넌트
+function HelpSection({ title, items }: { title: string; items: { label: string; desc: string }[] }) {
+  return (
+    <div>
+      <h3 className="text-sm font-bold text-[#C9A84C] mb-2">{title}</h3>
+      <div className="space-y-1.5">
+        {items.map((item, i) => (
+          <div key={i} className="flex gap-2 text-xs">
+            <span className="text-white font-medium shrink-0 w-28">{item.label}</span>
+            <span className="text-gray-400">{item.desc}</span>
+          </div>
+        ))}
       </div>
     </div>
   );
