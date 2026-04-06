@@ -144,6 +144,9 @@ export interface DailyClosing {
   cash_balance: number;
   hotelstory_slip: number;
   card_slip: number;
+  card_terminal_amounts: Record<string, number> | null;
+  actual_cash_count: number;
+  actual_transfer_amount: number;
   is_verified: boolean;
   notes: string;
   closed_by: string;
