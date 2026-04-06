@@ -337,73 +337,112 @@ export default function ClosingPage() {
       {/* ═══ 현금 정산 ═══ */}
       <div className="bg-[#1a1a1a] rounded-xl border border-[#333] overflow-hidden">
         <h2 className="px-5 py-4 font-bold border-b border-[#333]">현금 정산</h2>
-        <div className="p-5 space-y-3">
-          <Row label="당일 현금매출" value={`${fmt(cashOnsite)}원`} />
-          <Row label="선결제 현금수금" value={cashPrepaid ? `${fmt(cashPrepaid)}원` : '-'} />
-          <Row label="미수 현금회수" value={cashResolved ? `${fmt(cashResolved)}원` : '-'} />
-          <div className="border-t border-[#333] pt-2">
-            <Row label="현금 합계(A)" value={`${fmt(cashTotal)}원`} bold />
-          </div>
-          <div>
-            <label className="block text-xs text-gray-400 mb-1">전일시재(B)</label>
-            <input type="number" value={prevDayCash || ''} onChange={e => setPrevDayCash(Number(e.target.value))}
-              className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2" step={1000} />
-          </div>
-          {/* 현금 지출 */}
-          <div>
-            <label className="block text-xs text-gray-400 mb-2">현금지출(C)</label>
-            {expenses.map(exp => (
-              <div key={exp.id} className="flex items-center gap-2 mb-1">
-                <span className="flex-1 text-sm">{exp.description}</span>
-                <span className="text-sm text-red-400">-{fmt(exp.amount)}원</span>
-                <button onClick={() => deleteExpense(exp.id)} className="text-xs text-gray-500 hover:text-red-400">X</button>
-              </div>
-            ))}
-            <div className="flex gap-2 mt-2">
-              <input type="text" value={newExpenseDesc} onChange={e => setNewExpenseDesc(e.target.value)}
-                className="flex-1 bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2 text-sm" placeholder="지출 항목" />
-              <input type="number" value={newExpenseAmt || ''} onChange={e => setNewExpenseAmt(Number(e.target.value))}
-                className="w-28 bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2 text-sm" placeholder="금액" step={1000} />
-              <button onClick={addExpense} className="px-3 py-2 bg-[#333] rounded-lg text-sm hover:bg-[#444]">추가</button>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs whitespace-nowrap">
+            <thead>
+              <tr className="bg-[#222] text-gray-500">
+                <th className="px-3 py-2 text-left">항목</th>
+                <th className="px-3 py-2 text-right">당일매출</th>
+                <th className="px-3 py-2 text-right">선결제</th>
+                <th className="px-3 py-2 text-right">미수회수</th>
+                <th className="px-3 py-2 text-right font-bold text-gray-300">시스템</th>
+                <th className="px-3 py-2 text-right">실제</th>
+                <th className="px-3 py-2 text-right">차액</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="border-t border-[#2a2a2a]">
+                <td className="px-3 py-2 font-medium">현금 수입</td>
+                <td className="px-3 py-2 text-right">{cashOnsite ? fmt(cashOnsite) : ''}</td>
+                <td className="px-3 py-2 text-right text-blue-400">{cashPrepaid ? fmt(cashPrepaid) : ''}</td>
+                <td className="px-3 py-2 text-right text-orange-400">{cashResolved ? fmt(cashResolved) : ''}</td>
+                <td className="px-3 py-2 text-right font-bold">{fmt(cashTotal)}</td>
+                <td className="px-3 py-2 text-right" rowSpan={4}>
+                  <input type="number" value={actualCash || ''} onChange={e => setActualCash(Number(e.target.value))}
+                    className="w-20 bg-[#2a2a2a] border border-[#444] rounded px-2 py-0.5 text-right text-xs" step={1000} placeholder="시재" />
+                </td>
+                <td className="px-3 py-2 text-right" rowSpan={4}>
+                  {actualCash > 0 && (
+                    <span className={`font-bold ${cashDiff === 0 ? 'text-green-400' : 'text-red-400'}`}>
+                      {cashDiff === 0 ? 'OK' : fmt(cashDiff)}
+                    </span>
+                  )}
+                </td>
+              </tr>
+              <tr className="border-t border-[#2a2a2a]">
+                <td className="px-3 py-2 text-gray-400">+ 전일시재</td>
+                <td colSpan={3}></td>
+                <td className="px-3 py-2 text-right">
+                  <input type="number" value={prevDayCash || ''} onChange={e => setPrevDayCash(Number(e.target.value))}
+                    className="w-20 bg-[#2a2a2a] border border-[#444] rounded px-2 py-0.5 text-right text-xs" step={1000} />
+                </td>
+              </tr>
+              <tr className="border-t border-[#2a2a2a]">
+                <td className="px-3 py-2 text-gray-400">- 현금지출</td>
+                <td colSpan={3}></td>
+                <td className="px-3 py-2 text-right text-red-400">{totalExpense ? `-${fmt(totalExpense)}` : ''}</td>
+              </tr>
+              <tr className="border-t-2 border-[#444] bg-[#222] font-bold">
+                <td className="px-3 py-2">현금 잔액</td>
+                <td colSpan={3}></td>
+                <td className="px-3 py-2 text-right text-[#C9A84C]">{fmt(cashBalance)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        {/* 현금 지출 내역 */}
+        <div className="p-4 border-t border-[#333]">
+          <label className="block text-xs text-gray-400 mb-2">현금지출 내역</label>
+          {expenses.map(exp => (
+            <div key={exp.id} className="flex items-center gap-2 mb-1">
+              <span className="flex-1 text-xs">{exp.description}</span>
+              <span className="text-xs text-red-400">-{fmt(exp.amount)}원</span>
+              <button onClick={() => deleteExpense(exp.id)} className="text-[10px] text-gray-500 hover:text-red-400">X</button>
             </div>
-            {totalExpense > 0 && <p className="text-xs text-gray-500 mt-1">지출 합계: {fmt(totalExpense)}원</p>}
+          ))}
+          <div className="flex gap-2 mt-2">
+            <input type="text" value={newExpenseDesc} onChange={e => setNewExpenseDesc(e.target.value)}
+              className="flex-1 bg-[#2a2a2a] border border-[#444] rounded px-2 py-1.5 text-xs" placeholder="지출 항목" />
+            <input type="number" value={newExpenseAmt || ''} onChange={e => setNewExpenseAmt(Number(e.target.value))}
+              className="w-24 bg-[#2a2a2a] border border-[#444] rounded px-2 py-1.5 text-xs" placeholder="금액" step={1000} />
+            <button onClick={addExpense} className="px-2 py-1.5 bg-[#333] rounded text-xs hover:bg-[#444]">추가</button>
           </div>
-          <div className="border-t border-[#333] pt-2">
-            <Row label="현금 잔액 = A+B-C" value={`${fmt(cashBalance)}원`} bold />
-          </div>
-          <div>
-            <label className="block text-xs text-gray-400 mb-1">실제 시재 (직원 확인)</label>
-            <input type="number" value={actualCash || ''} onChange={e => setActualCash(Number(e.target.value))}
-              className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2" step={1000} />
-          </div>
-          {actualCash > 0 && (
-            <div className={`text-sm font-bold ${cashDiff === 0 ? 'text-green-400' : 'text-red-400'}`}>
-              {cashDiff === 0 ? 'OK - 차액 없음' : `차액: ${fmt(cashDiff)}원`}
-            </div>
-          )}
         </div>
       </div>
 
       {/* ═══ 계좌 정산 ═══ */}
       <div className="bg-[#1a1a1a] rounded-xl border border-[#333] overflow-hidden">
         <h2 className="px-5 py-4 font-bold border-b border-[#333]">계좌이체 정산</h2>
-        <div className="p-5 space-y-3">
-          <Row label="당일 계좌매출" value={`${fmt(transferOnsite)}원`} />
-          <Row label="선결제 계좌수금" value={transferPrepaid ? `${fmt(transferPrepaid)}원` : '-'} />
-          <Row label="미수 계좌회수" value={transferResolved ? `${fmt(transferResolved)}원` : '-'} />
-          <div className="border-t border-[#333] pt-2">
-            <Row label="계좌 합계" value={`${fmt(transferTotal)}원`} bold />
-          </div>
-          <div>
-            <label className="block text-xs text-gray-400 mb-1">실제 입금액 (통장 확인)</label>
-            <input type="number" value={actualTransfer || ''} onChange={e => setActualTransfer(Number(e.target.value))}
-              className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2" step={1000} />
-          </div>
-          {actualTransfer > 0 && (
-            <div className={`text-sm font-bold ${transferDiff === 0 ? 'text-green-400' : 'text-red-400'}`}>
-              {transferDiff === 0 ? 'OK - 차액 없음' : `차액: ${fmt(transferDiff)}원`}
-            </div>
-          )}
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs whitespace-nowrap">
+            <thead>
+              <tr className="bg-[#222] text-gray-500">
+                <th className="px-3 py-2 text-left">항목</th>
+                <th className="px-3 py-2 text-right">당일매출</th>
+                <th className="px-3 py-2 text-right">선결제</th>
+                <th className="px-3 py-2 text-right">미수회수</th>
+                <th className="px-3 py-2 text-right font-bold text-gray-300">시스템</th>
+                <th className="px-3 py-2 text-right">실제입금</th>
+                <th className="px-3 py-2 text-right">차액</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="border-t border-[#2a2a2a]">
+                <td className="px-3 py-2 font-medium">계좌</td>
+                <td className="px-3 py-2 text-right">{transferOnsite ? fmt(transferOnsite) : ''}</td>
+                <td className="px-3 py-2 text-right text-blue-400">{transferPrepaid ? fmt(transferPrepaid) : ''}</td>
+                <td className="px-3 py-2 text-right text-orange-400">{transferResolved ? fmt(transferResolved) : ''}</td>
+                <td className="px-3 py-2 text-right font-bold">{fmt(transferTotal)}</td>
+                <td className="px-3 py-2 text-right">
+                  <input type="number" value={actualTransfer || ''} onChange={e => setActualTransfer(Number(e.target.value))}
+                    className="w-20 bg-[#2a2a2a] border border-[#444] rounded px-2 py-0.5 text-right text-xs" step={1000} placeholder="입금액" />
+                </td>
+                <td className={`px-3 py-2 text-right font-bold ${!actualTransfer ? '' : transferDiff === 0 ? 'text-green-400' : 'text-red-400'}`}>
+                  {actualTransfer > 0 ? (transferDiff === 0 ? 'OK' : fmt(transferDiff)) : ''}
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
