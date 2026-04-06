@@ -478,6 +478,7 @@ function SaleModal({ saleDate, rooms, editSale, defaults, onClose, onSaved, onDe
 
   // 결제 시점
   const [payTiming, setPayTiming] = useState<'현장' | '예약금' | '완불'>(editSale?.payment_timing || '현장');
+  const [stayDate, setStayDate] = useState(editSale?.sale_date || '');
   const [prepaidDate, setPrepaidDate] = useState(editSale?.prepaid_date || saleDate);
   const [prepaidAmount, setPrepaidAmount] = useState(editSale?.prepaid_amount || 0);
   const [prepaidMethod, setPrepaidMethod] = useState(editSale?.prepaid_method || '');
@@ -635,13 +636,15 @@ function SaleModal({ saleDate, rooms, editSale, defaults, onClose, onSaved, onDe
     // 결제 시점 처리
     payload.payment_timing = payTiming;
     if (payTiming === '예약금') {
-      payload.prepaid_date = prepaidDate;
+      if (stayDate) payload.sale_date = stayDate;
+      payload.prepaid_date = today();
       payload.prepaid_amount = prepaidAmount;
       payload.prepaid_method = prepaidMethod;
       payload.balance_amount = (form.amount || 0) - prepaidAmount;
       payload.balance_paid = false;
     } else if (payTiming === '완불') {
-      payload.prepaid_date = prepaidDate;
+      if (stayDate) payload.sale_date = stayDate;
+      payload.prepaid_date = today();
       payload.prepaid_amount = form.amount;
       payload.prepaid_method = form.payment_method;
       payload.balance_amount = 0;
@@ -838,12 +841,12 @@ function SaleModal({ saleDate, rooms, editSale, defaults, onClose, onSaved, onDe
               </div>
               {payTiming === '예약금' && (
                 <div className="mt-3 space-y-2 bg-[#222] rounded-lg p-3 border border-blue-900/40">
+                  <div>
+                    <label className="block text-[10px] text-gray-500 mb-0.5 font-bold">숙박 예정일</label>
+                    <input type="date" value={stayDate} onChange={e => setStayDate(e.target.value)}
+                      className="w-full bg-[#2a2a2a] border border-blue-700 rounded px-2 py-1.5 text-xs" />
+                  </div>
                   <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="block text-[10px] text-gray-500 mb-0.5">예약금 결제일</label>
-                      <input type="date" value={prepaidDate} onChange={e => setPrepaidDate(e.target.value)}
-                        className="w-full bg-[#2a2a2a] border border-[#444] rounded px-2 py-1.5 text-xs" />
-                    </div>
                     <div>
                       <label className="block text-[10px] text-gray-500 mb-0.5">예약금 결제수단</label>
                       <select value={prepaidMethod} onChange={e => setPrepaidMethod(e.target.value)}
@@ -852,11 +855,11 @@ function SaleModal({ saleDate, rooms, editSale, defaults, onClose, onSaved, onDe
                         {PAYMENT_METHODS.filter(p => p !== '미수').map(pm => <option key={pm} value={pm}>{pm}</option>)}
                       </select>
                     </div>
-                  </div>
-                  <div>
-                    <label className="block text-[10px] text-gray-500 mb-0.5">예약금 금액</label>
-                    <input type="number" value={prepaidAmount || ''} onChange={e => setPrepaidAmount(Number(e.target.value))}
-                      className="w-full bg-[#2a2a2a] border border-[#444] rounded px-2 py-1.5 text-xs" step={1000} />
+                    <div>
+                      <label className="block text-[10px] text-gray-500 mb-0.5">예약금 금액</label>
+                      <input type="number" value={prepaidAmount || ''} onChange={e => setPrepaidAmount(Number(e.target.value))}
+                        className="w-full bg-[#2a2a2a] border border-[#444] rounded px-2 py-1.5 text-xs" step={1000} />
+                    </div>
                   </div>
                   {form.amount > 0 && prepaidAmount > 0 && (
                     <p className="text-xs text-blue-400">잔금 {fmt(form.amount - prepaidAmount)}원 현장결제 예정</p>
@@ -866,9 +869,9 @@ function SaleModal({ saleDate, rooms, editSale, defaults, onClose, onSaved, onDe
               {payTiming === '완불' && (
                 <div className="mt-3 space-y-2 bg-[#222] rounded-lg p-3 border border-green-900/40">
                   <div>
-                    <label className="block text-[10px] text-gray-500 mb-0.5">결제일</label>
-                    <input type="date" value={prepaidDate} onChange={e => setPrepaidDate(e.target.value)}
-                      className="w-full bg-[#2a2a2a] border border-[#444] rounded px-2 py-1.5 text-xs" />
+                    <label className="block text-[10px] text-gray-500 mb-0.5 font-bold">숙박 예정일</label>
+                    <input type="date" value={stayDate} onChange={e => setStayDate(e.target.value)}
+                      className="w-full bg-[#2a2a2a] border border-green-700 rounded px-2 py-1.5 text-xs" />
                   </div>
                   <p className="text-xs text-green-400">전액 선결제 완료</p>
                 </div>
@@ -1047,11 +1050,6 @@ function SaleModal({ saleDate, rooms, editSale, defaults, onClose, onSaved, onDe
                 <div className="mt-2 space-y-2 bg-[#222] rounded-lg p-3 border border-blue-900/40">
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="block text-[10px] text-gray-500 mb-0.5">예약금 결제일</label>
-                      <input type="date" value={prepaidDate} onChange={e => setPrepaidDate(e.target.value)}
-                        className="w-full bg-[#2a2a2a] border border-[#444] rounded px-2 py-1.5 text-xs" />
-                    </div>
-                    <div>
                       <label className="block text-[10px] text-gray-500 mb-0.5">예약금 결제수단</label>
                       <select value={prepaidMethod} onChange={e => setPrepaidMethod(e.target.value)}
                         className="w-full bg-[#2a2a2a] border border-[#444] rounded px-2 py-1.5 text-xs">
@@ -1059,11 +1057,11 @@ function SaleModal({ saleDate, rooms, editSale, defaults, onClose, onSaved, onDe
                         {PAYMENT_METHODS.filter(p => p !== '미수').map(pm => <option key={pm} value={pm}>{pm}</option>)}
                       </select>
                     </div>
-                  </div>
-                  <div>
-                    <label className="block text-[10px] text-gray-500 mb-0.5">예약금 금액</label>
-                    <input type="number" value={prepaidAmount || ''} onChange={e => setPrepaidAmount(Number(e.target.value))}
-                      className="w-full bg-[#2a2a2a] border border-[#444] rounded px-2 py-1.5 text-xs" step={1000} />
+                    <div>
+                      <label className="block text-[10px] text-gray-500 mb-0.5">예약금 금액</label>
+                      <input type="number" value={prepaidAmount || ''} onChange={e => setPrepaidAmount(Number(e.target.value))}
+                        className="w-full bg-[#2a2a2a] border border-[#444] rounded px-2 py-1.5 text-xs" step={1000} />
+                    </div>
                   </div>
                   {totalAmount > 0 && prepaidAmount > 0 && (
                     <p className="text-xs text-blue-400">잔금 {fmt(totalAmount - prepaidAmount)}원 현장결제 예정</p>
@@ -1071,14 +1069,7 @@ function SaleModal({ saleDate, rooms, editSale, defaults, onClose, onSaved, onDe
                 </div>
               )}
               {payTiming === '완불' && (
-                <div className="mt-2 bg-[#222] rounded-lg p-3 border border-green-900/40">
-                  <div>
-                    <label className="block text-[10px] text-gray-500 mb-0.5">결제일</label>
-                    <input type="date" value={prepaidDate} onChange={e => setPrepaidDate(e.target.value)}
-                      className="w-full bg-[#2a2a2a] border border-[#444] rounded px-2 py-1.5 text-xs" />
-                  </div>
-                  <p className="text-xs text-green-400 mt-2">전액 선결제 완료</p>
-                </div>
+                <p className="mt-2 text-xs text-green-400 bg-[#222] rounded-lg p-3 border border-green-900/40">전액 선결제 완료 (결제일: 오늘)</p>
               )}
             </div>
             {customerUI}

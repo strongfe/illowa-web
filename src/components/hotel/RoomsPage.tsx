@@ -24,15 +24,17 @@ const TYPE_COLORS: Record<RoomType, string> = {
 export default function RoomsPage() {
   const [rooms, setRooms] = useState<RoomStatus[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [todayReservations, setTodayReservations] = useState<Array<{ id: string; guest_name: string; room_type: string; room_number: string | null; channel: string; payment_timing: string; amount: number }>>([]);
   const [loading, setLoading] = useState(true);
   const [selectedRoom, setSelectedRoom] = useState<RoomStatus | null>(null);
 
   const todayStr = new Date().toISOString().split('T')[0];
 
   const fetchRooms = useCallback(async () => {
-    const [statsRes, bookingsRes] = await Promise.all([
+    const [statsRes, bookingsRes, resvRes] = await Promise.all([
       fetch('/api/admin/hotel/stats?date=' + todayStr),
       fetch('/api/admin/hotel/bookings?date=' + todayStr + '&active=true'),
+      fetch('/api/admin/hotel/reservations'),
     ]);
     if (statsRes.ok) {
       const data = await statsRes.json();
@@ -40,6 +42,10 @@ export default function RoomsPage() {
     }
     if (bookingsRes.ok) {
       setBookings(await bookingsRes.json());
+    }
+    if (resvRes.ok) {
+      const allResv = await resvRes.json();
+      setTodayReservations(allResv.filter((r: { sale_date: string }) => r.sale_date === todayStr));
     }
     setLoading(false);
   }, [todayStr]);
@@ -91,7 +97,20 @@ export default function RoomsPage() {
         <span className="text-gray-400">공실 <span className="text-white font-bold">{totalVacant}</span></span>
         <span className="text-blue-400">대실 <span className="font-bold">{totalDaesil}</span></span>
         <span className="text-green-400">숙박 <span className="font-bold">{totalSukbak}</span></span>
+        {todayReservations.length > 0 && (
+          <span className="text-yellow-400">예약도착 <span className="font-bold">{todayReservations.length}</span></span>
+        )}
       </div>
+
+      {/* 오늘 도착 예약 알림 */}
+      {todayReservations.filter(r => !r.room_number).length > 0 && (
+        <div className="bg-yellow-900/20 border border-yellow-700/40 rounded-lg px-4 py-3 text-sm">
+          <span className="text-yellow-400 font-bold">미배정 예약 {todayReservations.filter(r => !r.room_number).length}건</span>
+          <span className="text-yellow-400/70 ml-2">
+            {todayReservations.filter(r => !r.room_number).map(r => `${r.guest_name}(${r.room_type})`).join(', ')}
+          </span>
+        </div>
+      )}
 
       {/* 타입 범례 */}
       <div className="flex flex-wrap gap-3 text-xs">

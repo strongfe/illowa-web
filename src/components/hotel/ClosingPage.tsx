@@ -335,9 +335,13 @@ export default function ClosingPage() {
         <h2 className="px-5 py-4 font-bold border-b border-[#333]">결제 시점별 매출</h2>
         <div className="p-5 space-y-2">
           <Row label="현장결제" value={payOnsite.count > 0 ? `${payOnsite.count}건 / ${formatAmount(payOnsite.amount)}원` : '없음'} />
-          <Row label="선결제(완불)" value={payPrepaid.count > 0 ? `${payPrepaid.count}건 / ${formatAmount(payPrepaid.amount)}원` : '없음'} />
+          <Row label="선결제(완불)" value={payPrepaid.count > 0 ? `${payPrepaid.count}건 / ${formatAmount(payPrepaid.amount)}원 (이전 수금)` : '없음'} />
           <Row label="예약금(잔금결제)" value={payDeposit.count > 0 ? `${payDeposit.count}건 / ${formatAmount(payDeposit.amount)}원` : '없음'} />
           <Row label="미수" value={payReceivable.count > 0 ? `${payReceivable.count}건 / ${formatAmount(payReceivable.amount)}원` : '없음'} />
+          <div className="border-t border-[#333] pt-2 mt-2">
+            <Row label="당일 현금흐름" value={`${formatAmount(payOnsite.amount + payDeposit.amount)}원`} bold />
+            <p className="text-[10px] text-gray-600 mt-0.5">= 현장결제 + 잔금결제 (완불은 이전 결제분이므로 제외)</p>
+          </div>
         </div>
       </div>
 
