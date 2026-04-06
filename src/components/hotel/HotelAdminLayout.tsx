@@ -88,7 +88,9 @@ export default function HotelAdminLayout({ children }: { children: React.ReactNo
       )}
 
       {/* Content */}
-      <main className="max-w-7xl mx-auto px-4 py-6">
+      <main className={`mx-auto py-6 ${
+        pathname === '/admin/hotel/sales' ? 'max-w-[1920px] px-4 xl:px-8' : 'max-w-7xl px-4'
+      }`}>
         {children}
       </main>
     </div>
