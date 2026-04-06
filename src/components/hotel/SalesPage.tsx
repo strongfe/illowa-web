@@ -410,6 +410,15 @@ function SalesPartPanel({ title, saleType, sales, isEtc, collapsed, onToggle, on
                       {sale.is_receivable && sale.resolved_at && (
                         <span className="ml-1 px-1 py-0.5 rounded text-[10px] bg-green-900 text-green-300">수금</span>
                       )}
+                      {sale.payment_timing === '예약금' && !sale.balance_paid && (
+                        <span className="ml-1 px-1 py-0.5 rounded text-[10px] bg-blue-900 text-blue-300">예약금{sale.prepaid_amount ? ` ${fmt(sale.prepaid_amount)}` : ''}</span>
+                      )}
+                      {sale.payment_timing === '예약금' && sale.balance_paid && (
+                        <span className="ml-1 px-1 py-0.5 rounded text-[10px] bg-green-900 text-green-300">결제완료</span>
+                      )}
+                      {sale.payment_timing === '완불' && (
+                        <span className="ml-1 px-1 py-0.5 rounded text-[10px] bg-green-900 text-green-300">완불</span>
+                      )}
                     </td>
                     <td className="px-2 py-1.5 text-center text-gray-400">{sale.room_number || ''}</td>
                     <td className="px-2 py-1.5 text-center">
@@ -466,6 +475,12 @@ function SaleModal({ saleDate, rooms, editSale, defaults, onClose, onSaved, onDe
 }) {
   const isEdit = !!editSale;
   const [mode, setMode] = useState<'single' | 'multi'>('single');
+
+  // 결제 시점
+  const [payTiming, setPayTiming] = useState<'현장' | '예약금' | '완불'>(editSale?.payment_timing || '현장');
+  const [prepaidDate, setPrepaidDate] = useState(editSale?.prepaid_date || saleDate);
+  const [prepaidAmount, setPrepaidAmount] = useState(editSale?.prepaid_amount || 0);
+  const [prepaidMethod, setPrepaidMethod] = useState(editSale?.prepaid_method || '');
 
   const [form, setForm] = useState<SaleInput>(() => {
     if (editSale) {
@@ -617,6 +632,21 @@ function SaleModal({ saleDate, rooms, editSale, defaults, onClose, onSaved, onDe
       payload.is_receivable = true;
       payload.receivable_amount = form.amount;
     }
+    // 결제 시점 처리
+    payload.payment_timing = payTiming;
+    if (payTiming === '예약금') {
+      payload.prepaid_date = prepaidDate;
+      payload.prepaid_amount = prepaidAmount;
+      payload.prepaid_method = prepaidMethod;
+      payload.balance_amount = (form.amount || 0) - prepaidAmount;
+      payload.balance_paid = false;
+    } else if (payTiming === '완불') {
+      payload.prepaid_date = prepaidDate;
+      payload.prepaid_amount = form.amount;
+      payload.prepaid_method = form.payment_method;
+      payload.balance_amount = 0;
+      payload.balance_paid = true;
+    }
     const phoneDigits = phone.replace(/\D/g, '');
     if (phoneDigits.length >= 10) {
       payload.phone = phoneDigits; payload.email = email || undefined; payload.marketing_consent = marketingConsent;
@@ -641,6 +671,10 @@ function SaleModal({ saleDate, rooms, editSale, defaults, onClose, onSaved, onDe
       check_in_date: checkInDate, check_out_date: checkOutDate,
       total_amount: totalAmount, split_method: splitMethod,
       memo: form.memo || '',
+      payment_timing: payTiming,
+      prepaid_date: payTiming !== '현장' ? prepaidDate : undefined,
+      prepaid_amount: payTiming === '예약금' ? prepaidAmount : undefined,
+      prepaid_method: payTiming !== '현장' ? (prepaidMethod || form.payment_method) : undefined,
     };
     if (splitMethod === 'manual') {
       body.daily_amounts = dailyPreview.map(d => d.amount);
@@ -793,6 +827,53 @@ function SaleModal({ saleDate, rooms, editSale, defaults, onClose, onSaved, onDe
                   className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2" placeholder="0" step={1000} />
               </div>
             </div>
+            {/* 결제 시점 */}
+            <div>
+              <label className="block text-xs text-gray-400 mb-2">결제 시점</label>
+              <div className="flex gap-2">
+                {([['현장', '현장결제'], ['예약금', '예약금'], ['완불', '완불']] as const).map(([v, label]) => (
+                  <button key={v} onClick={() => setPayTiming(v)}
+                    className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-colors ${payTiming === v ? v === '완불' ? 'bg-green-700 text-white' : v === '예약금' ? 'bg-blue-700 text-white' : 'bg-[#444] text-white' : 'bg-[#2a2a2a] text-gray-500'}`}>{label}</button>
+                ))}
+              </div>
+              {payTiming === '예약금' && (
+                <div className="mt-3 space-y-2 bg-[#222] rounded-lg p-3 border border-blue-900/40">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-[10px] text-gray-500 mb-0.5">예약금 결제일</label>
+                      <input type="date" value={prepaidDate} onChange={e => setPrepaidDate(e.target.value)}
+                        className="w-full bg-[#2a2a2a] border border-[#444] rounded px-2 py-1.5 text-xs" />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-gray-500 mb-0.5">예약금 결제수단</label>
+                      <select value={prepaidMethod} onChange={e => setPrepaidMethod(e.target.value)}
+                        className="w-full bg-[#2a2a2a] border border-[#444] rounded px-2 py-1.5 text-xs">
+                        <option value="">선택</option>
+                        {PAYMENT_METHODS.filter(p => p !== '미수').map(pm => <option key={pm} value={pm}>{pm}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] text-gray-500 mb-0.5">예약금 금액</label>
+                    <input type="number" value={prepaidAmount || ''} onChange={e => setPrepaidAmount(Number(e.target.value))}
+                      className="w-full bg-[#2a2a2a] border border-[#444] rounded px-2 py-1.5 text-xs" step={1000} />
+                  </div>
+                  {form.amount > 0 && prepaidAmount > 0 && (
+                    <p className="text-xs text-blue-400">잔금 {fmt(form.amount - prepaidAmount)}원 현장결제 예정</p>
+                  )}
+                </div>
+              )}
+              {payTiming === '완불' && (
+                <div className="mt-3 space-y-2 bg-[#222] rounded-lg p-3 border border-green-900/40">
+                  <div>
+                    <label className="block text-[10px] text-gray-500 mb-0.5">결제일</label>
+                    <input type="date" value={prepaidDate} onChange={e => setPrepaidDate(e.target.value)}
+                      className="w-full bg-[#2a2a2a] border border-[#444] rounded px-2 py-1.5 text-xs" />
+                  </div>
+                  <p className="text-xs text-green-400">전액 선결제 완료</p>
+                </div>
+              )}
+            </div>
             {customerUI}
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -846,6 +927,20 @@ function SaleModal({ saleDate, rooms, editSale, defaults, onClose, onSaved, onDe
                 className="w-full py-3 rounded-lg font-bold text-base bg-[#C9A84C] text-black hover:bg-[#E8C96A] transition-colors disabled:opacity-40">
                 {loading ? '저장 중...' : isEdit ? '수정 저장' : '저장'}
               </button>
+              {isEdit && editSale!.payment_timing === '예약금' && !editSale!.balance_paid && (
+                <button onClick={async () => {
+                  const method = prompt('잔금 결제수단을 입력하세요 (국민/신한/현금/계좌 등)');
+                  if (!method) return;
+                  setLoading(true);
+                  await fetch('/api/admin/hotel/sales', {
+                    method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: editSale!.id, balance_method: method, balance_paid: true }),
+                  });
+                  setLoading(false); onSaved();
+                }} className="w-full py-2.5 rounded-lg font-bold text-sm bg-blue-600 text-white hover:bg-blue-500 transition-colors">
+                  잔금 {fmt(editSale!.balance_amount)}원 결제 처리
+                </button>
+              )}
               {isEdit && editSale!.status === 'active' && (
                 <button onClick={handleCheckout} className="w-full py-2.5 rounded-lg font-bold text-sm bg-orange-600 text-white hover:bg-orange-500 transition-colors">퇴실 처리</button>
               )}
@@ -939,6 +1034,53 @@ function SaleModal({ saleDate, rooms, editSale, defaults, onClose, onSaved, onDe
                 </table>
               </div>
             )}
+            {/* 연박 결제 시점 */}
+            <div>
+              <label className="block text-xs text-gray-400 mb-2">결제 시점</label>
+              <div className="flex gap-2">
+                {([['현장', '현장결제'], ['예약금', '예약금'], ['완불', '완불']] as const).map(([v, label]) => (
+                  <button key={v} onClick={() => setPayTiming(v)}
+                    className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-colors ${payTiming === v ? v === '완불' ? 'bg-green-700 text-white' : v === '예약금' ? 'bg-blue-700 text-white' : 'bg-[#444] text-white' : 'bg-[#2a2a2a] text-gray-500'}`}>{label}</button>
+                ))}
+              </div>
+              {payTiming === '예약금' && (
+                <div className="mt-2 space-y-2 bg-[#222] rounded-lg p-3 border border-blue-900/40">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-[10px] text-gray-500 mb-0.5">예약금 결제일</label>
+                      <input type="date" value={prepaidDate} onChange={e => setPrepaidDate(e.target.value)}
+                        className="w-full bg-[#2a2a2a] border border-[#444] rounded px-2 py-1.5 text-xs" />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-gray-500 mb-0.5">예약금 결제수단</label>
+                      <select value={prepaidMethod} onChange={e => setPrepaidMethod(e.target.value)}
+                        className="w-full bg-[#2a2a2a] border border-[#444] rounded px-2 py-1.5 text-xs">
+                        <option value="">선택</option>
+                        {PAYMENT_METHODS.filter(p => p !== '미수').map(pm => <option key={pm} value={pm}>{pm}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] text-gray-500 mb-0.5">예약금 금액</label>
+                    <input type="number" value={prepaidAmount || ''} onChange={e => setPrepaidAmount(Number(e.target.value))}
+                      className="w-full bg-[#2a2a2a] border border-[#444] rounded px-2 py-1.5 text-xs" step={1000} />
+                  </div>
+                  {totalAmount > 0 && prepaidAmount > 0 && (
+                    <p className="text-xs text-blue-400">잔금 {fmt(totalAmount - prepaidAmount)}원 현장결제 예정</p>
+                  )}
+                </div>
+              )}
+              {payTiming === '완불' && (
+                <div className="mt-2 bg-[#222] rounded-lg p-3 border border-green-900/40">
+                  <div>
+                    <label className="block text-[10px] text-gray-500 mb-0.5">결제일</label>
+                    <input type="date" value={prepaidDate} onChange={e => setPrepaidDate(e.target.value)}
+                      className="w-full bg-[#2a2a2a] border border-[#444] rounded px-2 py-1.5 text-xs" />
+                  </div>
+                  <p className="text-xs text-green-400 mt-2">전액 선결제 완료</p>
+                </div>
+              )}
+            </div>
             {customerUI}
             <div>
               <label className="block text-xs text-gray-400 mb-1">메모</label>

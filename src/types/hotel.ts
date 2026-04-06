@@ -47,6 +47,13 @@ export interface Sale {
   extra_payment_method: string | null;
   extra_amount: number;
   booking_id: string | null;
+  payment_timing: '현장' | '예약금' | '완불';
+  prepaid_date: string | null;
+  prepaid_amount: number;
+  prepaid_method: string | null;
+  balance_amount: number;
+  balance_method: string | null;
+  balance_paid: boolean;
   is_receivable: boolean;
   receivable_amount: number;
   resolved_at: string | null;
@@ -75,6 +82,13 @@ export interface SaleInput {
   extra_amount?: number;
   is_receivable?: boolean;
   receivable_amount?: number;
+  payment_timing?: '현장' | '예약금' | '완불';
+  prepaid_date?: string;
+  prepaid_amount?: number;
+  prepaid_method?: string;
+  balance_amount?: number;
+  balance_method?: string;
+  balance_paid?: boolean;
   status?: SaleStatus;
 }
 

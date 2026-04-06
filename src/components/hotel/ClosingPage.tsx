@@ -44,12 +44,30 @@ export default function ClosingPage() {
   const [receivableTotal, setReceivableTotal] = useState(0);
   const [receivableTotalCount, setReceivableTotalCount] = useState(0);
 
+  // 결제 시점별 매출
+  const [payOnsite, setPayOnsite] = useState({ count: 0, amount: 0 });
+  const [payPrepaid, setPayPrepaid] = useState({ count: 0, amount: 0 });
+  const [payDeposit, setPayDeposit] = useState({ count: 0, amount: 0 });
+  const [payReceivable, setPayReceivable] = useState({ count: 0, amount: 0 });
+
   const fetchData = useCallback(async () => {
     setLoading(true);
-    const [res, recRes] = await Promise.all([
+    const [res, recRes, salesRes] = await Promise.all([
       fetch(`/api/admin/hotel/closing?date=${date}`),
       fetch(`/api/admin/hotel/receivables?status=all`),
+      fetch(`/api/admin/hotel/sales?date=${date}`),
     ]);
+    if (salesRes.ok) {
+      const daySales: Array<{ payment_timing: string; amount: number; is_receivable: boolean }> = await salesRes.json();
+      const onsite = daySales.filter(s => (!s.payment_timing || s.payment_timing === '현장') && !s.is_receivable);
+      const prepaid = daySales.filter(s => s.payment_timing === '완불');
+      const deposit = daySales.filter(s => s.payment_timing === '예약금');
+      const recv = daySales.filter(s => s.is_receivable);
+      setPayOnsite({ count: onsite.length, amount: onsite.reduce((a, s) => a + s.amount, 0) });
+      setPayPrepaid({ count: prepaid.length, amount: prepaid.reduce((a, s) => a + s.amount, 0) });
+      setPayDeposit({ count: deposit.length, amount: deposit.reduce((a, s) => a + s.amount, 0) });
+      setPayReceivable({ count: recv.length, amount: recv.reduce((a, s) => a + s.amount, 0) });
+    }
     if (recRes.ok) {
       const recs: Array<{ sale_date: string; receivable_amount: number; resolved_at: string | null }> = await recRes.json();
       const dayNew = recs.filter(r => r.sale_date === date && !r.resolved_at);
@@ -309,6 +327,17 @@ export default function ClosingPage() {
             className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2.5 h-20 resize-none"
             placeholder="특이사항 메모"
           />
+        </div>
+      </div>
+
+      {/* 결제 시점별 매출 */}
+      <div className="bg-[#1a1a1a] rounded-xl border border-[#333] overflow-hidden">
+        <h2 className="px-5 py-4 font-bold border-b border-[#333]">결제 시점별 매출</h2>
+        <div className="p-5 space-y-2">
+          <Row label="현장결제" value={payOnsite.count > 0 ? `${payOnsite.count}건 / ${formatAmount(payOnsite.amount)}원` : '없음'} />
+          <Row label="선결제(완불)" value={payPrepaid.count > 0 ? `${payPrepaid.count}건 / ${formatAmount(payPrepaid.amount)}원` : '없음'} />
+          <Row label="예약금(잔금결제)" value={payDeposit.count > 0 ? `${payDeposit.count}건 / ${formatAmount(payDeposit.amount)}원` : '없음'} />
+          <Row label="미수" value={payReceivable.count > 0 ? `${payReceivable.count}건 / ${formatAmount(payReceivable.amount)}원` : '없음'} />
         </div>
       </div>
 

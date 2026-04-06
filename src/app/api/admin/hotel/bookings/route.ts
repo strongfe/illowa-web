@@ -85,6 +85,7 @@ export async function POST(req: NextRequest) {
     check_in_date, check_out_date, total_amount, split_method = 'equal',
     daily_amounts: manualAmounts, memo,
     phone, email, marketing_consent,
+    payment_timing = '현장', prepaid_date, prepaid_amount = 0, prepaid_method,
   } = body;
 
   const dates = dateRange(check_in_date, check_out_date);
@@ -149,20 +150,51 @@ export async function POST(req: NextRequest) {
 
   // 일별 sales 생성
   const today = new Date().toISOString().split('T')[0];
-  const salesRows = dates.map((date, i) => ({
-    sale_date: date,
-    sale_type: '숙박' as const,
-    channel, payment_method: payment_method || null,
-    guest_name, room_type,
-    room_id: room_id || null, room_number: room_number || null,
-    check_in_time: i === 0 ? 15 : null,
-    check_out_time: i === totalNights - 1 ? 13 : null,
-    amount: dailyAmounts[i],
-    booking_id: booking.id,
-    customer_id: customerId,
-    memo: memo || '',
-    status: date < today ? 'checked_out' : 'active',
-  }));
+  // 결제 시점 정보 (연박 전체에 동일 적용)
+  const payTimingFields = payment_timing === '완불' ? {
+    payment_timing: '완불',
+    prepaid_date: prepaid_date || check_in_date,
+    prepaid_amount: 0, // 일별로 설정
+    prepaid_method: prepaid_method || payment_method,
+    balance_amount: 0,
+    balance_paid: true,
+  } : payment_timing === '예약금' ? {
+    payment_timing: '예약금',
+    prepaid_date: prepaid_date || check_in_date,
+    prepaid_amount: 0, // 일별로 비율 배분
+    prepaid_method: prepaid_method || '',
+    balance_amount: 0,
+    balance_paid: false,
+  } : { payment_timing: '현장' };
+
+  const salesRows = dates.map((date, i) => {
+    const row: Record<string, unknown> = {
+      sale_date: date,
+      sale_type: '숙박',
+      channel, payment_method: payment_method || null,
+      guest_name, room_type,
+      room_id: room_id || null, room_number: room_number || null,
+      check_in_time: i === 0 ? 15 : null,
+      check_out_time: i === totalNights - 1 ? 13 : null,
+      amount: dailyAmounts[i],
+      booking_id: booking.id,
+      customer_id: customerId,
+      memo: memo || '',
+      status: date < today ? 'checked_out' : 'active',
+      ...payTimingFields,
+    };
+    // 완불: 각 일별 prepaid_amount = 해당일 금액
+    if (payment_timing === '완불') {
+      row.prepaid_amount = dailyAmounts[i];
+    }
+    // 예약금: 비율 배분
+    if (payment_timing === '예약금' && prepaid_amount > 0) {
+      const ratio = dailyAmounts[i] / total_amount;
+      row.prepaid_amount = Math.round(prepaid_amount * ratio);
+      row.balance_amount = dailyAmounts[i] - (row.prepaid_amount as number);
+    }
+    return row;
+  });
 
   const { error: salesErr } = await supabase.from('sales').insert(salesRows);
   if (salesErr) return NextResponse.json({ error: salesErr.message }, { status: 500 });
