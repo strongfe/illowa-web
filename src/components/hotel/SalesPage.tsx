@@ -109,6 +109,7 @@ export default function SalesPage() {
 
   // 모바일 접이식 상태
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  const [availPopup, setAvailPopup] = useState(false);
 
   const fetchSales = useCallback(async () => {
     const res = await fetch(`/api/admin/hotel/sales?date=${saleDate}`);
@@ -192,7 +193,15 @@ export default function SalesPage() {
     <div className="space-y-4">
       {/* 헤더 */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-[#C9A84C]">판매 현황판</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-[#C9A84C]">판매 현황판</h1>
+          <button
+            onClick={() => setAvailPopup(true)}
+            className="px-3 py-1.5 bg-[#2a2a2a] border border-[#444] rounded-lg text-xs text-gray-300 hover:bg-[#333] transition-colors"
+          >
+            잔여현황
+          </button>
+        </div>
         <div className="flex items-center gap-3">
           <input
             type="date"
@@ -209,43 +218,43 @@ export default function SalesPage() {
         </div>
       </div>
 
-      {/* 타입별 판매가능 현황 */}
-      <div className="bg-[#1a1a1a] rounded-xl border border-[#333] overflow-x-auto">
-        <table className="w-full text-xs whitespace-nowrap">
-          <thead>
-            <tr className="bg-[#222] text-gray-500">
-              <th className="px-3 py-2 text-left">타입</th>
-              {availability.map(a => (
-                <th key={a.rt} className="px-3 py-2 text-center font-bold text-gray-300">{a.rt}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            <tr className="border-t border-[#2a2a2a]">
-              <td className="px-3 py-1.5 text-gray-400">총실</td>
-              {availability.map(a => (
-                <td key={a.rt} className="px-3 py-1.5 text-center text-gray-400">{a.total}</td>
-              ))}
-            </tr>
-            <tr className="border-t border-[#2a2a2a]">
-              <td className="px-3 py-1.5 text-gray-400">대실가능</td>
-              {availability.map(a => (
-                <td key={a.rt} className={`px-3 py-1.5 text-center font-bold ${
-                  a.daesilAvail <= 0 ? 'text-red-400' : a.daesilAvail <= 2 ? 'text-orange-400' : 'text-emerald-400'
-                }`}>{a.daesilAvail}</td>
-              ))}
-            </tr>
-            <tr className="border-t border-[#2a2a2a]">
-              <td className="px-3 py-1.5 text-gray-400">숙박가능</td>
-              {availability.map(a => (
-                <td key={a.rt} className={`px-3 py-1.5 text-center font-bold ${
-                  a.sukbakAvail <= 0 ? 'text-red-400' : a.sukbakAvail <= 2 ? 'text-orange-400' : 'text-emerald-400'
-                }`}>{a.sukbakAvail}</td>
-              ))}
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      {/* 타입별 판매가능 현황 팝업 */}
+      {availPopup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => setAvailPopup(false)}>
+          <div className="bg-[#1a1a1a] rounded-xl border border-[#333] p-5 mx-4 max-w-md w-full" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-[#C9A84C]">타입별 잔여현황</h2>
+              <button onClick={() => setAvailPopup(false)} className="text-gray-500 hover:text-white text-xl">&times;</button>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-[#222] text-gray-500">
+                    <th className="px-3 py-2 text-left">타입</th>
+                    <th className="px-3 py-2 text-center">총실</th>
+                    <th className="px-3 py-2 text-center">대실가능</th>
+                    <th className="px-3 py-2 text-center">숙박가능</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {availability.map(a => (
+                    <tr key={a.rt} className="border-t border-[#2a2a2a]">
+                      <td className="px-3 py-2 font-bold">{a.rt}</td>
+                      <td className="px-3 py-2 text-center text-gray-400">{a.total}</td>
+                      <td className={`px-3 py-2 text-center font-bold ${
+                        a.daesilAvail <= 0 ? 'text-red-400' : a.daesilAvail <= 2 ? 'text-orange-400' : 'text-emerald-400'
+                      }`}>{a.daesilAvail}</td>
+                      <td className={`px-3 py-2 text-center font-bold ${
+                        a.sukbakAvail <= 0 ? 'text-red-400' : a.sukbakAvail <= 2 ? 'text-orange-400' : 'text-emerald-400'
+                      }`}>{a.sukbakAvail}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ─── 6파트 그리드 ─── */}
       {/* 대실 행 */}
