@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Sale, SaleInput, Room, RoomType, SaleType } from '@/types/hotel';
-import { OTA_CHANNELS, OTHER_CHANNELS, PAYMENT_METHODS } from '@/types/hotel';
+import { OTA_CHANNELS, OTHER_CHANNELS, PAYMENT_METHODS, ROOM_TYPE_CAPACITY } from '@/types/hotel';
 
 const ROOM_TYPES: RoomType[] = ['GS', 'GD', 'S', 'D', 'P', 'PT'];
 
@@ -170,6 +170,24 @@ export default function SalesPage() {
   const allDaesil = sales.filter(s => s.sale_type === '대실');
   const allSukbak = sales.filter(s => s.sale_type === '숙박');
 
+  // 타입별 판매가능 현황 계산
+  const availability = ROOM_TYPES.map(rt => {
+    const total = ROOM_TYPE_CAPACITY[rt];
+    const typeSales = sales.filter(s => s.room_type === rt);
+
+    // 대실가능 = 총실 - (대실active + 조기숙박active) + 대실checked_out
+    const daesilActive = typeSales.filter(s => s.sale_type === '대실' && s.status === 'active').length;
+    const earlySukbak = typeSales.filter(s => s.sale_type === '숙박' && s.status === 'active' && s.check_in_time != null && s.check_in_time < 16).length;
+    const daesilOut = typeSales.filter(s => s.sale_type === '대실' && s.status === 'checked_out').length;
+    const daesilAvail = total - (daesilActive + earlySukbak) + daesilOut;
+
+    // 숙박가능 = 총실 - 숙박 전체 (active + checked_out)
+    const sukbakTotal = typeSales.filter(s => s.sale_type === '숙박').length;
+    const sukbakAvail = total - sukbakTotal;
+
+    return { rt, total, daesilAvail, sukbakAvail };
+  });
+
   return (
     <div className="space-y-4">
       {/* 헤더 */}
@@ -189,6 +207,44 @@ export default function SalesPage() {
             + 판매 추가
           </button>
         </div>
+      </div>
+
+      {/* 타입별 판매가능 현황 */}
+      <div className="bg-[#1a1a1a] rounded-xl border border-[#333] overflow-x-auto">
+        <table className="w-full text-xs whitespace-nowrap">
+          <thead>
+            <tr className="bg-[#222] text-gray-500">
+              <th className="px-3 py-2 text-left">타입</th>
+              {availability.map(a => (
+                <th key={a.rt} className="px-3 py-2 text-center font-bold text-gray-300">{a.rt}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            <tr className="border-t border-[#2a2a2a]">
+              <td className="px-3 py-1.5 text-gray-400">총실</td>
+              {availability.map(a => (
+                <td key={a.rt} className="px-3 py-1.5 text-center text-gray-400">{a.total}</td>
+              ))}
+            </tr>
+            <tr className="border-t border-[#2a2a2a]">
+              <td className="px-3 py-1.5 text-gray-400">대실가능</td>
+              {availability.map(a => (
+                <td key={a.rt} className={`px-3 py-1.5 text-center font-bold ${
+                  a.daesilAvail <= 0 ? 'text-red-400' : a.daesilAvail <= 2 ? 'text-orange-400' : 'text-emerald-400'
+                }`}>{a.daesilAvail}</td>
+              ))}
+            </tr>
+            <tr className="border-t border-[#2a2a2a]">
+              <td className="px-3 py-1.5 text-gray-400">숙박가능</td>
+              {availability.map(a => (
+                <td key={a.rt} className={`px-3 py-1.5 text-center font-bold ${
+                  a.sukbakAvail <= 0 ? 'text-red-400' : a.sukbakAvail <= 2 ? 'text-orange-400' : 'text-emerald-400'
+                }`}>{a.sukbakAvail}</td>
+              ))}
+            </tr>
+          </tbody>
+        </table>
       </div>
 
       {/* ─── 6파트 그리드 ─── */}
