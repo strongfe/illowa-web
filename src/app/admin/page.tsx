@@ -21,7 +21,7 @@ export default function AdminLoginPage() {
     });
 
     if (res.ok) {
-      router.push('/admin/dashboard');
+      router.push('/admin/hotel/dashboard');
     } else {
       const data = await res.json();
       setError(data.error ?? '오류가 발생했습니다.');
