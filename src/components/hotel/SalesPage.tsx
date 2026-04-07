@@ -954,8 +954,8 @@ function SaleModal({ saleDate, rooms, editSale, defaults, onClose, onSaved, onDe
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 overflow-y-auto py-8" onClick={onClose}>
-      <div className="bg-[#1a1a1a] rounded-xl border border-[#333] w-full max-w-lg mx-4 p-5 space-y-4" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 overflow-y-auto py-8">
+      <div className="bg-[#1a1a1a] rounded-xl border border-[#333] w-full max-w-lg mx-4 p-5 space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold text-[#C9A84C]">{isEdit ? '판매 수정' : '판매 추가'}</h2>
           <button onClick={onClose} className="text-gray-500 hover:text-white text-xl">&times;</button>
