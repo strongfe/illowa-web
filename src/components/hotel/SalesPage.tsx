@@ -672,7 +672,7 @@ function SaleModal({ saleDate, rooms, editSale, defaults, onClose, onSaved, onDe
   const [loading, setLoading] = useState(false);
 
   // 연박 전용
-  const [checkInDate, setCheckInDate] = useState(saleDate);
+  const [checkInDate, setCheckInDate] = useState('');
   const [checkOutDate, setCheckOutDate] = useState('');
   const [totalAmount, setTotalAmount] = useState(0);
   const [splitMethod, setSplitMethod] = useState<SplitMethod>('equal');
