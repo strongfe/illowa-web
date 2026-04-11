@@ -24,13 +24,13 @@ export default function HotelAdminLayout({ children }: { children: React.ReactNo
   };
 
   return (
-    <div className="min-h-screen bg-[#0f0f0f] text-gray-100">
+    <div className="min-h-screen bg-gray-50 text-gray-900">
       {/* Top bar */}
-      <header className="sticky top-0 z-50 bg-[#1a1a1a] border-b border-[#333] px-4 py-3 flex items-center justify-between">
+      <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="md:hidden text-xl p-1"
+            className="md:hidden text-xl p-1 text-gray-700"
           >
             ☰
           </button>
@@ -48,7 +48,7 @@ export default function HotelAdminLayout({ children }: { children: React.ReactNo
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 pathname === item.href
                   ? 'bg-[#C9A84C] text-black'
-                  : 'text-gray-300 hover:bg-[#2a2a2a]'
+                  : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
               {item.icon} {item.label}
@@ -57,18 +57,18 @@ export default function HotelAdminLayout({ children }: { children: React.ReactNo
         </nav>
 
         <div className="flex items-center gap-3">
-          <Link href="/admin/hotel/complaints" className="text-xs text-gray-500 hover:text-gray-300">
+          <Link href="/admin/hotel/complaints" className="text-xs text-gray-500 hover:text-gray-700">
             컴플레인
           </Link>
-          <Link href="/admin/hotel/audit" className="text-xs text-gray-500 hover:text-gray-300">
+          <Link href="/admin/hotel/audit" className="text-xs text-gray-500 hover:text-gray-700">
             변경이력
           </Link>
-          <Link href="/admin/dashboard" className="text-xs text-gray-500 hover:text-gray-300">
+          <Link href="/admin/dashboard" className="text-xs text-gray-500 hover:text-gray-700">
             챗봇 관리
           </Link>
           <button
             onClick={handleLogout}
-            className="text-sm text-gray-400 hover:text-white transition-colors"
+            className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
           >
             로그아웃
           </button>
@@ -77,7 +77,7 @@ export default function HotelAdminLayout({ children }: { children: React.ReactNo
 
       {/* Mobile nav */}
       {menuOpen && (
-        <div className="md:hidden bg-[#1a1a1a] border-b border-[#333] px-4 py-2">
+        <div className="md:hidden bg-white border-b border-gray-200 px-4 py-2">
           {NAV_ITEMS.map((item) => (
             <Link
               key={item.href}
@@ -86,7 +86,7 @@ export default function HotelAdminLayout({ children }: { children: React.ReactNo
               className={`block px-4 py-3 rounded-lg text-sm ${
                 pathname === item.href
                   ? 'bg-[#C9A84C] text-black font-medium'
-                  : 'text-gray-300'
+                  : 'text-gray-700'
               }`}
             >
               {item.icon} {item.label}

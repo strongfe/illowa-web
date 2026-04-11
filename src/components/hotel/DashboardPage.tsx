@@ -70,7 +70,7 @@ export default function DashboardPage() {
             type="date"
             value={date}
             onChange={e => setDate(e.target.value)}
-            className="bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2 text-sm"
+            className="bg-gray-100 border border-gray-300 rounded-lg px-3 py-2 text-sm"
           />
           <button onClick={fetchStats} className="text-sm text-[#C9A84C] hover:text-[#E8C96A]">
             새로고침
@@ -82,44 +82,44 @@ export default function DashboardPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <SummaryCard label="대실" count={s.daesil_count} amount={s.daesil_revenue} color="blue" />
         <SummaryCard label="숙박" count={s.sukbak_count} amount={s.sukbak_revenue} color="green" />
-        <div className="bg-[#1a1a1a] rounded-xl p-4 border border-[#333]">
-          <p className="text-sm text-gray-400">총매출</p>
+        <div className="bg-white rounded-xl p-4 border border-gray-200">
+          <p className="text-sm text-gray-600">총매출</p>
           <p className="text-2xl font-bold text-[#C9A84C] mt-1">{formatAmount(s.total_revenue)}원</p>
           <p className="text-xs text-gray-500 mt-1">{s.total_count}건</p>
         </div>
-        <div className="bg-[#1a1a1a] rounded-xl p-4 border border-[#333]">
-          <p className="text-sm text-gray-400">공실</p>
-          <p className="text-2xl font-bold text-white mt-1">{vacantRooms}실</p>
+        <div className="bg-white rounded-xl p-4 border border-gray-200">
+          <p className="text-sm text-gray-600">공실</p>
+          <p className="text-2xl font-bold text-gray-900 mt-1">{vacantRooms}실</p>
           <p className="text-xs text-gray-500 mt-1">/ {totalRooms}실</p>
         </div>
       </div>
 
       {/* 객실타입별 현황 */}
-      <div className="bg-[#1a1a1a] rounded-xl border border-[#333] overflow-hidden">
-        <h2 className="px-5 py-4 font-bold border-b border-[#333]">객실타입별 현황</h2>
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <h2 className="px-5 py-4 font-bold border-b border-gray-200">객실타입별 현황</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-[#222]">
+            <thead className="bg-gray-100">
               <tr>
-                <th className="px-4 py-3 text-left text-gray-400">타입</th>
-                <th className="px-4 py-3 text-center text-gray-400">총실</th>
-                <th className="px-4 py-3 text-center text-gray-400">예약</th>
-                <th className="px-4 py-3 text-center text-gray-400">입실</th>
-                <th className="px-4 py-3 text-center text-gray-400">퇴실</th>
-                <th className="px-4 py-3 text-center text-gray-400">공실</th>
+                <th className="px-4 py-3 text-left text-gray-600">타입</th>
+                <th className="px-4 py-3 text-center text-gray-600">총실</th>
+                <th className="px-4 py-3 text-center text-gray-600">예약</th>
+                <th className="px-4 py-3 text-center text-gray-600">입실</th>
+                <th className="px-4 py-3 text-center text-gray-600">퇴실</th>
+                <th className="px-4 py-3 text-center text-gray-600">공실</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#2a2a2a]">
+            <tbody className="divide-y divide-gray-200">
               {allTypes.map(rt => {
                 const stat = roomStatsMap.get(rt);
                 const capacity = ROOM_TYPE_CAPACITY[rt];
                 return (
-                  <tr key={rt} className="hover:bg-[#222]">
+                  <tr key={rt} className="hover:bg-gray-100">
                     <td className="px-4 py-3 font-medium">{rt} <span className="text-gray-500">({ROOM_TYPE_LABELS[rt]})</span></td>
                     <td className="px-4 py-3 text-center">{capacity}</td>
                     <td className="px-4 py-3 text-center text-blue-400">{stat?.reserved || 0}</td>
                     <td className="px-4 py-3 text-center text-green-400">{stat?.checked_in || 0}</td>
-                    <td className="px-4 py-3 text-center text-gray-400">{stat?.checked_out || 0}</td>
+                    <td className="px-4 py-3 text-center text-gray-600">{stat?.checked_out || 0}</td>
                     <td className="px-4 py-3 text-center font-bold">{stat ? stat.vacant : capacity}</td>
                   </tr>
                 );
@@ -130,27 +130,27 @@ export default function DashboardPage() {
       </div>
 
       {/* 채널별 매출 */}
-      <div className="bg-[#1a1a1a] rounded-xl border border-[#333] overflow-hidden">
-        <h2 className="px-5 py-4 font-bold border-b border-[#333]">채널별 매출</h2>
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <h2 className="px-5 py-4 font-bold border-b border-gray-200">채널별 매출</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-[#222]">
+            <thead className="bg-gray-100">
               <tr>
-                <th className="px-4 py-3 text-left text-gray-400">채널</th>
-                <th className="px-4 py-3 text-center text-gray-400">건수</th>
-                <th className="px-4 py-3 text-right text-gray-400">대실</th>
-                <th className="px-4 py-3 text-right text-gray-400">숙박</th>
-                <th className="px-4 py-3 text-right text-gray-400">합계</th>
+                <th className="px-4 py-3 text-left text-gray-600">채널</th>
+                <th className="px-4 py-3 text-center text-gray-600">건수</th>
+                <th className="px-4 py-3 text-right text-gray-600">대실</th>
+                <th className="px-4 py-3 text-right text-gray-600">숙박</th>
+                <th className="px-4 py-3 text-right text-gray-600">합계</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#2a2a2a]">
+            <tbody className="divide-y divide-gray-200">
               {(data?.channelRevenue || []).length === 0 && (
                 <tr><td colSpan={5} className="px-4 py-6 text-center text-gray-500">데이터 없음</td></tr>
               )}
               {(data?.channelRevenue || [])
                 .sort((a, b) => b.total_revenue - a.total_revenue)
                 .map(cr => (
-                  <tr key={cr.channel} className="hover:bg-[#222]">
+                  <tr key={cr.channel} className="hover:bg-gray-100">
                     <td className="px-4 py-3 font-medium">{cr.channel}</td>
                     <td className="px-4 py-3 text-center">{cr.sale_count}</td>
                     <td className="px-4 py-3 text-right text-blue-400">{formatAmount(cr.daesil_revenue)}</td>
@@ -159,7 +159,7 @@ export default function DashboardPage() {
                   </tr>
                 ))}
               {(data?.channelRevenue || []).length > 0 && (
-                <tr className="bg-[#222] font-bold">
+                <tr className="bg-gray-100 font-bold">
                   <td className="px-4 py-3">합계</td>
                   <td className="px-4 py-3 text-center">
                     {(data?.channelRevenue || []).reduce((sum, cr) => sum + cr.sale_count, 0)}
@@ -188,8 +188,8 @@ function SummaryCard({ label, count, amount, color }: {
 }) {
   const colorClass = color === 'blue' ? 'text-blue-400' : 'text-green-400';
   return (
-    <div className="bg-[#1a1a1a] rounded-xl p-4 border border-[#333]">
-      <p className="text-sm text-gray-400">{label}</p>
+    <div className="bg-white rounded-xl p-4 border border-gray-200">
+      <p className="text-sm text-gray-600">{label}</p>
       <p className={`text-2xl font-bold mt-1 ${colorClass}`}>{formatAmount(amount)}원</p>
       <p className="text-xs text-gray-500 mt-1">{count}건</p>
     </div>

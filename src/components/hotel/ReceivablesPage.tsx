@@ -9,10 +9,10 @@ function fmt(n: number) {
 }
 
 const STATUS_STYLE: Record<string, { bg: string; text: string }> = {
-  '미수': { bg: 'bg-gray-700', text: 'text-gray-200' },
-  '주의': { bg: 'bg-orange-900', text: 'text-orange-300' },
-  '장기미수': { bg: 'bg-red-900', text: 'text-red-300' },
-  '수금완료': { bg: 'bg-green-900', text: 'text-green-300' },
+  '미수': { bg: 'bg-gray-200', text: 'text-gray-700' },
+  '주의': { bg: 'bg-orange-100', text: 'text-orange-700' },
+  '장기미수': { bg: 'bg-red-100', text: 'text-red-700' },
+  '수금완료': { bg: 'bg-green-100', text: 'text-green-700' },
 };
 
 export default function ReceivablesPage() {
@@ -71,21 +71,21 @@ export default function ReceivablesPage() {
         <Card label="미수" count={openItems.length} amount={totalOpen} color="text-orange-400" />
         <Card label="수금완료" count={resolvedItems.length} amount={totalResolved} color="text-green-400" />
         <Card label="장기미수 (30일+)" count={longOverdue.length} amount={longTotal} color="text-red-400" />
-        <div className="bg-[#1a1a1a] rounded-xl p-4 border border-[#333]">
-          <p className="text-sm text-gray-400">미수 잔액</p>
+        <div className="bg-white rounded-xl p-4 border border-gray-200">
+          <p className="text-sm text-gray-600">미수 잔액</p>
           <p className="text-2xl font-bold text-[#C9A84C] mt-1">{fmt(totalOpen)}원</p>
         </div>
       </div>
 
       {/* 미수 목록 */}
-      <div className="bg-[#1a1a1a] rounded-xl border border-[#333] overflow-hidden">
-        <div className="px-5 py-4 border-b border-[#333]">
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="px-5 py-4 border-b border-gray-200">
           <h2 className="font-bold">미수 목록 ({openItems.length}건)</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm whitespace-nowrap">
             <thead>
-              <tr className="bg-[#222] text-gray-500 text-xs">
+              <tr className="bg-gray-100 text-gray-500 text-xs">
                 <th className="px-3 py-2 text-left">날짜</th>
                 <th className="px-3 py-2 text-left">구분</th>
                 <th className="px-3 py-2 text-left">성명</th>
@@ -100,26 +100,26 @@ export default function ReceivablesPage() {
             </thead>
             <tbody>
               {openItems.length === 0 && (
-                <tr><td colSpan={10} className="px-3 py-8 text-center text-gray-600">미수 건이 없습니다</td></tr>
+                <tr><td colSpan={10} className="px-3 py-8 text-center text-gray-400">미수 건이 없습니다</td></tr>
               )}
               {openItems.map(item => {
                 const st = STATUS_STYLE[item.receivable_status] || STATUS_STYLE['미수'];
                 return (
-                  <tr key={item.id} className="border-t border-[#2a2a2a] hover:bg-[#222]">
-                    <td className="px-3 py-2 text-gray-400">{item.sale_date}</td>
+                  <tr key={item.id} className="border-t border-gray-200 hover:bg-gray-100">
+                    <td className="px-3 py-2 text-gray-600">{item.sale_date}</td>
                     <td className="px-3 py-2">{item.channel} {item.sale_type}</td>
                     <td className="px-3 py-2">{item.guest_name || '-'}</td>
                     <td className="px-3 py-2 text-center">{item.room_type}</td>
-                    <td className="px-3 py-2 text-center text-gray-400">{item.room_number || '-'}</td>
+                    <td className="px-3 py-2 text-center text-gray-600">{item.room_number || '-'}</td>
                     <td className="px-3 py-2 text-right font-bold text-red-400">{fmt(item.receivable_amount)}원</td>
                     <td className="px-3 py-2 text-center">{item.days_overdue}일</td>
                     <td className="px-3 py-2 text-center">
                       <span className={`px-2 py-0.5 rounded text-xs font-bold ${st.bg} ${st.text}`}>{item.receivable_status}</span>
                     </td>
-                    <td className="px-3 py-2 text-center text-gray-400 text-xs">{item.phone || '-'}</td>
+                    <td className="px-3 py-2 text-center text-gray-600 text-xs">{item.phone || '-'}</td>
                     <td className="px-3 py-2 text-center">
                       <button onClick={() => { setResolveTarget(item); setResolveMethod(''); setResolveMemo(''); }}
-                        className="px-2 py-1 bg-green-800 text-green-200 rounded text-xs hover:bg-green-700">수금</button>
+                        className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs hover:bg-green-200">수금</button>
                     </td>
                   </tr>
                 );
@@ -131,17 +131,17 @@ export default function ReceivablesPage() {
 
       {/* 수금완료 (접이식) */}
       {resolvedItems.length > 0 && (
-        <div className="bg-[#1a1a1a] rounded-xl border border-[#333] overflow-hidden">
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           <button onClick={() => setShowResolved(!showResolved)}
-            className="w-full px-5 py-4 flex items-center justify-between border-b border-[#333] hover:bg-[#222]">
-            <h2 className="font-bold text-gray-400">수금완료 ({resolvedItems.length}건)</h2>
+            className="w-full px-5 py-4 flex items-center justify-between border-b border-gray-200 hover:bg-gray-100">
+            <h2 className="font-bold text-gray-600">수금완료 ({resolvedItems.length}건)</h2>
             <span className="text-gray-500 text-sm">{showResolved ? '▲' : '▼'}</span>
           </button>
           {showResolved && (
             <div className="overflow-x-auto">
               <table className="w-full text-sm whitespace-nowrap">
                 <thead>
-                  <tr className="bg-[#222] text-gray-500 text-xs">
+                  <tr className="bg-gray-100 text-gray-500 text-xs">
                     <th className="px-3 py-2 text-left">날짜</th>
                     <th className="px-3 py-2 text-left">성명</th>
                     <th className="px-3 py-2 text-right">금액</th>
@@ -152,7 +152,7 @@ export default function ReceivablesPage() {
                 </thead>
                 <tbody>
                   {resolvedItems.map(item => (
-                    <tr key={item.id} className="border-t border-[#2a2a2a] text-gray-500">
+                    <tr key={item.id} className="border-t border-gray-200 text-gray-500">
                       <td className="px-3 py-2">{item.sale_date}</td>
                       <td className="px-3 py-2">{item.guest_name || '-'}</td>
                       <td className="px-3 py-2 text-right">{fmt(item.receivable_amount)}원</td>
@@ -171,25 +171,25 @@ export default function ReceivablesPage() {
       {/* 수금 처리 모달 */}
       {resolveTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => setResolveTarget(null)}>
-          <div className="bg-[#1a1a1a] rounded-xl border border-[#333] p-5 w-80 max-w-[90vw] space-y-4" onClick={e => e.stopPropagation()}>
+          <div className="bg-white rounded-xl border border-gray-200 p-5 w-80 max-w-[90vw] space-y-4" onClick={e => e.stopPropagation()}>
             <h3 className="text-lg font-bold text-[#C9A84C]">수금 처리</h3>
             <div className="text-sm space-y-1">
-              <p><span className="text-gray-400">날짜:</span> {resolveTarget.sale_date}</p>
-              <p><span className="text-gray-400">성명:</span> {resolveTarget.guest_name || '-'}</p>
-              <p><span className="text-gray-400">미수금액:</span> <span className="text-red-400 font-bold">{fmt(resolveTarget.receivable_amount)}원</span></p>
+              <p><span className="text-gray-600">날짜:</span> {resolveTarget.sale_date}</p>
+              <p><span className="text-gray-600">성명:</span> {resolveTarget.guest_name || '-'}</p>
+              <p><span className="text-gray-600">미수금액:</span> <span className="text-red-400 font-bold">{fmt(resolveTarget.receivable_amount)}원</span></p>
             </div>
             <div>
-              <label className="block text-xs text-gray-400 mb-1">수금 결제수단</label>
+              <label className="block text-xs text-gray-600 mb-1">수금 결제수단</label>
               <select value={resolveMethod} onChange={e => setResolveMethod(e.target.value)}
-                className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2 text-sm">
+                className="w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2 text-sm">
                 <option value="">선택</option>
                 {PAYMENT_METHODS.filter(p => p !== '미수').map(pm => <option key={pm} value={pm}>{pm}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-xs text-gray-400 mb-1">메모</label>
+              <label className="block text-xs text-gray-600 mb-1">메모</label>
               <input type="text" value={resolveMemo} onChange={e => setResolveMemo(e.target.value)}
-                className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2 text-sm" placeholder="선택 입력" />
+                className="w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="선택 입력" />
             </div>
             <button onClick={handleResolve} disabled={saving || !resolveMethod}
               className="w-full py-2.5 rounded-lg font-bold bg-green-700 text-white hover:bg-green-600 transition-colors disabled:opacity-40">
@@ -204,8 +204,8 @@ export default function ReceivablesPage() {
 
 function Card({ label, count, amount, color }: { label: string; count: number; amount: number; color: string }) {
   return (
-    <div className="bg-[#1a1a1a] rounded-xl p-4 border border-[#333]">
-      <p className="text-sm text-gray-400">{label}</p>
+    <div className="bg-white rounded-xl p-4 border border-gray-200">
+      <p className="text-sm text-gray-600">{label}</p>
       <p className={`text-2xl font-bold mt-1 ${color}`}>{fmt(amount)}원</p>
       <p className="text-xs text-gray-500 mt-1">{count}건</p>
     </div>

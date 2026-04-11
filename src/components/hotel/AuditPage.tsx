@@ -24,9 +24,9 @@ const TABLE_LABELS: Record<string, string> = {
 };
 
 const ACTION_STYLE: Record<string, { bg: string; text: string; label: string }> = {
-  INSERT: { bg: 'bg-green-900', text: 'text-green-300', label: '등록' },
-  UPDATE: { bg: 'bg-orange-900', text: 'text-orange-300', label: '수정' },
-  DELETE: { bg: 'bg-red-900', text: 'text-red-300', label: '삭제' },
+  INSERT: { bg: 'bg-green-100', text: 'text-green-700', label: '등록' },
+  UPDATE: { bg: 'bg-orange-100', text: 'text-orange-700', label: '수정' },
+  DELETE: { bg: 'bg-red-100', text: 'text-red-700', label: '삭제' },
 };
 
 const FIELD_LABELS: Record<string, string> = {
@@ -154,35 +154,35 @@ export default function AuditPage() {
         <div className="flex gap-1">
           {[['', '전체'], ['sales', '판매'], ['bookings', '예약'], ['customers', '고객'], ['daily_closings', '마감'], ['cash_expenses', '지출']].map(([v, label]) => (
             <button key={v} onClick={() => setTableFilter(v)}
-              className={`px-3 py-1.5 rounded-lg text-xs ${tableFilter === v ? 'bg-[#C9A84C] text-black font-bold' : 'bg-[#2a2a2a] text-gray-400 hover:bg-[#333]'}`}>{label}</button>
+              className={`px-3 py-1.5 rounded-lg text-xs ${tableFilter === v ? 'bg-[#C9A84C] text-black font-bold' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>{label}</button>
           ))}
         </div>
         <div className="flex gap-1">
           {[['', '전체'], ['INSERT', '등록'], ['UPDATE', '수정'], ['DELETE', '삭제']].map(([v, label]) => (
             <button key={v} onClick={() => setActionFilter(v)}
-              className={`px-3 py-1.5 rounded-lg text-xs ${actionFilter === v ? 'bg-[#C9A84C] text-black font-bold' : 'bg-[#2a2a2a] text-gray-400 hover:bg-[#333]'}`}>{label}</button>
+              className={`px-3 py-1.5 rounded-lg text-xs ${actionFilter === v ? 'bg-[#C9A84C] text-black font-bold' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>{label}</button>
           ))}
         </div>
         <input type="date" value={dateFilter} onChange={e => setDateFilter(e.target.value)}
-          className="bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-1.5 text-xs" />
-        {dateFilter && <button onClick={() => setDateFilter('')} className="text-xs text-gray-500 hover:text-white">날짜 초기화</button>}
+          className="bg-gray-100 border border-gray-300 rounded-lg px-3 py-1.5 text-xs" />
+        {dateFilter && <button onClick={() => setDateFilter('')} className="text-xs text-gray-500 hover:text-gray-900">날짜 초기화</button>}
         {recordFilter && (
           <div className="flex items-center gap-2">
             <span className="text-xs text-blue-400">레코드 필터 적용중</span>
-            <button onClick={() => setRecordFilter('')} className="text-xs text-gray-500 hover:text-white">해제</button>
+            <button onClick={() => setRecordFilter('')} className="text-xs text-gray-500 hover:text-gray-900">해제</button>
           </div>
         )}
       </div>
 
       {/* 로그 목록 */}
-      <div className="bg-[#1a1a1a] rounded-xl border border-[#333] overflow-hidden">
-        <div className="px-5 py-4 border-b border-[#333] flex justify-between">
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="px-5 py-4 border-b border-gray-200 flex justify-between">
           <h2 className="font-bold">이력 ({total}건)</h2>
           {totalPages > 1 && (
             <div className="flex gap-2 text-xs">
-              <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="text-gray-400 disabled:text-gray-700">이전</button>
-              <span className="text-gray-400">{page}/{totalPages}</span>
-              <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="text-gray-400 disabled:text-gray-700">다음</button>
+              <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="text-gray-600 disabled:text-gray-300">이전</button>
+              <span className="text-gray-600">{page}/{totalPages}</span>
+              <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="text-gray-600 disabled:text-gray-300">다음</button>
             </div>
           )}
         </div>
@@ -192,7 +192,7 @@ export default function AuditPage() {
         ) : logs.length === 0 ? (
           <div className="px-5 py-8 text-center text-gray-500">이력이 없습니다</div>
         ) : (
-          <div className="divide-y divide-[#2a2a2a]">
+          <div className="divide-y divide-gray-200">
             {logs.map(log => {
               const as = ACTION_STYLE[log.action];
               const isExpanded = expanded.has(log.id);
@@ -200,22 +200,22 @@ export default function AuditPage() {
               const dateStr = log.created_at.split('T')[0];
               return (
                 <div key={log.id}>
-                  <button onClick={() => toggleExpand(log.id)} className="w-full px-5 py-3 flex items-center gap-3 text-left hover:bg-[#222] transition-colors">
+                  <button onClick={() => toggleExpand(log.id)} className="w-full px-5 py-3 flex items-center gap-3 text-left hover:bg-gray-100 transition-colors">
                     <span className="text-xs text-gray-500 w-20 shrink-0">{dateStr === dateFilter || !dateFilter ? time : `${dateStr.slice(5)} ${time}`}</span>
-                    <span className="text-xs text-gray-400 w-10 shrink-0">{TABLE_LABELS[log.table_name] || log.table_name}</span>
+                    <span className="text-xs text-gray-600 w-10 shrink-0">{TABLE_LABELS[log.table_name] || log.table_name}</span>
                     <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${as.bg} ${as.text} shrink-0`}>{as.label}</span>
-                    <span className="text-xs text-gray-300 flex-1 truncate">{summarize(log)}</span>
-                    <span className="text-xs text-gray-600">{isExpanded ? '▲' : '▼'}</span>
+                    <span className="text-xs text-gray-700 flex-1 truncate">{summarize(log)}</span>
+                    <span className="text-xs text-gray-400">{isExpanded ? '▲' : '▼'}</span>
                   </button>
 
                   {isExpanded && (
                     <div className="px-5 pb-4 space-y-2">
                       {/* UPDATE: 변경 필드 비교 */}
                       {log.action === 'UPDATE' && log.changed_fields && log.changed_fields.length > 0 && (
-                        <div className="bg-[#222] rounded-lg overflow-hidden">
+                        <div className="bg-gray-100 rounded-lg overflow-hidden">
                           <table className="w-full text-xs">
                             <thead>
-                              <tr className="bg-[#2a2a2a] text-gray-500">
+                              <tr className="bg-gray-100 text-gray-500">
                                 <th className="px-3 py-1.5 text-left">필드</th>
                                 <th className="px-3 py-1.5 text-left">변경 전</th>
                                 <th className="px-3 py-1.5 text-left">변경 후</th>
@@ -223,8 +223,8 @@ export default function AuditPage() {
                             </thead>
                             <tbody>
                               {log.changed_fields.filter(f => f !== 'updated_at').map(field => (
-                                <tr key={field} className="border-t border-[#333]">
-                                  <td className="px-3 py-1.5 text-gray-400">{FIELD_LABELS[field] || field}</td>
+                                <tr key={field} className="border-t border-gray-200">
+                                  <td className="px-3 py-1.5 text-gray-600">{FIELD_LABELS[field] || field}</td>
                                   <td className="px-3 py-1.5 text-red-400">{String(log.old_data?.[field] ?? '-')}</td>
                                   <td className="px-3 py-1.5 text-green-400">{String(log.new_data?.[field] ?? '-')}</td>
                                 </tr>
@@ -237,9 +237,9 @@ export default function AuditPage() {
                       {/* DELETE: 삭제된 데이터 + 복원 버튼 */}
                       {log.action === 'DELETE' && log.old_data && (
                         <div className="space-y-2">
-                          <div className="bg-red-900/10 border border-red-900/30 rounded-lg p-3">
+                          <div className="bg-red-50 border border-red-200 rounded-lg p-3">
                             <p className="text-xs text-red-400 font-bold mb-1">삭제된 데이터</p>
-                            <div className="text-xs text-gray-400 space-y-0.5">
+                            <div className="text-xs text-gray-600 space-y-0.5">
                               {Object.entries(log.old_data)
                                 .filter(([k]) => !['created_at', 'updated_at'].includes(k))
                                 .map(([k, v]) => (
@@ -248,7 +248,7 @@ export default function AuditPage() {
                             </div>
                           </div>
                           <button onClick={() => handleRestore(log.id)}
-                            className="px-4 py-2 bg-blue-800 text-blue-200 rounded-lg text-xs hover:bg-blue-700">
+                            className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg text-xs hover:bg-blue-200">
                             복원
                           </button>
                         </div>
@@ -256,9 +256,9 @@ export default function AuditPage() {
 
                       {/* INSERT: 등록된 데이터 */}
                       {log.action === 'INSERT' && log.new_data && (
-                        <div className="bg-green-900/10 border border-green-900/30 rounded-lg p-3">
+                        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                           <p className="text-xs text-green-400 font-bold mb-1">등록된 데이터</p>
-                          <div className="text-xs text-gray-400 space-y-0.5">
+                          <div className="text-xs text-gray-600 space-y-0.5">
                             {Object.entries(log.new_data)
                               .filter(([k, v]) => v != null && v !== '' && !['created_at', 'updated_at'].includes(k))
                               .map(([k, v]) => (

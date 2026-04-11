@@ -5,10 +5,10 @@ import type { RoomStatus, RoomType, Booking } from '@/types/hotel';
 import { ROOM_TYPE_LABELS } from '@/types/hotel';
 
 const STATUS_COLORS: Record<string, { bg: string; text: string; label: string }> = {
-  vacant: { bg: 'bg-[#2a2a2a]', text: 'text-gray-400', label: '공실' },
-  daesil: { bg: 'bg-blue-900/50', text: 'text-blue-300', label: '대실' },
-  sukbak: { bg: 'bg-green-900/50', text: 'text-green-300', label: '숙박' },
-  both: { bg: 'bg-purple-900/50', text: 'text-purple-300', label: '대실+숙박' },
+  vacant: { bg: 'bg-gray-100', text: 'text-gray-600', label: '공실' },
+  daesil: { bg: 'bg-blue-100', text: 'text-blue-700', label: '대실' },
+  sukbak: { bg: 'bg-green-100', text: 'text-green-700', label: '숙박' },
+  both: { bg: 'bg-purple-100', text: 'text-purple-700', label: '대실+숙박' },
 };
 
 const TYPE_COLORS: Record<RoomType, string> = {
@@ -103,7 +103,7 @@ export default function RoomsPage() {
 
       {/* 요약 */}
       <div className="flex gap-4 text-sm">
-        <span className="text-gray-400">공실 <span className="text-white font-bold">{totalVacant}</span></span>
+        <span className="text-gray-600">공실 <span className="text-gray-900 font-bold">{totalVacant}</span></span>
         <span className="text-blue-400">대실 <span className="font-bold">{totalDaesil}</span></span>
         <span className="text-green-400">숙박 <span className="font-bold">{totalSukbak}</span></span>
         {todayReservations.length > 0 && (
@@ -113,7 +113,7 @@ export default function RoomsPage() {
 
       {/* 오늘 도착 예약 알림 */}
       {todayReservations.filter(r => !r.room_number).length > 0 && (
-        <div className="bg-yellow-900/20 border border-yellow-700/40 rounded-lg px-4 py-3 text-sm">
+        <div className="bg-yellow-50 border border-yellow-300 rounded-lg px-4 py-3 text-sm">
           <span className="text-yellow-400 font-bold">미배정 예약 {todayReservations.filter(r => !r.room_number).length}건</span>
           <span className="text-yellow-400/70 ml-2">
             {todayReservations.filter(r => !r.room_number).map(r => `${r.guest_name}(${r.room_type})`).join(', ')}
@@ -137,8 +137,8 @@ export default function RoomsPage() {
           const floorRooms = roomsByFloor.get(floor) || [];
           if (floorRooms.length === 0) return null;
           return (
-            <div key={floor} className="bg-[#1a1a1a] rounded-xl border border-[#333] p-4">
-              <h3 className="text-sm font-bold text-gray-400 mb-3">{floor}층</h3>
+            <div key={floor} className="bg-white rounded-xl border border-gray-200 p-4">
+              <h3 className="text-sm font-bold text-gray-600 mb-3">{floor}층</h3>
               <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-7 gap-2">
                 {floorRooms
                   .sort((a, b) => a.room_number.localeCompare(b.room_number))
@@ -177,7 +177,7 @@ export default function RoomsPage() {
                             </div>
                             <div className="text-xs text-gray-500 truncate">{room.guest_name || '-'}</div>
                             {roomBooking && (
-                              <div className="text-[10px] text-gray-600">~{roomBooking.check_out_date.slice(5)}</div>
+                              <div className="text-[10px] text-gray-400">~{roomBooking.check_out_date.slice(5)}</div>
                             )}
                           </>
                         )}
@@ -203,12 +203,12 @@ export default function RoomsPage() {
       {selectedRoom && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => setSelectedRoom(null)}>
           <div
-            className="bg-[#1a1a1a] rounded-xl border border-[#333] p-6 w-80 max-w-[90vw] space-y-4"
+            className="bg-white rounded-xl border border-gray-200 p-6 w-80 max-w-[90vw] space-y-4"
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between">
               <h3 className="text-xl font-bold">{selectedRoom.room_number}호</h3>
-              <button onClick={() => setSelectedRoom(null)} className="text-gray-500 hover:text-white text-xl">&times;</button>
+              <button onClick={() => setSelectedRoom(null)} className="text-gray-500 hover:text-gray-900 text-xl">&times;</button>
             </div>
             <div className="space-y-2 text-sm">
               <Row label="타입" value={`${selectedRoom.room_type} (${ROOM_TYPE_LABELS[selectedRoom.room_type]})`} />
@@ -220,7 +220,7 @@ export default function RoomsPage() {
             {(selectedRoom.sales || []).length > 0 ? (
               <div className="space-y-3">
                 {(selectedRoom.sales || []).map(s => (
-                  <div key={s.sale_id} className="bg-[#222] rounded-lg p-3 space-y-1.5">
+                  <div key={s.sale_id} className="bg-gray-100 rounded-lg p-3 space-y-1.5">
                     <div className={`text-xs font-bold ${s.sale_type === '대실' ? 'text-blue-400' : 'text-green-400'}`}>
                       {s.sale_type}
                     </div>
@@ -268,8 +268,8 @@ export default function RoomsPage() {
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between">
-      <span className="text-gray-400">{label}</span>
-      <span className="text-white">{value}</span>
+      <span className="text-gray-600">{label}</span>
+      <span className="text-gray-900">{value}</span>
     </div>
   );
 }

@@ -25,17 +25,17 @@ interface Complaint {
 }
 
 const PRIORITY_STYLE: Record<string, { bg: string; text: string }> = {
-  '긴급': { bg: 'bg-red-900', text: 'text-red-300' },
-  '높음': { bg: 'bg-orange-900', text: 'text-orange-300' },
-  '보통': { bg: 'bg-gray-700', text: 'text-gray-300' },
-  '낮음': { bg: 'bg-gray-800', text: 'text-gray-500' },
+  '긴급': { bg: 'bg-red-100', text: 'text-red-700' },
+  '높음': { bg: 'bg-orange-100', text: 'text-orange-700' },
+  '보통': { bg: 'bg-gray-200', text: 'text-gray-700' },
+  '낮음': { bg: 'bg-gray-200', text: 'text-gray-500' },
 };
 
 const STATUS_STYLE: Record<string, { bg: string; text: string; label: string }> = {
-  open: { bg: 'bg-red-900', text: 'text-red-300', label: '미처리' },
-  in_progress: { bg: 'bg-orange-900', text: 'text-orange-300', label: '처리중' },
-  resolved: { bg: 'bg-green-900', text: 'text-green-300', label: '완료' },
-  closed: { bg: 'bg-gray-700', text: 'text-gray-400', label: '종결' },
+  open: { bg: 'bg-red-100', text: 'text-red-700', label: '미처리' },
+  in_progress: { bg: 'bg-orange-100', text: 'text-orange-700', label: '처리중' },
+  resolved: { bg: 'bg-green-100', text: 'text-green-700', label: '완료' },
+  closed: { bg: 'bg-gray-200', text: 'text-gray-600', label: '종결' },
 };
 
 const CATEGORIES: Record<string, string[]> = {
@@ -127,7 +127,7 @@ export default function ComplaintsPage() {
         <Card label="미처리" count={openCount} color="text-red-400" />
         <Card label="처리중" count={progressCount} color="text-orange-400" />
         <Card label="완료" count={resolvedCount} color="text-green-400" />
-        <Card label="이번 달" count={thisMonth} color="text-gray-300" />
+        <Card label="이번 달" count={thisMonth} color="text-gray-700" />
       </div>
 
       {/* 뷰 전환 + 필터 */}
@@ -135,24 +135,24 @@ export default function ComplaintsPage() {
         <div className="flex gap-1">
           {([['timeline', '시간순'], ['room', '호실별'], ['customer', '고객별']] as const).map(([v, l]) => (
             <button key={v} onClick={() => setView(v)}
-              className={`px-3 py-1.5 rounded-lg text-xs ${view === v ? 'bg-[#C9A84C] text-black font-bold' : 'bg-[#2a2a2a] text-gray-400'}`}>{l}</button>
+              className={`px-3 py-1.5 rounded-lg text-xs ${view === v ? 'bg-[#C9A84C] text-black font-bold' : 'bg-gray-100 text-gray-600'}`}>{l}</button>
           ))}
         </div>
         <div className="flex gap-1">
           {[['', '전체'], ['open', '미처리'], ['in_progress', '처리중'], ['resolved', '완료']].map(([v, l]) => (
             <button key={v} onClick={() => setStatusFilter(v)}
-              className={`px-3 py-1.5 rounded-lg text-xs ${statusFilter === v ? 'bg-[#444] text-white' : 'bg-[#2a2a2a] text-gray-500'}`}>{l}</button>
+              className={`px-3 py-1.5 rounded-lg text-xs ${statusFilter === v ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-500'}`}>{l}</button>
           ))}
         </div>
       </div>
 
       {/* 시간순 보기 */}
       {view === 'timeline' && (
-        <div className="bg-[#1a1a1a] rounded-xl border border-[#333] overflow-hidden">
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-xs whitespace-nowrap">
               <thead>
-                <tr className="bg-[#222] text-gray-500">
+                <tr className="bg-gray-100 text-gray-500">
                   <th className="px-3 py-2 text-left">날짜</th>
                   <th className="px-3 py-2 text-center">호실</th>
                   <th className="px-3 py-2 text-left">고객</th>
@@ -165,28 +165,28 @@ export default function ComplaintsPage() {
                 </tr>
               </thead>
               <tbody>
-                {items.length === 0 && <tr><td colSpan={9} className="px-3 py-8 text-center text-gray-600">컴플레인이 없습니다</td></tr>}
+                {items.length === 0 && <tr><td colSpan={9} className="px-3 py-8 text-center text-gray-400">컴플레인이 없습니다</td></tr>}
                 {items.map(c => {
                   const ps = PRIORITY_STYLE[c.priority] || PRIORITY_STYLE['보통'];
                   const ss = STATUS_STYLE[c.status] || STATUS_STYLE.open;
                   return (
-                    <tr key={c.id} className="border-t border-[#2a2a2a] hover:bg-[#222]">
-                      <td className="px-3 py-2 text-gray-400">{c.complaint_date}</td>
+                    <tr key={c.id} className="border-t border-gray-200 hover:bg-gray-100">
+                      <td className="px-3 py-2 text-gray-600">{c.complaint_date}</td>
                       <td className="px-3 py-2 text-center">{c.room_number || '-'}</td>
                       <td className="px-3 py-2">{c.guest_name || '-'}</td>
-                      <td className="px-3 py-2 text-gray-400">{c.category || '-'}</td>
+                      <td className="px-3 py-2 text-gray-600">{c.category || '-'}</td>
                       <td className="px-3 py-2 max-w-[200px] truncate" title={c.description || ''}>{c.description || '-'}</td>
                       <td className="px-3 py-2 text-center"><span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${ps.bg} ${ps.text}`}>{c.priority}</span></td>
                       <td className="px-3 py-2 text-center"><span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${ss.bg} ${ss.text}`}>{ss.label}</span></td>
-                      <td className="px-3 py-2 text-center text-gray-400">{c.assigned_to || '-'}</td>
+                      <td className="px-3 py-2 text-center text-gray-600">{c.assigned_to || '-'}</td>
                       <td className="px-3 py-2 text-center">
                         {c.status === 'open' && (
                           <button onClick={() => { setActionTarget(c); setActionType('progress'); }}
-                            className="px-2 py-0.5 bg-orange-800 text-orange-200 rounded text-[10px] hover:bg-orange-700">접수</button>
+                            className="px-2 py-0.5 bg-orange-100 text-orange-700 rounded text-[10px] hover:bg-orange-200">접수</button>
                         )}
                         {c.status === 'in_progress' && (
                           <button onClick={() => { setActionTarget(c); setActionType('resolve'); }}
-                            className="px-2 py-0.5 bg-green-800 text-green-200 rounded text-[10px] hover:bg-green-700">완료</button>
+                            className="px-2 py-0.5 bg-green-100 text-green-700 rounded text-[10px] hover:bg-green-200">완료</button>
                         )}
                       </td>
                     </tr>
@@ -206,11 +206,11 @@ export default function ComplaintsPage() {
             const categories = [...new Set(complaints.map(c => c.category).filter(Boolean))];
             const isRepeat = complaints.filter(c => c.category === complaints[0]?.category).length >= 3;
             return (
-              <div key={room} className="bg-[#1a1a1a] rounded-xl border border-[#333] p-4">
+              <div key={room} className="bg-white rounded-xl border border-gray-200 p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="font-bold">{room}호</span>
-                  <span className="text-xs text-gray-400">({complaints.length}건{activeCount > 0 ? `, 미처리 ${activeCount}건` : ''})</span>
-                  {isRepeat && <span className="px-1.5 py-0.5 rounded text-[10px] bg-red-900 text-red-300 font-bold">반복 이슈</span>}
+                  <span className="text-xs text-gray-600">({complaints.length}건{activeCount > 0 ? `, 미처리 ${activeCount}건` : ''})</span>
+                  {isRepeat && <span className="px-1.5 py-0.5 rounded text-[10px] bg-red-100 text-red-700 font-bold">반복 이슈</span>}
                 </div>
                 <div className="space-y-1">
                   {complaints.map(c => {
@@ -218,8 +218,8 @@ export default function ComplaintsPage() {
                     return (
                       <div key={c.id} className="flex items-center gap-2 text-xs">
                         <span className="text-gray-500 w-16">{c.complaint_date?.slice(5)}</span>
-                        <span className="text-gray-400">{c.category}</span>
-                        <span className="flex-1 text-gray-300 truncate">{c.description}</span>
+                        <span className="text-gray-600">{c.category}</span>
+                        <span className="flex-1 text-gray-700 truncate">{c.description}</span>
                         <span className={`px-1.5 py-0.5 rounded text-[10px] ${ss.bg} ${ss.text}`}>{ss.label}</span>
                       </div>
                     );
@@ -236,10 +236,10 @@ export default function ComplaintsPage() {
       {view === 'customer' && (
         <div className="space-y-3">
           {Array.from(customerGroups.entries()).sort((a, b) => b[1].length - a[1].length).map(([name, complaints]) => (
-            <div key={name} className="bg-[#1a1a1a] rounded-xl border border-[#333] p-4">
+            <div key={name} className="bg-white rounded-xl border border-gray-200 p-4">
               <div className="flex items-center gap-2 mb-2">
                 <span className="font-bold">{name}</span>
-                <span className="text-xs text-gray-400">({complaints.length}건)</span>
+                <span className="text-xs text-gray-600">({complaints.length}건)</span>
               </div>
               <div className="space-y-1">
                 {complaints.map(c => {
@@ -247,9 +247,9 @@ export default function ComplaintsPage() {
                   return (
                     <div key={c.id} className="flex items-center gap-2 text-xs">
                       <span className="text-gray-500 w-16">{c.complaint_date?.slice(5)}</span>
-                      <span className="text-gray-400 w-12">{c.room_number || '-'}호</span>
-                      <span className="text-gray-400">{c.category}</span>
-                      <span className="flex-1 text-gray-300 truncate">{c.description}</span>
+                      <span className="text-gray-600 w-12">{c.room_number || '-'}호</span>
+                      <span className="text-gray-600">{c.category}</span>
+                      <span className="flex-1 text-gray-700 truncate">{c.description}</span>
                       <span className={`px-1.5 py-0.5 rounded text-[10px] ${ss.bg} ${ss.text}`}>{ss.label}</span>
                     </div>
                   );
@@ -264,25 +264,25 @@ export default function ComplaintsPage() {
       {/* 상태 변경 모달 */}
       {actionTarget && actionType && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => { setActionTarget(null); setActionType(''); }}>
-          <div className="bg-[#1a1a1a] rounded-xl border border-[#333] p-5 w-80 max-w-[90vw] space-y-4" onClick={e => e.stopPropagation()}>
+          <div className="bg-white rounded-xl border border-gray-200 p-5 w-80 max-w-[90vw] space-y-4" onClick={e => e.stopPropagation()}>
             <h3 className="text-lg font-bold text-[#C9A84C]">
               {actionType === 'progress' ? '처리 접수' : '처리 완료'}
             </h3>
-            <div className="text-xs space-y-1 text-gray-400">
+            <div className="text-xs space-y-1 text-gray-600">
               <p>호실: {actionTarget.room_number || '-'} | {actionTarget.category}</p>
               <p>{actionTarget.description}</p>
             </div>
             {actionType === 'progress' && (
               <div>
-                <label className="block text-xs text-gray-400 mb-1">담당자</label>
+                <label className="block text-xs text-gray-600 mb-1">담당자</label>
                 <input type="text" value={actionAssignee} onChange={e => setActionAssignee(e.target.value)}
-                  className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2 text-sm" placeholder="관리실, 객실팀, 프론트 등" />
+                  className="w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="관리실, 객실팀, 프론트 등" />
               </div>
             )}
             <div>
-              <label className="block text-xs text-gray-400 mb-1">{actionType === 'progress' ? '처리 계획' : '처리 내용'}</label>
+              <label className="block text-xs text-gray-600 mb-1">{actionType === 'progress' ? '처리 계획' : '처리 내용'}</label>
               <textarea value={actionText} onChange={e => setActionText(e.target.value)}
-                className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2 text-sm h-20 resize-none"
+                className="w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2 text-sm h-20 resize-none"
                 placeholder={actionType === 'progress' ? '기사 출동 예정 등' : '에어컨 필터 교체 완료 등'} />
             </div>
             <button onClick={handleAction}
@@ -303,8 +303,8 @@ export default function ComplaintsPage() {
 
 function Card({ label, count, color }: { label: string; count: number; color: string }) {
   return (
-    <div className="bg-[#1a1a1a] rounded-xl p-4 border border-[#333]">
-      <p className="text-sm text-gray-400">{label}</p>
+    <div className="bg-white rounded-xl p-4 border border-gray-200">
+      <p className="text-sm text-gray-600">{label}</p>
       <p className={`text-2xl font-bold mt-1 ${color}`}>{count}건</p>
     </div>
   );
@@ -347,64 +347,64 @@ function NewComplaintModal({ onClose, onSaved }: { onClose: () => void; onSaved:
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 overflow-y-auto py-8" onClick={onClose}>
-      <div className="bg-[#1a1a1a] rounded-xl border border-[#333] p-5 w-full max-w-md mx-4 space-y-4" onClick={e => e.stopPropagation()}>
+      <div className="bg-white rounded-xl border border-gray-200 p-5 w-full max-w-md mx-4 space-y-4" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold text-red-400">컴플레인 접수</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-white text-xl">&times;</button>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-900 text-xl">&times;</button>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs text-gray-400 mb-1">호실</label>
+            <label className="block text-xs text-gray-600 mb-1">호실</label>
             <select value={roomNumber} onChange={e => setRoomNumber(e.target.value)}
-              className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2 text-sm">
+              className="w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2 text-sm">
               <option value="">선택</option>
               {rooms.map(r => <option key={r.room_number} value={r.room_number}>{r.room_number}호</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-xs text-gray-400 mb-1">고객명</label>
+            <label className="block text-xs text-gray-600 mb-1">고객명</label>
             <input type="text" value={guestName} onChange={e => setGuestName(e.target.value)}
-              className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2 text-sm" placeholder="고객명" />
+              className="w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="고객명" />
           </div>
         </div>
 
         <div>
-          <label className="block text-xs text-gray-400 mb-1">카테고리</label>
+          <label className="block text-xs text-gray-600 mb-1">카테고리</label>
           <div className="flex gap-2 mb-2">
             {Object.keys(CATEGORIES).map(cat => (
               <button key={cat} onClick={() => { setMainCat(cat); setSubCat(''); }}
-                className={`flex-1 py-1.5 rounded-lg text-xs ${mainCat === cat ? 'bg-[#C9A84C] text-black font-bold' : 'bg-[#2a2a2a] text-gray-400'}`}>{cat}</button>
+                className={`flex-1 py-1.5 rounded-lg text-xs ${mainCat === cat ? 'bg-[#C9A84C] text-black font-bold' : 'bg-gray-100 text-gray-600'}`}>{cat}</button>
             ))}
           </div>
           <div className="flex flex-wrap gap-1">
             {CATEGORIES[mainCat]?.map(sub => (
               <button key={sub} onClick={() => setSubCat(sub)}
-                className={`px-2 py-1 rounded text-xs ${subCat === sub ? 'bg-[#555] text-white' : 'bg-[#2a2a2a] text-gray-500'}`}>{sub}</button>
+                className={`px-2 py-1 rounded text-xs ${subCat === sub ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-500'}`}>{sub}</button>
             ))}
           </div>
         </div>
 
         <div>
-          <label className="block text-xs text-gray-400 mb-1">내용</label>
+          <label className="block text-xs text-gray-600 mb-1">내용</label>
           <textarea value={description} onChange={e => setDescription(e.target.value)}
-            className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2 text-sm h-20 resize-none" placeholder="상세 설명" />
+            className="w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2 text-sm h-20 resize-none" placeholder="상세 설명" />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs text-gray-400 mb-1">우선순위</label>
+            <label className="block text-xs text-gray-600 mb-1">우선순위</label>
             <div className="flex gap-1">
               {['긴급', '높음', '보통', '낮음'].map(p => (
                 <button key={p} onClick={() => setPriority(p)}
-                  className={`flex-1 py-1.5 rounded text-[10px] font-bold ${priority === p ? (PRIORITY_STYLE[p]?.bg + ' ' + PRIORITY_STYLE[p]?.text) : 'bg-[#2a2a2a] text-gray-500'}`}>{p}</button>
+                  className={`flex-1 py-1.5 rounded text-[10px] font-bold ${priority === p ? (PRIORITY_STYLE[p]?.bg + ' ' + PRIORITY_STYLE[p]?.text) : 'bg-gray-100 text-gray-500'}`}>{p}</button>
               ))}
             </div>
           </div>
           <div>
-            <label className="block text-xs text-gray-400 mb-1">담당</label>
+            <label className="block text-xs text-gray-600 mb-1">담당</label>
             <input type="text" value={assignedTo} onChange={e => setAssignedTo(e.target.value)}
-              className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2 text-sm" placeholder="관리실" />
+              className="w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="관리실" />
           </div>
         </div>
 
