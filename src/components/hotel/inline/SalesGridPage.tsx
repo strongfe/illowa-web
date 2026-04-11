@@ -24,7 +24,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import SalesGridPanel from './SalesGridPanel';
-import type { Sale, RoomType } from '@/types/hotel';
+import type { Sale, RoomType, Room } from '@/types/hotel';
 import { ROOM_TYPE_CAPACITY } from '@/types/hotel';
 
 const ROOM_TYPES: RoomType[] = ['GS', 'GD', 'S', 'D', 'P', 'PT'];
@@ -71,6 +71,7 @@ function sumAmount(sales: Sale[]) {
 export default function SalesGridPage() {
   const [saleDate, setSaleDate] = useState(todayStr());
   const [sales, setSales] = useState<Sale[]>([]);
+  const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(false);
   const [availPopup, setAvailPopup] = useState(false);
   const [helpPopup, setHelpPopup] = useState(false);
@@ -113,6 +114,27 @@ export default function SalesGridPage() {
   }, [saleDate]);
 
   useEffect(() => { fetchSales(); }, [fetchSales]);
+
+  // CP5 — Fetch the room master list once. Required by the Legacy
+  // SaleModal's room number dropdown. The endpoint is cacheable
+  // because room inventory rarely changes during a shift, so a
+  // single request per page mount is enough.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/admin/hotel/rooms');
+        if (!res.ok) return;
+        const data: Room[] = await res.json();
+        if (!cancelled) setRooms(data);
+      } catch {
+        /* ignore — modal will fall back to a plain text input */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // CP4.3 — Track which panels currently hold unsaved edits so the
   // beforeunload handler can warn the user before navigation. Each
@@ -272,27 +294,27 @@ export default function SalesGridPage() {
       {/* 대실 행 */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
         <SalesGridPanel title="야놀자"   saleType="대실" variant="ota" sales={groups.yanolja_daesil} saleDate={saleDate}
-          panelKey="yanolja_daesil"   occupiedRooms={occupiedRooms}
-          onDirtyChange={handlePanelDirtyChange} onRowSaved={handleRowSaved} />
+          panelKey="yanolja_daesil"   occupiedRooms={occupiedRooms} rooms={rooms}
+          onDirtyChange={handlePanelDirtyChange} onRowSaved={handleRowSaved} onRefetchRequested={fetchSales} />
         <SalesGridPanel title="여기어때" saleType="대실" variant="ota" sales={groups.yeogi_daesil}   saleDate={saleDate}
-          panelKey="yeogi_daesil"     occupiedRooms={occupiedRooms}
-          onDirtyChange={handlePanelDirtyChange} onRowSaved={handleRowSaved} />
+          panelKey="yeogi_daesil"     occupiedRooms={occupiedRooms} rooms={rooms}
+          onDirtyChange={handlePanelDirtyChange} onRowSaved={handleRowSaved} onRefetchRequested={fetchSales} />
         <SalesGridPanel title="기타"     saleType="대실" variant="etc" sales={groups.etc_daesil}     saleDate={saleDate}
-          panelKey="etc_daesil"       occupiedRooms={occupiedRooms}
-          onDirtyChange={handlePanelDirtyChange} onRowSaved={handleRowSaved} />
+          panelKey="etc_daesil"       occupiedRooms={occupiedRooms} rooms={rooms}
+          onDirtyChange={handlePanelDirtyChange} onRowSaved={handleRowSaved} onRefetchRequested={fetchSales} />
       </div>
 
       {/* 숙박 행 */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
         <SalesGridPanel title="야놀자"   saleType="숙박" variant="ota" sales={groups.yanolja_sukbak} saleDate={saleDate}
-          panelKey="yanolja_sukbak"   occupiedRooms={occupiedRooms}
-          onDirtyChange={handlePanelDirtyChange} onRowSaved={handleRowSaved} />
+          panelKey="yanolja_sukbak"   occupiedRooms={occupiedRooms} rooms={rooms}
+          onDirtyChange={handlePanelDirtyChange} onRowSaved={handleRowSaved} onRefetchRequested={fetchSales} />
         <SalesGridPanel title="여기어때" saleType="숙박" variant="ota" sales={groups.yeogi_sukbak}   saleDate={saleDate}
-          panelKey="yeogi_sukbak"     occupiedRooms={occupiedRooms}
-          onDirtyChange={handlePanelDirtyChange} onRowSaved={handleRowSaved} />
+          panelKey="yeogi_sukbak"     occupiedRooms={occupiedRooms} rooms={rooms}
+          onDirtyChange={handlePanelDirtyChange} onRowSaved={handleRowSaved} onRefetchRequested={fetchSales} />
         <SalesGridPanel title="기타"     saleType="숙박" variant="etc" sales={groups.etc_sukbak}     saleDate={saleDate}
-          panelKey="etc_sukbak"       occupiedRooms={occupiedRooms}
-          onDirtyChange={handlePanelDirtyChange} onRowSaved={handleRowSaved} />
+          panelKey="etc_sukbak"       occupiedRooms={occupiedRooms} rooms={rooms}
+          onDirtyChange={handlePanelDirtyChange} onRowSaved={handleRowSaved} onRefetchRequested={fetchSales} />
       </div>
 
       {/* 전체 요약 */}

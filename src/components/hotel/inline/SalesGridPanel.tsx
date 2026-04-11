@@ -43,8 +43,9 @@ import {
   type CellDirection,
   type SelectOption,
 } from './EditableCell';
-import type { Sale, SaleType, RoomType } from '@/types/hotel';
+import type { Sale, SaleType, RoomType, Room } from '@/types/hotel';
 import { OTHER_CHANNELS, PAYMENT_METHODS } from '@/types/hotel';
+import { SaleModal } from '../SalesPageLegacy';
 
 // ─────────────────────────────────────────────────────────────
 // Constants
@@ -150,6 +151,130 @@ function buildRowState(sale: Sale | null): RowState {
     error: null,
     fieldErrors: {},
   };
+}
+
+// ─────────────────────────────────────────────────────────────
+// CP4.5 — Range selection + copy/paste + undo
+// ─────────────────────────────────────────────────────────────
+
+interface Selection {
+  /** Cell where the selection started. Stays fixed as the range grows. */
+  anchor: FocusPos;
+  /** Moving end of the selection (drag / shift-click / Ctrl+A). */
+  focus: FocusPos;
+}
+
+/** Normalise an anchor/focus pair into a top-left / bottom-right rect. */
+function rectFromSelection(s: Selection): {
+  r0: number;
+  r1: number;
+  c0: number;
+  c1: number;
+} {
+  return {
+    r0: Math.min(s.anchor.row, s.focus.row),
+    r1: Math.max(s.anchor.row, s.focus.row),
+    c0: Math.min(s.anchor.col, s.focus.col),
+    c1: Math.max(s.anchor.col, s.focus.col),
+  };
+}
+
+/** Maximum number of undo batches kept per panel. Each batch may
+ *  contain many cell edits (a paste is one batch). */
+const MAX_UNDO = 20;
+
+interface UndoEntry {
+  rowIdx: number;
+  key: keyof RowDraft;
+  prev: RowDraft[keyof RowDraft];
+}
+
+/**
+ * Serialise a single draft value for TSV copy. Keeps the output
+ * Excel-friendly: plain integers (no commas), half-hours as "14.5",
+ * booleans as TRUE/FALSE, nulls as empty.
+ */
+function serializeForCopy(
+  key: keyof RowDraft,
+  value: RowDraft[keyof RowDraft],
+): string {
+  if (value == null) return '';
+  if (typeof value === 'boolean') return value ? 'TRUE' : 'FALSE';
+  if (typeof value === 'number') {
+    if (key === 'check_in_time' || key === 'check_out_time') {
+      return Number.isInteger(value) ? String(value) : value.toFixed(1);
+    }
+    return String(value);
+  }
+  if (typeof value === 'string') return value;
+  return String(value);
+}
+
+/**
+ * Parse a TSV blob (from either our own copy or Excel) into a grid
+ * of trimmed strings. Tolerates CRLF, trailing newlines, and ragged
+ * row lengths — the caller picks only the cells it can target.
+ */
+function parseTSV(text: string): string[][] {
+  if (!text) return [];
+  const normalised = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  const stripped = normalised.replace(/\n+$/, '');
+  if (stripped === '') return [];
+  return stripped.split('\n').map((line) => line.split('\t'));
+}
+
+/**
+ * Coerce a raw pasted cell into a typed RowDraft value for the
+ * given column. Returns `undefined` when the value cannot be safely
+ * converted — the caller should skip that single cell and continue.
+ * An empty string coerces to the column's natural empty value so
+ * that clearing via paste works as expected.
+ */
+function coerceForPaste(
+  key: keyof RowDraft,
+  raw: string,
+): RowDraft[keyof RowDraft] | undefined {
+  const trimmed = raw.trim();
+  switch (key) {
+    case 'amount':
+    case 'extra_amount': {
+      if (trimmed === '') return 0;
+      const n = parseInt(trimmed.replace(/,/g, ''), 10);
+      if (!Number.isFinite(n) || n < 0) return undefined;
+      return n;
+    }
+    case 'check_in_time':
+    case 'check_out_time': {
+      if (trimmed === '') return null;
+      const n = parseFloat(trimmed);
+      if (!Number.isFinite(n) || n < 0 || n > 24) return undefined;
+      if (Math.abs(n * 2 - Math.round(n * 2)) > 0.001) return undefined;
+      return n;
+    }
+    case 'room_type': {
+      if (trimmed === '') return null;
+      const ok: RoomType[] = ['T', 'GS', 'GD', 'S', 'D', 'P', 'PT'];
+      return (ok as string[]).includes(trimmed)
+        ? (trimmed as RoomType)
+        : undefined;
+    }
+    case 'channel':
+    case 'payment_method':
+    case 'extra_payment_method':
+    case 'guest_name':
+    case 'room_number':
+    case 'car_number':
+    case 'memo':
+      return trimmed;
+    case 'checked_out': {
+      // Checked-out lives on its own PUT endpoint (CP4.4); we
+      // deliberately do not let paste flip it to avoid surprising
+      // hotel staff with accidental check-outs.
+      return undefined;
+    }
+    default:
+      return undefined;
+  }
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -686,6 +811,18 @@ export interface SalesGridPanelProps {
    * 30 s refresh.
    */
   onRowSaved?: (saved: Sale) => void;
+  /**
+   * CP5 — Room master list forwarded to the reused Legacy SaleModal
+   * for room number dropdowns. The page fetches this once and shares
+   * across all 6 panels.
+   */
+  rooms?: Room[];
+  /**
+   * CP5 — Called when any inline-edit side effect reshapes the whole
+   * sales list (e.g. a 연박 cancel from the modal deletes N rows).
+   * The parent should refetch instead of trying to splice in place.
+   */
+  onRefetchRequested?: () => void;
   /** Reserved for checkpoint 4. Currently not invoked. */
   onRowCommit?: (rowIdx: number, draft: RowDraft, original: Sale | null) => void;
 }
@@ -710,11 +847,64 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
     onDirtyChange,
     panelKey,
     onRowSaved,
+    rooms,
+    onRefetchRequested,
   } = props;
   // Stable ref so commitRow/commitCheckout can call it without
   // re-creating their callbacks every render.
   const onRowSavedRef = useRef(onRowSaved);
   onRowSavedRef.current = onRowSaved;
+  const onRefetchRequestedRef = useRef(onRefetchRequested);
+  onRefetchRequestedRef.current = onRefetchRequested;
+
+  // CP5 — advanced edit modal state.
+  // `modalSale` is the Sale being edited in the reused Legacy
+  // SaleModal (연박/예약금/CRM). Null = modal closed.
+  const [modalSale, setModalSale] = useState<Sale | null>(null);
+
+  // CP4.5 — range selection + copy/paste/undo
+  //
+  // selection   — current rectangular range, or null when only one
+  //               cell is "focused". Single-cell focus is tracked by
+  //               `focused` below and does not create a Selection.
+  // panelRef    — DOM ref used by the document keydown/mouse
+  //               listeners to check whether THIS panel is the
+  //               currently active one.
+  // dragStartRef / isDraggingRef — drag-to-select bookkeeping; the
+  //               cell mousedown records where the drag started,
+  //               the window mousemove promotes to dragging as
+  //               soon as the cursor crosses into a neighbour cell.
+  // suppressNextEditRef — set when a shift-click / drag ends, so
+  //               the synthesized click event that follows does not
+  //               enter the cell's edit mode.
+  // undoStackRef — an array of "batches"; each batch is a list of
+  //               field-level undo entries. Singleton batches come
+  //               from normal edits, multi-entry batches come from
+  //               paste operations.
+  // pendingBatchRef — non-null while a batch is being accumulated.
+  //               setField appends to this ref instead of pushing a
+  //               fresh singleton batch, so begin/endBatch() gives
+  //               us atomic undo.
+  // replayingUndoRef — true while undoOne is re-applying a batch.
+  //               setField consults this flag and skips pushing new
+  //               undo entries during replay (otherwise undo would
+  //               endlessly feed itself).
+  const [selection, setSelection] = useState<Selection | null>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const dragStartRef = useRef<FocusPos | null>(null);
+  const isDraggingRef = useRef(false);
+  const suppressNextEditRef = useRef(false);
+  const undoStackRef = useRef<UndoEntry[][]>([]);
+  const pendingBatchRef = useRef<UndoEntry[] | null>(null);
+  const replayingUndoRef = useRef(false);
+  // Mirror of `selection` so async callbacks (document-level
+  // Ctrl+C/V/Z/A, drag listeners) always read the latest range
+  // without depending on useCallback closure capture. Refreshed
+  // every render so it's always fresh by the time an event handler
+  // runs. `focusedFullRef` lives further down after the `focused`
+  // state is declared.
+  const selectionRef = useRef<Selection | null>(null);
+  selectionRef.current = selection;
 
   const columns = useMemo(() => buildColumns(variant), [variant]);
   const colCount = columns.length;
@@ -759,6 +949,11 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
   // Focus / edit / mount state
   const [focused, setFocused] = useState<FocusPos | null>(null);
   const [editing, setEditing] = useState<FocusPos | null>(null);
+  // Mirror of `focused` for CP4.5 async handlers. Paired with
+  // `selectionRef` so that document-level Ctrl+C/V/Z code never sees
+  // a stale closure of the focused cell.
+  const focusedFullRef = useRef<FocusPos | null>(null);
+  focusedFullRef.current = focused;
   // Lazy-mount tracking. Once a (row, col) is added it is never removed
   // until the row is saved (req. #4). A non-empty set means the user
   // has started interacting with at least one cell in this panel and
@@ -1283,6 +1478,22 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
       setRows((prev) => {
         const cur = prev[rowIdx];
         if (cur.draft[key] === value) return prev;
+        // CP4.5 — Record an undo entry unless we are currently
+        // replaying one (in which case the new value IS the undo
+        // result and must not feed back into the stack).
+        if (!replayingUndoRef.current) {
+          const entry: UndoEntry = { rowIdx, key, prev: cur.draft[key] };
+          if (pendingBatchRef.current) {
+            // Part of a batch (e.g. in-flight paste) — append to it
+            pendingBatchRef.current.push(entry);
+          } else {
+            // Standalone edit — wrap in a singleton batch so the
+            // undo stack is uniformly "array of batches".
+            const stack = undoStackRef.current;
+            stack.push([entry]);
+            if (stack.length > MAX_UNDO) stack.shift();
+          }
+        }
         const next = prev.slice();
         const dirty = new Set(cur.dirty);
         dirty.add(key);
@@ -1304,6 +1515,240 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
     },
     [],
   );
+
+  // CP5 — detect rows that should open the Legacy SaleModal instead
+  // of inline editing. 연박 rows are fully gated (any cell click
+  // opens the modal, no inline edits). 예약금 rows only gate the
+  // 금액 cell so staff can still tweak guest_name / room_number
+  // inline, but balance-payment actions flow through the modal.
+  // Declared here (above the CP4.5 action callbacks) because
+  // pasteFromClipboard needs it in its dependency array.
+  const isConnectedBookingRow = useCallback(
+    (sale: Sale | null): boolean => {
+      if (!sale) return false;
+      const bid = sale.booking_id;
+      return (
+        typeof bid === 'string' &&
+        bid.length >= 32 &&
+        /^[0-9a-f-]+$/i.test(bid)
+      );
+    },
+    [],
+  );
+
+  const openRowModal = useCallback(
+    (rowIdx: number) => {
+      const row = rowsRef.current[rowIdx];
+      if (!row?.original) return;
+      // Drop any edit/focus in progress so the modal starts clean.
+      setEditing(null);
+      setModalSale(row.original);
+    },
+    [],
+  );
+
+  // ── CP4.5 — batch helpers for the undo stack ──
+  const beginBatch = useCallback(() => {
+    pendingBatchRef.current = [];
+  }, []);
+  const endBatch = useCallback(() => {
+    const b = pendingBatchRef.current;
+    pendingBatchRef.current = null;
+    if (!b || b.length === 0) return;
+    const stack = undoStackRef.current;
+    stack.push(b);
+    if (stack.length > MAX_UNDO) stack.shift();
+  }, []);
+
+  // CP4.5 — Ctrl+A select all cells in this panel.
+  const selectAll = useCallback(() => {
+    setSelection({
+      anchor: { row: 0, col: 0 },
+      focus: { row: ROW_COUNT - 1, col: colCount - 1 },
+    });
+  }, [colCount]);
+
+  // CP4.5 — Ctrl+C. Serialises the current selection (or the single
+  // focused cell if no multi-cell selection exists) to TSV and writes
+  // it to the clipboard. Reads the CURRENT draft values so staff see
+  // exactly what they typed, not the pre-save original.
+  //
+  // Uses `selectionRef` / `focusedFullRef` instead of the captured
+  // `selection` / `focused` state so that the value observed inside
+  // an async keydown handler reflects the latest setState result,
+  // not a stale closure from a prior render.
+  const copyToClipboard = useCallback(async () => {
+    const sel = selectionRef.current;
+    const foc = focusedFullRef.current;
+    let r0: number, r1: number, c0: number, c1: number;
+    if (sel) {
+      ({ r0, r1, c0, c1 } = rectFromSelection(sel));
+    } else if (foc) {
+      r0 = r1 = foc.row;
+      c0 = c1 = foc.col;
+    } else {
+      return;
+    }
+    const lines: string[] = [];
+    for (let r = r0; r <= r1; r++) {
+      const row = rowsRef.current[r];
+      if (!row) continue;
+      const cells: string[] = [];
+      for (let c = c0; c <= c1; c++) {
+        const col = columns[c];
+        if (!col) continue;
+        cells.push(serializeForCopy(col.key, row.draft[col.key]));
+      }
+      lines.push(cells.join('\t'));
+    }
+    const tsv = lines.join('\n');
+    try {
+      await navigator.clipboard.writeText(tsv);
+    } catch {
+      // Clipboard API may be blocked in non-secure contexts. Fall
+      // back to a hidden textarea + execCommand. This still works on
+      // http://localhost and on Vercel HTTPS deployments both.
+      const ta = document.createElement('textarea');
+      ta.value = tsv;
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy');
+      } finally {
+        document.body.removeChild(ta);
+      }
+    }
+  }, [columns]);
+
+  // CP4.5 — Ctrl+V. Reads TSV from the clipboard and writes it into
+  // cells starting at the focused cell (top-left). New 연박 rows are
+  // skipped entirely so the modal-only contract from CP5 holds. Each
+  // pasted cell goes through setField, so dirty tracking, validation
+  // and the per-row commit pipeline all run automatically.
+  const pasteFromClipboard = useCallback(async () => {
+    const foc = focusedFullRef.current;
+    if (!foc) return;
+    let text: string;
+    try {
+      text = await navigator.clipboard.readText();
+    } catch {
+      return;
+    }
+    const grid = parseTSV(text);
+    if (grid.length === 0) return;
+
+    const startRow = foc.row;
+    const startCol = foc.col;
+    const affectedRows = new Set<number>();
+
+    // Generic-widening shim so we can feed coerced paste values
+    // through the strongly-typed setField without a per-key switch.
+    const applyField = setField as (
+      rowIdx: number,
+      key: keyof RowDraft,
+      value: RowDraft[keyof RowDraft],
+    ) => void;
+
+    beginBatch();
+    try {
+      for (let dr = 0; dr < grid.length; dr++) {
+        const targetRow = startRow + dr;
+        if (targetRow >= ROW_COUNT) break;
+        const rowState = rowsRef.current[targetRow];
+        if (!rowState) continue;
+        // Multi-night rows are owned by the Legacy SaleModal (CP5).
+        // Skip every cell on them so accidental paste cannot break
+        // booking_id consistency.
+        if (rowState.original && isConnectedBookingRow(rowState.original)) {
+          continue;
+        }
+        const srcCols = grid[dr];
+        for (let dc = 0; dc < srcCols.length; dc++) {
+          const targetCol = startCol + dc;
+          if (targetCol >= colCount) break;
+          const col = columns[targetCol];
+          if (!col) continue;
+          // `checked_out` has its own endpoint — never flipped via paste.
+          if (col.key === 'checked_out') continue;
+          const coerced = coerceForPaste(col.key, srcCols[dc]);
+          if (coerced === undefined) continue;
+          applyField(targetRow, col.key, coerced);
+          affectedRows.add(targetRow);
+        }
+      }
+    } finally {
+      endBatch();
+    }
+
+    // Expand selection to the rectangle that was actually pasted so
+    // the user sees what landed where.
+    const lastRow = Math.min(startRow + grid.length - 1, ROW_COUNT - 1);
+    const maxCols = Math.max(...grid.map((r) => r.length), 1);
+    const lastCol = Math.min(startCol + maxCols - 1, colCount - 1);
+    setSelection({
+      anchor: { row: startRow, col: startCol },
+      focus: { row: lastRow, col: lastCol },
+    });
+
+    // Queue commits for every row we touched. CP4's useEffect drain
+    // then takes each row through PATCH / POST exactly like a manual
+    // Tab-out would.
+    if (affectedRows.size > 0) {
+      setPendingCommits((prev) => {
+        const next = new Set(prev);
+        for (const r of affectedRows) next.add(r);
+        return next;
+      });
+    }
+  }, [
+    colCount,
+    columns,
+    setField,
+    beginBatch,
+    endBatch,
+    isConnectedBookingRow,
+  ]);
+
+  // CP4.5 — Ctrl+Z. Pops one batch off the undo stack and re-plays
+  // each entry in reverse order via setField. Because setField
+  // consults `replayingUndoRef`, the replay itself does NOT push new
+  // undo entries, and the existing dirty/commit pipeline re-sends a
+  // PUT with the restored value (even for rows that had already been
+  // saved — matching the "undo reaches the server" requirement).
+  const undoOne = useCallback(() => {
+    const stack = undoStackRef.current;
+    const batch = stack.pop();
+    if (!batch || batch.length === 0) return;
+    const affectedRows = new Set<number>();
+    replayingUndoRef.current = true;
+    try {
+      for (let i = batch.length - 1; i >= 0; i--) {
+        const e = batch[i];
+        // The entry's `prev` is typed as the union of all possible
+        // RowDraft value types; we trust that at record time the
+        // (key, value) pair was compatible, so a cast through a
+        // generic shim is safe here.
+        const applyField = setField as (
+          rowIdx: number,
+          key: keyof RowDraft,
+          value: RowDraft[keyof RowDraft],
+        ) => void;
+        applyField(e.rowIdx, e.key, e.prev);
+        affectedRows.add(e.rowIdx);
+      }
+    } finally {
+      replayingUndoRef.current = false;
+    }
+    if (affectedRows.size > 0) {
+      setPendingCommits((prev) => {
+        const next = new Set(prev);
+        for (const r of affectedRows) next.add(r);
+        return next;
+      });
+    }
+  }, [setField]);
 
   // Navigation handlers (called from cells via onMove / onTab)
   const move = useCallback(
@@ -1348,9 +1793,35 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
   // Cell-level callbacks
   const handleRequestEdit = useCallback(
     (row: number, col: number) => {
+      // CP4.5 — if this click is the tail end of a shift-click or
+      // drag-to-select, do NOT enter edit mode. The flag is consumed
+      // here so the next genuine click still works.
+      if (suppressNextEditRef.current) {
+        suppressNextEditRef.current = false;
+        return;
+      }
+      const rowState = rowsRef.current[row];
+      const original = rowState?.original ?? null;
+      // CP5 routing: if the row is a multi-night booking, always
+      // route to the modal regardless of which cell was clicked.
+      if (isConnectedBookingRow(original)) {
+        openRowModal(row);
+        return;
+      }
+      // CP5 routing: if the row has 예약금 accounting and the user
+      // is trying to touch the amount cell specifically, the modal
+      // owns balance-payment state. Other cells can still be edited
+      // inline (guest name, memo, room number, etc.).
+      if (
+        original?.payment_timing === '예약금' &&
+        columns[col]?.key === 'amount'
+      ) {
+        openRowModal(row);
+        return;
+      }
       focusCell(row, col, true);
     },
-    [focusCell],
+    [focusCell, isConnectedBookingRow, openRowModal, columns],
   );
 
   const handleCommit = useCallback(() => {
@@ -1386,6 +1857,152 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
     [columns],
   );
 
+  // ── CP4.5 — cell mousedown bridge ──
+  //
+  // Fired from each cell wrapper in GridRow. Handles:
+  //   • Shift+click → extend the current selection (or build a new
+  //     one using the current focused cell as anchor).
+  //   • Plain click → record a potential drag start and collapse
+  //     any existing selection. The actual edit-mode entry still
+  //     happens in the cell's onClick → handleRequestEdit path.
+  // Ctrl/Meta+click is intercepted earlier by
+  // `handleRowMouseDownCapture` (CP5, opens the modal), so we do
+  // not need to handle it here.
+  const handleCellMouseDown = useCallback(
+    (row: number, col: number, e: React.MouseEvent) => {
+      if (e.ctrlKey || e.metaKey) return; // modal path, not selection
+
+      // CP4.5 — Make sure the panel container owns `activeElement`
+      // no matter what the click does next. This is the key that
+      // makes Ctrl+C / V / Z / A fire reliably: the document-level
+      // keydown listener only responds when focus is inside this
+      // panel, and without an explicit panelRef.focus() shift-click
+      // tends to land focus on document.body.
+      panelRef.current?.focus({ preventScroll: true });
+
+      if (e.shiftKey) {
+        e.preventDefault();
+        e.stopPropagation();
+        // Use the existing selection anchor if any, otherwise the
+        // currently focused cell, otherwise the clicked cell.
+        const curSel = selectionRef.current;
+        const curFoc = focusedFullRef.current;
+        const anchor: FocusPos =
+          curSel?.anchor ??
+          (curFoc != null
+            ? { row: curFoc.row, col: curFoc.col }
+            : { row, col });
+        setSelection({ anchor, focus: { row, col } });
+        // Move single-cell focus to the shift-clicked endpoint so
+        // that a subsequent Ctrl+C with no multi-cell selection
+        // copies the right cell.
+        setFocused({ row, col });
+        focusedRowRef.current = row;
+        // The click that follows this mousedown would otherwise
+        // kick off cell editing — suppress it.
+        suppressNextEditRef.current = true;
+        return;
+      }
+
+      // Plain click — clear any stale "suppress next edit" flag left
+      // over from a previous drag that ended without a click event
+      // reaching a cell. Without this reset a drag-then-click on a
+      // different cell would swallow the click silently.
+      suppressNextEditRef.current = false;
+      dragStartRef.current = { row, col };
+      isDraggingRef.current = false;
+      if (selectionRef.current) setSelection(null);
+    },
+    [],
+  );
+
+  // CP4.5 — document-level mouse listeners for drag-to-select.
+  // Mounted once per panel; they early-return unless `dragStartRef`
+  // is set, so there is no cost when nothing is being dragged.
+  useEffect(() => {
+    const onMove = (e: MouseEvent) => {
+      if (!dragStartRef.current) return;
+      const el = document.elementFromPoint(e.clientX, e.clientY);
+      if (!el || !panelRef.current?.contains(el)) return;
+      // Walk up until we find a node with data-row / data-col attrs.
+      let node: Element | null = el;
+      while (node && node instanceof HTMLElement) {
+        if (node.dataset.row != null && node.dataset.col != null) break;
+        node = node.parentElement;
+      }
+      if (!node || !(node instanceof HTMLElement)) return;
+      const r = parseInt(node.dataset.row ?? '', 10);
+      const c = parseInt(node.dataset.col ?? '', 10);
+      if (!Number.isFinite(r) || !Number.isFinite(c)) return;
+      const start = dragStartRef.current;
+      if (r !== start.row || c !== start.col) {
+        isDraggingRef.current = true;
+      }
+      if (isDraggingRef.current) {
+        setSelection({ anchor: start, focus: { row: r, col: c } });
+      }
+    };
+    const onUp = () => {
+      if (isDraggingRef.current) {
+        // Block the trailing cell click that would otherwise slide
+        // into edit mode on the drag-end cell.
+        suppressNextEditRef.current = true;
+      }
+      dragStartRef.current = null;
+      isDraggingRef.current = false;
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+    return () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    };
+  }, []);
+
+  // CP4.5 — document-level keyboard shortcuts. Every panel registers
+  // its own listener; each gates on `panelRef.current.contains(
+  // document.activeElement)` so only the active panel acts.
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (!panelRef.current) return;
+      if (!panelRef.current.contains(document.activeElement)) return;
+      const ctrl = e.ctrlKey || e.metaKey;
+      if (!ctrl) return;
+      // If the user is inside an editable input (cell edit mode,
+      // modal field, etc.) let the native shortcut run so they can
+      // copy/paste/undo inside that input normally.
+      const ae = document.activeElement as HTMLElement | null;
+      const tag = ae?.tagName;
+      const inEditable =
+        tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+
+      switch (e.key.toLowerCase()) {
+        case 'c':
+          if (inEditable) return;
+          e.preventDefault();
+          void copyToClipboard();
+          return;
+        case 'v':
+          if (inEditable) return;
+          e.preventDefault();
+          void pasteFromClipboard();
+          return;
+        case 'z':
+          if (inEditable) return;
+          e.preventDefault();
+          undoOne();
+          return;
+        case 'a':
+          if (inEditable) return;
+          e.preventDefault();
+          selectAll();
+          return;
+      }
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [copyToClipboard, pasteFromClipboard, undoOne, selectAll]);
+
   // Compute total content width for the inner scroll container.
   const totalWidth = useMemo(
     () => 28 /* # column */ + columns.reduce((s, c) => s + c.width, 0),
@@ -1413,7 +2030,16 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
   const subtotal = baseSubtotal + extraSubtotal;
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden flex flex-col">
+    <div
+      ref={panelRef}
+      // tabIndex=-1 makes the panel programmatically focusable (not
+      // via Tab) so that CP4.5 can guarantee `document.activeElement`
+      // is inside this panel when the user performs Ctrl+C / V / Z /
+      // A. Staff never see a focus ring on the panel itself because
+      // tabIndex=-1 only fires `focus()` calls we make.
+      tabIndex={-1}
+      className="bg-white rounded-lg border border-gray-200 overflow-hidden flex flex-col outline-none"
+    >
       {/* Panel header */}
       <div
         className={`${
@@ -1486,37 +2112,49 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
                 : undefined
             }
           >
-          {rows.map((row, rowIdx) => {
-            const focusedCol = focused?.row === rowIdx ? focused.col : null;
-            const editingCol = editing?.row === rowIdx ? editing.col : null;
-            const flags = computeRowFlags(row.original);
-            return (
-              <GridRow
-                key={rowIdx}
-                rowIdx={rowIdx}
-                draft={row.draft}
-                hasOriginal={row.original !== null}
-                columns={columns}
-                focusedCol={focusedCol}
-                editingCol={editingCol}
-                mounted={mounted}
-                isDirty={row.dirty.size > 0}
-                isSaving={row.saving}
-                justSaved={row.savedAt !== null}
-                errorMessage={row.error}
-                fieldErrors={row.fieldErrors}
-                flags={flags}
-                setField={setField}
-                onCheckoutToggle={commitCheckout}
-                onRequestEdit={handleRequestEdit}
-                onCommit={handleCommit}
-                onCancel={handleCancel}
-                onMove={(col, dir) => move({ row: rowIdx, col }, dir)}
-                onTab={(col, shift) => tab({ row: rowIdx, col }, shift)}
-                onRetry={commitRow}
-              />
-            );
-          })}
+          {(() => {
+            // CP4.5 — pre-compute the selection rectangle once so
+            // every row only needs a cheap containment check.
+            const selRect = selection ? rectFromSelection(selection) : null;
+            return rows.map((row, rowIdx) => {
+              const focusedCol = focused?.row === rowIdx ? focused.col : null;
+              const editingCol = editing?.row === rowIdx ? editing.col : null;
+              const flags = computeRowFlags(row.original);
+              const rowInSel =
+                selRect !== null &&
+                rowIdx >= selRect.r0 &&
+                rowIdx <= selRect.r1;
+              return (
+                <GridRow
+                  key={rowIdx}
+                  rowIdx={rowIdx}
+                  draft={row.draft}
+                  hasOriginal={row.original !== null}
+                  columns={columns}
+                  focusedCol={focusedCol}
+                  editingCol={editingCol}
+                  mounted={mounted}
+                  isDirty={row.dirty.size > 0}
+                  isSaving={row.saving}
+                  justSaved={row.savedAt !== null}
+                  errorMessage={row.error}
+                  fieldErrors={row.fieldErrors}
+                  flags={flags}
+                  selRect={rowInSel ? selRect : null}
+                  setField={setField}
+                  onCheckoutToggle={commitCheckout}
+                  onRequestEdit={handleRequestEdit}
+                  onCommit={handleCommit}
+                  onCancel={handleCancel}
+                  onMove={(col, dir) => move({ row: rowIdx, col }, dir)}
+                  onTab={(col, shift) => tab({ row: rowIdx, col }, shift)}
+                  onRetry={commitRow}
+                  onOpenModal={openRowModal}
+                  onCellMouseDown={handleCellMouseDown}
+                />
+              );
+            });
+          })()}
           </div>
         </div>
       </div>
@@ -1539,6 +2177,32 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
           </span>
         </span>
       </div>
+
+      {/* CP5 — Legacy SaleModal reuse for advanced edits
+          (연박 / 예약금 / 고객정보). We open it with the current
+          row's Sale and wire onSaved/onDeleted back into the inline
+          grid so the page footer + panel rows stay consistent. */}
+      {modalSale && (
+        <SaleModal
+          saleDate={saleDate}
+          rooms={rooms ?? []}
+          editSale={modalSale}
+          defaults={null}
+          onClose={() => setModalSale(null)}
+          onSaved={() => {
+            setModalSale(null);
+            // The modal may have touched booking_id-linked sibling
+            // rows, prepaid/balance fields, or customer linkage —
+            // anything a single PATCH would not capture cleanly.
+            // Ask the page to refetch so every panel reconciles.
+            onRefetchRequestedRef.current?.();
+          }}
+          onDeleted={() => {
+            setModalSale(null);
+            onRefetchRequestedRef.current?.();
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -1579,6 +2243,17 @@ interface GridRowProps {
   onMove: (col: number, dir: CellDirection) => void;
   onTab: (col: number, shift: boolean) => void;
   onRetry: (row: number) => void;
+  /** CP5 — open the Legacy SaleModal for this row (Ctrl/Meta+click,
+   *  연박 row, or 예약금 amount cell). No-op for empty rows. */
+  onOpenModal: (row: number) => void;
+  /** CP4.5 — selection rectangle that THIS row intersects, or null
+   *  when the row is outside the current selection. Passed as a
+   *  normalised {r0,r1,c0,c1} so the row only does cheap arithmetic
+   *  to decide which cells get the blue tint / edge borders. */
+  selRect: { r0: number; r1: number; c0: number; c1: number } | null;
+  /** CP4.5 — mousedown handler wired at the cell level for
+   *  shift-click (extend selection) and plain-click drag start. */
+  onCellMouseDown: (row: number, col: number, e: React.MouseEvent) => void;
 }
 
 const GridRow = React.memo(function GridRow(props: GridRowProps) {
@@ -1596,6 +2271,7 @@ const GridRow = React.memo(function GridRow(props: GridRowProps) {
     errorMessage,
     fieldErrors,
     flags,
+    selRect,
     setField,
     onCheckoutToggle,
     onRequestEdit,
@@ -1604,6 +2280,8 @@ const GridRow = React.memo(function GridRow(props: GridRowProps) {
     onMove,
     onTab,
     onRetry,
+    onOpenModal,
+    onCellMouseDown,
   } = props;
 
   // Bind row index into the field setter so each cell column only sees
@@ -1623,9 +2301,22 @@ const GridRow = React.memo(function GridRow(props: GridRowProps) {
     ? ''
     : 'bg-white';
 
+  // CP5 — capture Ctrl/Meta+click before individual cells see it so
+  // the modal opens even when the click lands on a cell that would
+  // otherwise flip into edit mode. Plain clicks fall through to the
+  // per-cell onRequestEdit.
+  const handleRowMouseDownCapture = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!hasOriginal) return;
+    if (!(e.ctrlKey || e.metaKey)) return;
+    e.preventDefault();
+    e.stopPropagation();
+    onOpenModal(rowIdx);
+  };
+
   return (
     <div
       className={`flex border-b border-gray-100 ${rowTint} hover:bg-gray-50/50 transition-colors`}
+      onMouseDownCapture={handleRowMouseDownCapture}
     >
       <div
         className="shrink-0 px-1 text-center text-[11px] leading-6"
@@ -1647,8 +2338,31 @@ const GridRow = React.memo(function GridRow(props: GridRowProps) {
         const isFocused = focusedCol === colIdx;
         const isEditing = editingCol === colIdx;
         const cellError = fieldErrors[col.key] ?? null;
+        // CP4.5 — selection visuals
+        const inSelection =
+          selRect !== null && colIdx >= selRect.c0 && colIdx <= selRect.c1;
+        const selTopEdge = inSelection && rowIdx === selRect!.r0;
+        const selBottomEdge = inSelection && rowIdx === selRect!.r1;
+        const selLeftEdge = inSelection && colIdx === selRect!.c0;
+        const selRightEdge = inSelection && colIdx === selRect!.c1;
+        const selClass = inSelection
+          ? [
+              'bg-blue-400/15',
+              selTopEdge ? 'border-t-2 border-t-blue-500' : '',
+              selBottomEdge ? 'border-b-2 border-b-blue-500' : '',
+              selLeftEdge ? 'border-l-2 border-l-blue-500' : '',
+              selRightEdge ? 'border-r-2 border-r-blue-500' : '',
+            ].join(' ')
+          : '';
         return (
-          <div key={col.key} className="shrink-0" style={{ width: col.width }}>
+          <div
+            key={col.key}
+            className={`shrink-0 ${selClass}`}
+            style={{ width: col.width }}
+            data-row={rowIdx}
+            data-col={colIdx}
+            onMouseDown={(e) => onCellMouseDown(rowIdx, colIdx, e)}
+          >
             {isMounted ? (
               col.render({
                 draft,

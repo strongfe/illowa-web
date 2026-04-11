@@ -626,7 +626,7 @@ function SalesPartPanel({ title, saleType, sales, isEtc, collapsed, onToggle, on
 // ═══════════════════════════════════════
 // 입력/수정 모달 (1박 + 연박 통합)
 // ═══════════════════════════════════════
-function SaleModal({ saleDate, rooms, editSale, defaults, onClose, onSaved, onDeleted }: {
+export function SaleModal({ saleDate, rooms, editSale, defaults, onClose, onSaved, onDeleted }: {
   saleDate: string;
   rooms: Room[];
   editSale: Sale | null;

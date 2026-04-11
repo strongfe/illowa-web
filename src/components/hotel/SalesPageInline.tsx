@@ -6,16 +6,21 @@
 // Status (live):
 //   ✅ Checkpoint 1: EditableCell 5 types
 //   ✅ Checkpoint 2: SalesGridPanel (one panel)
-//   ✅ Checkpoint 3a: 6 panels wired up (this file)
-//   ⏳ Checkpoint 4: Save logic (PATCH + dirty tracking)
+//   ✅ Checkpoint 3a: 6 panels wired up
+//   ✅ Checkpoint 4: Save logic (PATCH + POST + dirty tracking +
+//                   validation + row flags + checkbox commit)
+//   ✅ Checkpoint 5: Modal integration (연박/예약금/CRM via
+//                   reused SalesPageLegacy.SaleModal) + mobile
+//                   fallback
 //   ⏳ Checkpoint 4.5: Range select + copy/paste + undo
-//   ⏳ Checkpoint 5: Modal integration (Ctrl+click, multi-night, mobile)
 //
 // Mobile handling
 // ───────────────
 // 768px 미만 화면에서는 인라인 그리드가 가로 스크롤 지옥이 되기
 // 때문에 기존 SalesPageLegacy (모달 방식)로 fallback 합니다.
-// CP5에서 본격적인 모바일 UX를 정의하기 전까지의 임시 대응입니다.
+// 이 fallback 은 NEXT_PUBLIC_USE_INLINE_EDIT 환경변수와 독립적으로
+// 작동합니다 — 환경변수가 true 더라도 화면이 좁으면 자동으로
+// 모달 UI 가 사용됩니다.
 // ═══════════════════════════════════════════════════════════════
 
 import { useEffect, useState } from 'react';
