@@ -100,7 +100,7 @@ function sumExtraAmount(sales: Sale[]) {
 // ═══════════════════════════════════════
 // Main Component
 // ═══════════════════════════════════════
-export default function SalesPage() {
+export default function SalesPageLegacy() {
   const [saleDate, setSaleDate] = useState(today());
   const [sales, setSales] = useState<Sale[]>([]);
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -208,13 +208,13 @@ export default function SalesPage() {
           <h1 className="text-2xl font-bold text-[#C9A84C]">판매 현황판</h1>
           <button
             onClick={() => setAvailPopup(true)}
-            className="px-3 py-1.5 bg-[#2a2a2a] border border-[#444] rounded-lg text-xs text-gray-300 hover:bg-[#333] transition-colors"
+            className="px-3 py-1.5 bg-gray-100 border border-gray-300 rounded-lg text-xs text-gray-700 hover:bg-gray-200 transition-colors"
           >
             잔여현황
           </button>
           <button
             onClick={() => setHelpPopup(true)}
-            className="px-3 py-1.5 bg-[#2a2a2a] border border-[#444] rounded-lg text-xs text-gray-300 hover:bg-[#333] transition-colors"
+            className="px-3 py-1.5 bg-gray-100 border border-gray-300 rounded-lg text-xs text-gray-700 hover:bg-gray-200 transition-colors"
           >
             사용설명서
           </button>
@@ -224,7 +224,7 @@ export default function SalesPage() {
             type="date"
             value={saleDate}
             onChange={e => setSaleDate(e.target.value)}
-            className="bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2 text-sm"
+            className="bg-gray-100 border border-gray-300 rounded-lg px-3 py-2 text-sm"
           />
           <button
             onClick={() => { setEditSale(null); modalDefaultRef.current = null; setModalOpen(true); }}
@@ -238,15 +238,15 @@ export default function SalesPage() {
       {/* 타입별 판매가능 현황 팝업 */}
       {availPopup && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => setAvailPopup(false)}>
-          <div className="bg-[#1a1a1a] rounded-xl border border-[#333] p-5 mx-4 max-w-md w-full" onClick={e => e.stopPropagation()}>
+          <div className="bg-white rounded-xl border border-gray-200 p-5 mx-4 max-w-md w-full" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-[#C9A84C]">타입별 잔여현황</h2>
-              <button onClick={() => setAvailPopup(false)} className="text-gray-500 hover:text-white text-xl">&times;</button>
+              <button onClick={() => setAvailPopup(false)} className="text-gray-500 hover:text-gray-900 text-xl">&times;</button>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-[#222] text-gray-500">
+                  <tr className="bg-gray-100 text-gray-500">
                     <th className="px-3 py-2 text-left">타입</th>
                     <th className="px-3 py-2 text-center">총실</th>
                     <th className="px-3 py-2 text-center">대실가능</th>
@@ -255,9 +255,9 @@ export default function SalesPage() {
                 </thead>
                 <tbody>
                   {availability.map(a => (
-                    <tr key={a.rt} className="border-t border-[#2a2a2a]">
+                    <tr key={a.rt} className="border-t border-gray-200">
                       <td className="px-3 py-2 font-bold">{a.rt}</td>
-                      <td className="px-3 py-2 text-center text-gray-400">{a.total}</td>
+                      <td className="px-3 py-2 text-center text-gray-600">{a.total}</td>
                       <td className={`px-3 py-2 text-center font-bold ${
                         a.daesilAvail <= 0 ? 'text-red-400' : a.daesilAvail <= 2 ? 'text-orange-400' : 'text-emerald-400'
                       }`}>{a.daesilAvail}</td>
@@ -276,10 +276,10 @@ export default function SalesPage() {
       {/* 사용설명서 팝업 */}
       {helpPopup && (
         <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 overflow-y-auto py-8" onClick={() => setHelpPopup(false)}>
-          <div className="bg-[#1a1a1a] rounded-xl border border-[#333] p-6 mx-4 max-w-2xl w-full space-y-6" onClick={e => e.stopPropagation()}>
+          <div className="bg-white rounded-xl border border-gray-200 p-6 mx-4 max-w-2xl w-full space-y-6" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-bold text-[#C9A84C]">일로와 호텔 관리 시스템 사용설명서</h2>
-              <button onClick={() => setHelpPopup(false)} className="text-gray-500 hover:text-white text-xl">&times;</button>
+              <button onClick={() => setHelpPopup(false)} className="text-gray-500 hover:text-gray-900 text-xl">&times;</button>
             </div>
 
             <HelpSection title="1. 판매 입력 (판매 현황판)" items={[
@@ -403,7 +403,7 @@ export default function SalesPage() {
               { label: '! (빨강)', desc: '해당 호실에 미처리 컴플레인 있음' },
             ]} />
 
-            <div className="text-center pt-4 border-t border-[#333]">
+            <div className="text-center pt-4 border-t border-gray-200">
               <p className="text-xs text-gray-500">문의: 관리자에게 연락 | 우측 상단 메뉴: 컴플레인, 변경이력, 챗봇관리</p>
               <button onClick={() => setHelpPopup(false)}
                 className="mt-3 px-6 py-2 bg-[#C9A84C] text-black font-bold rounded-lg text-sm hover:bg-[#E8C96A]">닫기</button>
@@ -452,7 +452,7 @@ export default function SalesPage() {
       </div>
 
       {/* 전체 요약 */}
-      <div className="bg-[#1a1a1a] rounded-xl border border-[#333] p-4">
+      <div className="bg-white rounded-xl border border-gray-200 p-4">
         <div className="flex flex-wrap gap-6 text-sm justify-center">
           <span>대실 <b className="text-blue-400">{allDaesil.length}</b>건 <b className="text-blue-400">{fmt(sumAmount(allDaesil))}</b>원</span>
           <span>숙박 <b className="text-green-400">{allSukbak.length}</b>건 <b className="text-green-400">{fmt(sumAmount(allSukbak))}</b>원</span>
@@ -491,20 +491,20 @@ function SalesPartPanel({ title, saleType, sales, isEtc, collapsed, onToggle, on
   onToggleCheckout: (sale: Sale) => void;
   complaintRooms: Set<string>;
 }) {
-  const headerBg = saleType === '대실' ? 'bg-emerald-900/40' : 'bg-blue-900/40';
+  const headerBg = saleType === '대실' ? 'bg-emerald-100' : 'bg-blue-100';
   const total = sumAmount(sales);
   const extraTotal = sumExtraAmount(sales);
 
   return (
-    <div className="bg-[#1a1a1a] rounded-lg border border-[#333] overflow-hidden flex flex-col">
+    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden flex flex-col">
       {/* 헤더 */}
       <div className={`${headerBg} px-3 py-2 flex items-center justify-between`}>
         <button onClick={onToggle} className="flex items-center gap-2 flex-1 text-left">
           <span className="font-bold text-sm">{title}</span>
-          <span className={`text-xs px-1.5 py-0.5 rounded ${saleType === '대실' ? 'bg-emerald-800 text-emerald-200' : 'bg-blue-800 text-blue-200'}`}>
+          <span className={`text-xs px-1.5 py-0.5 rounded ${saleType === '대실' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'}`}>
             {saleType}
           </span>
-          <span className="text-xs text-gray-400">({sales.length}건)</span>
+          <span className="text-xs text-gray-600">({sales.length}건)</span>
           <span className="xl:hidden text-gray-500 text-xs ml-auto">{collapsed ? '▼' : '▲'}</span>
         </button>
         <button onClick={onAdd} className="text-xs text-[#C9A84C] hover:text-[#E8C96A] ml-2 shrink-0">+추가</button>
@@ -515,7 +515,7 @@ function SalesPartPanel({ title, saleType, sales, isEtc, collapsed, onToggle, on
         <div className="flex-1 overflow-x-auto">
           <table className="w-full text-xs whitespace-nowrap">
             <thead>
-              <tr className="bg-[#222] text-gray-500">
+              <tr className="bg-gray-100 text-gray-500">
                 <th className="px-2 py-1.5 text-left w-6">#</th>
                 {isEtc && <th className="px-2 py-1.5 text-left">구분</th>}
                 <th className="px-2 py-1.5 text-left">성명</th>
@@ -533,7 +533,7 @@ function SalesPartPanel({ title, saleType, sales, isEtc, collapsed, onToggle, on
             </thead>
             <tbody>
               {sales.length === 0 && (
-                <tr><td colSpan={isEtc ? 13 : 11} className="px-2 py-4 text-center text-gray-600">-</td></tr>
+                <tr><td colSpan={isEtc ? 13 : 11} className="px-2 py-4 text-center text-gray-400">-</td></tr>
               )}
               {sales.map((sale, i) => {
                 const isOut = sale.status === 'checked_out';
@@ -542,42 +542,42 @@ function SalesPartPanel({ title, saleType, sales, isEtc, collapsed, onToggle, on
                   <tr
                     key={sale.id}
                     onClick={() => onClickRow(sale)}
-                    className={`cursor-pointer border-t border-[#2a2a2a] transition-colors hover:bg-[#C9A84C]/10 ${isOut ? 'text-gray-600' : 'text-gray-200'}`}
+                    className={`cursor-pointer border-t border-gray-200 transition-colors hover:bg-[#C9A84C]/10 ${isOut ? 'text-gray-400' : 'text-gray-800'}`}
                   >
                     <td className="px-2 py-1.5 text-gray-500">{i + 1}</td>
-                    {isEtc && <td className="px-2 py-1.5 text-gray-400">{sale.channel}</td>}
+                    {isEtc && <td className="px-2 py-1.5 text-gray-600">{sale.channel}</td>}
                     <td className="px-2 py-1.5 truncate max-w-[100px]">
                       {sale.guest_name || '-'}
                       {sale.booking_id && (
                         <span className="ml-1 px-1 py-0.5 rounded text-[10px] bg-[#C9A84C]/20 text-[#C9A84C] border border-[#C9A84C]/30">연박</span>
                       )}
                       {sale.memo?.includes('당특') && (
-                        <span className="ml-1 px-1 py-0.5 rounded text-[10px] bg-red-900 text-red-300">당특</span>
+                        <span className="ml-1 px-1 py-0.5 rounded text-[10px] bg-red-100 text-red-700">당특</span>
                       )}
                     </td>
                     <td className="px-2 py-1.5 text-center">{sale.room_type}</td>
                     <td className="px-2 py-1.5 text-center">{fmtTime(sale.check_in_time)}</td>
                     <td className="px-2 py-1.5 text-center">{fmtTime(sale.check_out_time)}</td>
-                    {isEtc && <td className="px-2 py-1.5 text-center text-gray-400">{sale.payment_method || ''}</td>}
+                    {isEtc && <td className="px-2 py-1.5 text-center text-gray-600">{sale.payment_method || ''}</td>}
                     <td className="px-2 py-1.5 text-right font-medium">
                       {fmt(sale.amount)}
                       {sale.is_receivable && !sale.resolved_at && (
-                        <span className="ml-1 px-1 py-0.5 rounded text-[10px] bg-red-900 text-red-300">미수</span>
+                        <span className="ml-1 px-1 py-0.5 rounded text-[10px] bg-red-100 text-red-700">미수</span>
                       )}
                       {sale.is_receivable && sale.resolved_at && (
-                        <span className="ml-1 px-1 py-0.5 rounded text-[10px] bg-green-900 text-green-300">수금</span>
+                        <span className="ml-1 px-1 py-0.5 rounded text-[10px] bg-green-100 text-green-700">수금</span>
                       )}
                       {sale.payment_timing === '예약금' && !sale.balance_paid && (
-                        <span className="ml-1 px-1 py-0.5 rounded text-[10px] bg-blue-900 text-blue-300">예약금{sale.prepaid_amount ? ` ${fmt(sale.prepaid_amount)}` : ''}</span>
+                        <span className="ml-1 px-1 py-0.5 rounded text-[10px] bg-blue-100 text-blue-700">예약금{sale.prepaid_amount ? ` ${fmt(sale.prepaid_amount)}` : ''}</span>
                       )}
                       {sale.payment_timing === '예약금' && sale.balance_paid && (
-                        <span className="ml-1 px-1 py-0.5 rounded text-[10px] bg-green-900 text-green-300">결제완료</span>
+                        <span className="ml-1 px-1 py-0.5 rounded text-[10px] bg-green-100 text-green-700">결제완료</span>
                       )}
                       {sale.payment_timing === '완불' && (
-                        <span className="ml-1 px-1 py-0.5 rounded text-[10px] bg-green-900 text-green-300">완불</span>
+                        <span className="ml-1 px-1 py-0.5 rounded text-[10px] bg-green-100 text-green-700">완불</span>
                       )}
                     </td>
-                    <td className="px-2 py-1.5 text-center text-gray-400">
+                    <td className="px-2 py-1.5 text-center text-gray-600">
                       {sale.room_number || ''}
                       {sale.room_number && complaintRooms.has(sale.room_number) && (
                         <span className="ml-0.5 text-red-400" title="미처리 컴플레인 있음">!</span>
@@ -588,18 +588,18 @@ function SalesPartPanel({ title, saleType, sales, isEtc, collapsed, onToggle, on
                         onClick={e => { e.stopPropagation(); onToggleCheckout(sale); }}
                         className={`px-1.5 py-0.5 rounded text-[10px] font-bold transition-colors ${
                           isOut
-                            ? 'bg-orange-800/60 text-orange-300 hover:bg-orange-700/60'
-                            : 'text-gray-600 hover:bg-[#333] hover:text-gray-400'
+                            ? 'bg-orange-100 text-orange-700 hover:bg-orange-200/60'
+                            : 'text-gray-400 hover:bg-gray-200 hover:text-gray-600'
                         }`}
                       >
                         {isOut ? '☑ 퇴실' : '☐'}
                       </button>
                     </td>
-                    <td className="px-2 py-1.5 text-center text-gray-400">{sale.extra_payment_method || ''}</td>
-                    <td className={`px-2 py-1.5 text-right ${hasExtra ? 'text-yellow-400 font-medium' : 'text-gray-600'}`}>
+                    <td className="px-2 py-1.5 text-center text-gray-600">{sale.extra_payment_method || ''}</td>
+                    <td className={`px-2 py-1.5 text-right ${hasExtra ? 'text-yellow-400 font-medium' : 'text-gray-400'}`}>
                       {hasExtra ? `+${fmt(sale.extra_amount)}` : ''}
                     </td>
-                    <td className="px-2 py-1.5 text-gray-400 max-w-[60px] truncate" title={sale.memo || ''}>
+                    <td className="px-2 py-1.5 text-gray-600 max-w-[60px] truncate" title={sale.memo || ''}>
                       {sale.memo || ''}
                     </td>
                   </tr>
@@ -609,7 +609,7 @@ function SalesPartPanel({ title, saleType, sales, isEtc, collapsed, onToggle, on
           </table>
           {/* 소계 */}
           {sales.length > 0 && (
-            <div className="px-3 py-1.5 bg-[#222] text-xs text-gray-400 flex justify-between border-t border-[#333]">
+            <div className="px-3 py-1.5 bg-gray-100 text-xs text-gray-600 flex justify-between border-t border-gray-200">
               <span>소계: {sales.length}건</span>
               <span className="font-medium text-[#C9A84C]">
                 {fmt(total)}원
@@ -879,11 +879,11 @@ function SaleModal({ saleDate, rooms, editSale, defaults, onClose, onSaved, onDe
         {OTA_CHANNELS.map(ch => (
           <button key={ch} onClick={() => selectChannel(ch, 'ota')}
             className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
-              form.channel === ch ? ch === '야놀자' ? 'bg-pink-600 text-white' : 'bg-red-600 text-white' : 'bg-[#2a2a2a] text-gray-300 hover:bg-[#333]'
+              form.channel === ch ? ch === '야놀자' ? 'bg-pink-600 text-white' : 'bg-red-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}>{ch}</button>
         ))}
         <button onClick={() => { setChannelGroup('other'); if (!OTHER_CHANNELS.includes(form.channel as typeof OTHER_CHANNELS[number])) setField('channel', '워킹'); }}
-          className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${channelGroup === 'other' ? 'bg-[#C9A84C] text-black' : 'bg-[#2a2a2a] text-gray-300 hover:bg-[#333]'}`}>
+          className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${channelGroup === 'other' ? 'bg-[#C9A84C] text-black' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
           기타
         </button>
       </div>
@@ -892,11 +892,11 @@ function SaleModal({ saleDate, rooms, editSale, defaults, onClose, onSaved, onDe
           <div className="flex gap-2">
             {OTHER_CHANNELS.map(ch => (
               <button key={ch} onClick={() => setField('channel', ch)}
-                className={`flex-1 py-1.5 rounded-lg text-xs ${form.channel === ch ? 'bg-[#555] text-white' : 'bg-[#2a2a2a] text-gray-400'}`}>{ch}</button>
+                className={`flex-1 py-1.5 rounded-lg text-xs ${form.channel === ch ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-600'}`}>{ch}</button>
             ))}
           </div>
           <select value={form.payment_method || ''} onChange={e => setField('payment_method', e.target.value)}
-            className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2 text-sm">
+            className="w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2 text-sm">
             <option value="">결제수단 선택</option>
             {PAYMENT_METHODS.map(pm => <option key={pm} value={pm}>{pm}</option>)}
           </select>
@@ -909,33 +909,33 @@ function SaleModal({ saleDate, rooms, editSale, defaults, onClose, onSaved, onDe
     <div className="grid grid-cols-6 gap-2">
       {ROOM_TYPES.map(rt => (
         <button key={rt} onClick={() => { setField('room_type', rt); setField('room_id', undefined); setField('room_number', ''); }}
-          className={`py-2 rounded-lg text-sm font-medium transition-colors ${form.room_type === rt ? 'bg-[#C9A84C] text-black' : 'bg-[#2a2a2a] text-gray-300'}`}>{rt}</button>
+          className={`py-2 rounded-lg text-sm font-medium transition-colors ${form.room_type === rt ? 'bg-[#C9A84C] text-black' : 'bg-gray-100 text-gray-700'}`}>{rt}</button>
       ))}
     </div>
   );
 
   const customerUI = (
-    <div className="border border-[#333] rounded-lg overflow-hidden">
+    <div className="border border-gray-200 rounded-lg overflow-hidden">
       <button type="button" onClick={() => setCustomerOpen(!customerOpen)}
-        className="w-full flex items-center justify-between px-3 py-2 bg-[#222] hover:bg-[#2a2a2a] transition-colors">
-        <span className="text-xs text-gray-400 flex items-center gap-2">
+        className="w-full flex items-center justify-between px-3 py-2 bg-gray-100 hover:bg-gray-100 transition-colors">
+        <span className="text-xs text-gray-600 flex items-center gap-2">
           고객 정보
           {foundCustomer && <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-[#C9A84C]/20 text-[#C9A84C] border border-[#C9A84C]/40">재방문 {foundCustomer.visit_count}회</span>}
-          {isNewCustomer && phone.replace(/\D/g, '').length >= 10 && <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-blue-900/40 text-blue-300 border border-blue-700/40">신규</span>}
+          {isNewCustomer && phone.replace(/\D/g, '').length >= 10 && <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-blue-100 text-blue-700 border border-blue-300">신규</span>}
         </span>
         <span className="text-gray-500 text-xs">{customerOpen ? '▲' : '▼'}</span>
       </button>
       {customerOpen && (
-        <div className="p-3 space-y-3 bg-[#1a1a1a]">
+        <div className="p-3 space-y-3 bg-white">
           <div className="relative">
             <input type="tel" value={phone} onChange={e => handlePhoneChange(e.target.value)}
-              className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2 text-sm pr-16" placeholder="010-0000-0000" inputMode="numeric" />
+              className="w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2 text-sm pr-16" placeholder="010-0000-0000" inputMode="numeric" />
             {customerSearching && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-500">검색중...</span>}
           </div>
           {foundCustomer && (
             <div className="bg-[#C9A84C]/10 border border-[#C9A84C]/30 rounded-lg p-2.5 space-y-1">
               <div className="text-[#C9A84C] font-bold text-xs">재방문 고객! ({foundCustomer.visit_count}회째)</div>
-              <div className="text-[10px] text-gray-300 space-y-0.5">
+              <div className="text-[10px] text-gray-700 space-y-0.5">
                 {foundCustomer.preferred_room_type && <p>선호: {foundCustomer.preferred_room_type}타입 | 누적: {fmt(foundCustomer.total_spent)}원</p>}
                 {foundCustomer.last_visit_date && <p>최근: {foundCustomer.last_visit_date}</p>}
                 {foundCustomer.memo && <p className="text-yellow-400/80">메모: {foundCustomer.memo}</p>}
@@ -943,10 +943,10 @@ function SaleModal({ saleDate, rooms, editSale, defaults, onClose, onSaved, onDe
             </div>
           )}
           <input type="email" value={email} onChange={e => setEmail(e.target.value)}
-            className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2 text-sm" placeholder="이메일 (선택)" />
+            className="w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="이메일 (선택)" />
           <label className="flex items-center gap-2 cursor-pointer">
             <input type="checkbox" checked={marketingConsent} onChange={e => setMarketingConsent(e.target.checked)} className="w-3.5 h-3.5 rounded accent-[#C9A84C]" />
-            <span className="text-xs text-gray-400">마케팅 수신동의</span>
+            <span className="text-xs text-gray-600">마케팅 수신동의</span>
           </label>
         </div>
       )}
@@ -955,17 +955,17 @@ function SaleModal({ saleDate, rooms, editSale, defaults, onClose, onSaved, onDe
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 overflow-y-auto py-8">
-      <div className="bg-[#1a1a1a] rounded-xl border border-[#333] w-full max-w-lg mx-4 p-5 space-y-4">
+      <div className="bg-white rounded-xl border border-gray-200 w-full max-w-lg mx-4 p-5 space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold text-[#C9A84C]">{isEdit ? '판매 수정' : '판매 추가'}</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-white text-xl">&times;</button>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-900 text-xl">&times;</button>
         </div>
 
         {/* 1박/연박 토글 (신규 입력 시에만) */}
         {!isEdit && (
           <div className="flex gap-2">
-            <button onClick={() => setMode('single')} className={`flex-1 py-2 rounded-lg text-sm font-bold transition-colors ${mode === 'single' ? 'bg-[#444] text-white' : 'bg-[#2a2a2a] text-gray-500'}`}>1박</button>
-            <button onClick={() => setMode('multi')} className={`flex-1 py-2 rounded-lg text-sm font-bold transition-colors ${mode === 'multi' ? 'bg-purple-700 text-white' : 'bg-[#2a2a2a] text-gray-500'}`}>연박</button>
+            <button onClick={() => setMode('single')} className={`flex-1 py-2 rounded-lg text-sm font-bold transition-colors ${mode === 'single' ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-500'}`}>1박</button>
+            <button onClick={() => setMode('multi')} className={`flex-1 py-2 rounded-lg text-sm font-bold transition-colors ${mode === 'multi' ? 'bg-purple-700 text-white' : 'bg-gray-100 text-gray-500'}`}>연박</button>
           </div>
         )}
 
@@ -975,44 +975,44 @@ function SaleModal({ saleDate, rooms, editSale, defaults, onClose, onSaved, onDe
             <div className="flex gap-2">
               {(['대실', '숙박'] as SaleType[]).map(type => (
                 <button key={type} onClick={() => setField('sale_type', type)}
-                  className={`flex-1 py-2.5 rounded-lg font-bold transition-colors ${form.sale_type === type ? type === '대실' ? 'bg-blue-600 text-white' : 'bg-green-600 text-white' : 'bg-[#2a2a2a] text-gray-400'}`}>{type}</button>
+                  className={`flex-1 py-2.5 rounded-lg font-bold transition-colors ${form.sale_type === type ? type === '대실' ? 'bg-blue-600 text-white' : 'bg-green-600 text-white' : 'bg-gray-100 text-gray-600'}`}>{type}</button>
               ))}
             </div>
             {channelUI}
             {roomTypeUI}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs text-gray-400 mb-1">성명</label>
+                <label className="block text-xs text-gray-600 mb-1">성명</label>
                 <input type="text" value={form.guest_name || ''} onChange={e => setField('guest_name', e.target.value)}
-                  className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2" placeholder="성명" />
+                  className="w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2" placeholder="성명" />
               </div>
               <div>
-                <label className="block text-xs text-gray-400 mb-1">금액</label>
+                <label className="block text-xs text-gray-600 mb-1">금액</label>
                 <input type="number" value={form.amount || ''} onChange={e => setField('amount', Number(e.target.value))}
-                  className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2" placeholder="0" step={1000} />
+                  className="w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2" placeholder="0" step={1000} />
               </div>
             </div>
             {/* 결제 시점 */}
             <div>
-              <label className="block text-xs text-gray-400 mb-2">결제 시점</label>
+              <label className="block text-xs text-gray-600 mb-2">결제 시점</label>
               <div className="flex gap-2">
                 {([['현장', '현장결제'], ['예약금', '예약금'], ['완불', '완불']] as const).map(([v, label]) => (
                   <button key={v} onClick={() => setPayTiming(v)}
-                    className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-colors ${payTiming === v ? v === '완불' ? 'bg-green-700 text-white' : v === '예약금' ? 'bg-blue-700 text-white' : 'bg-[#444] text-white' : 'bg-[#2a2a2a] text-gray-500'}`}>{label}</button>
+                    className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-colors ${payTiming === v ? v === '완불' ? 'bg-green-700 text-white' : v === '예약금' ? 'bg-blue-700 text-white' : 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-500'}`}>{label}</button>
                 ))}
               </div>
               {payTiming === '예약금' && (
-                <div className="mt-3 space-y-2 bg-[#222] rounded-lg p-3 border border-blue-900/40">
+                <div className="mt-3 space-y-2 bg-gray-100 rounded-lg p-3 border border-blue-200">
                   <div>
                     <label className="block text-[10px] text-gray-500 mb-0.5 font-bold">숙박 예정일</label>
                     <input type="date" value={stayDate} onChange={e => setStayDate(e.target.value)}
-                      className="w-full bg-[#2a2a2a] border border-blue-700 rounded px-2 py-1.5 text-xs" />
+                      className="w-full bg-gray-100 border border-blue-700 rounded px-2 py-1.5 text-xs" />
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
                       <label className="block text-[10px] text-gray-500 mb-0.5">예약금 결제수단</label>
                       <select value={prepaidMethod} onChange={e => setPrepaidMethod(e.target.value)}
-                        className="w-full bg-[#2a2a2a] border border-[#444] rounded px-2 py-1.5 text-xs">
+                        className="w-full bg-gray-100 border border-gray-300 rounded px-2 py-1.5 text-xs">
                         <option value="">선택</option>
                         {PAYMENT_METHODS.filter(p => p !== '미수').map(pm => <option key={pm} value={pm}>{pm}</option>)}
                       </select>
@@ -1020,7 +1020,7 @@ function SaleModal({ saleDate, rooms, editSale, defaults, onClose, onSaved, onDe
                     <div>
                       <label className="block text-[10px] text-gray-500 mb-0.5">예약금 금액</label>
                       <input type="number" value={prepaidAmount || ''} onChange={e => setPrepaidAmount(Number(e.target.value))}
-                        className="w-full bg-[#2a2a2a] border border-[#444] rounded px-2 py-1.5 text-xs" step={1000} />
+                        className="w-full bg-gray-100 border border-gray-300 rounded px-2 py-1.5 text-xs" step={1000} />
                     </div>
                   </div>
                   {form.amount > 0 && prepaidAmount > 0 && (
@@ -1029,11 +1029,11 @@ function SaleModal({ saleDate, rooms, editSale, defaults, onClose, onSaved, onDe
                 </div>
               )}
               {payTiming === '완불' && (
-                <div className="mt-3 space-y-2 bg-[#222] rounded-lg p-3 border border-green-900/40">
+                <div className="mt-3 space-y-2 bg-gray-100 rounded-lg p-3 border border-green-200">
                   <div>
                     <label className="block text-[10px] text-gray-500 mb-0.5 font-bold">숙박 예정일</label>
                     <input type="date" value={stayDate} onChange={e => setStayDate(e.target.value)}
-                      className="w-full bg-[#2a2a2a] border border-green-700 rounded px-2 py-1.5 text-xs" />
+                      className="w-full bg-gray-100 border border-green-700 rounded px-2 py-1.5 text-xs" />
                   </div>
                   <p className="text-xs text-green-400">전액 선결제 완료</p>
                 </div>
@@ -1042,50 +1042,50 @@ function SaleModal({ saleDate, rooms, editSale, defaults, onClose, onSaved, onDe
             {customerUI}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs text-gray-400 mb-1">입실시간</label>
+                <label className="block text-xs text-gray-600 mb-1">입실시간</label>
                 <input type="number" value={form.check_in_time ?? ''} onChange={e => setField('check_in_time', e.target.value ? Number(e.target.value) : undefined)}
-                  className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2" placeholder="14" step={0.5} min={0} max={24} />
+                  className="w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2" placeholder="14" step={0.5} min={0} max={24} />
               </div>
               <div>
-                <label className="block text-xs text-gray-400 mb-1">퇴실시간</label>
+                <label className="block text-xs text-gray-600 mb-1">퇴실시간</label>
                 <input type="number" value={form.check_out_time ?? ''} onChange={e => setField('check_out_time', e.target.value ? Number(e.target.value) : undefined)}
-                  className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2" placeholder="12" step={0.5} min={0} max={24} />
+                  className="w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2" placeholder="12" step={0.5} min={0} max={24} />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs text-gray-400 mb-1">호실</label>
+                <label className="block text-xs text-gray-600 mb-1">호실</label>
                 <select value={form.room_id ?? ''} onChange={e => { const room = rooms.find(r => r.id === Number(e.target.value)); setField('room_id', room?.id); setField('room_number', room?.room_number || ''); }}
-                  className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2">
+                  className="w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2">
                   <option value="">선택 안함</option>
                   {filteredRooms.map(r => <option key={r.id} value={r.id}>{r.room_number}호</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-xs text-gray-400 mb-1">차번호</label>
+                <label className="block text-xs text-gray-600 mb-1">차번호</label>
                 <input type="text" value={form.car_number || ''} onChange={e => setField('car_number', e.target.value)}
-                  className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2" placeholder="차번호" />
+                  className="w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2" placeholder="차번호" />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs text-gray-400 mb-1">추가결제수단</label>
+                <label className="block text-xs text-gray-600 mb-1">추가결제수단</label>
                 <select value={form.extra_payment_method || ''} onChange={e => setField('extra_payment_method', e.target.value)}
-                  className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2">
+                  className="w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2">
                   <option value="">없음</option>
                   {PAYMENT_METHODS.map(pm => <option key={pm} value={pm}>{pm}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-xs text-gray-400 mb-1">추가금액</label>
+                <label className="block text-xs text-gray-600 mb-1">추가금액</label>
                 <input type="number" value={form.extra_amount || ''} onChange={e => setField('extra_amount', Number(e.target.value))}
-                  className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2" placeholder="0" step={1000} />
+                  className="w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2" placeholder="0" step={1000} />
               </div>
             </div>
             <div>
-              <label className="block text-xs text-gray-400 mb-1">메모</label>
+              <label className="block text-xs text-gray-600 mb-1">메모</label>
               <input type="text" value={form.memo || ''} onChange={e => setField('memo', e.target.value)}
-                className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2" placeholder="시간연장, 추가인원, 차량추가 등" />
+                className="w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2" placeholder="시간연장, 추가인원, 차량추가 등" />
             </div>
             <div className="space-y-2 pt-2">
               <button onClick={handleSubmitSingle} disabled={loading || !form.channel || !form.amount}
@@ -1110,13 +1110,13 @@ function SaleModal({ saleDate, rooms, editSale, defaults, onClose, onSaved, onDe
                 <button onClick={handleCheckout} className="w-full py-2.5 rounded-lg font-bold text-sm bg-orange-600 text-white hover:bg-orange-500 transition-colors">퇴실 처리</button>
               )}
               {isEdit && (
-                <button onClick={handleDelete} className="w-full py-2 rounded-lg text-sm text-red-400 hover:text-red-300 border border-red-900 hover:border-red-700 transition-colors">
+                <button onClick={handleDelete} className="w-full py-2 rounded-lg text-sm text-red-400 hover:text-red-700 border border-red-900 hover:border-red-700 transition-colors">
                   {editSale!.booking_id ? '연박 전체 삭제' : '삭제'}
                 </button>
               )}
               {isEdit && (
                 <a href={`/admin/hotel/audit?record_id=${editSale!.id}`} target="_blank"
-                  className="block w-full py-2 text-center rounded-lg text-xs text-gray-500 hover:text-gray-300 transition-colors">
+                  className="block w-full py-2 text-center rounded-lg text-xs text-gray-500 hover:text-gray-700 transition-colors">
                   변경이력 보기
                 </a>
               )}
@@ -1130,75 +1130,75 @@ function SaleModal({ saleDate, rooms, editSale, defaults, onClose, onSaved, onDe
             {channelUI}
             {roomTypeUI}
             <div>
-              <label className="block text-xs text-gray-400 mb-1">성명</label>
+              <label className="block text-xs text-gray-600 mb-1">성명</label>
               <input type="text" value={form.guest_name || ''} onChange={e => setField('guest_name', e.target.value)}
-                className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2" placeholder="성명" />
+                className="w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2" placeholder="성명" />
             </div>
             <div>
-              <label className="block text-xs text-gray-400 mb-1">호실</label>
+              <label className="block text-xs text-gray-600 mb-1">호실</label>
               <select value={form.room_id ?? ''} onChange={e => { const room = rooms.find(r => r.id === Number(e.target.value)); setField('room_id', room?.id); setField('room_number', room?.room_number || ''); }}
-                className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2">
+                className="w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2">
                 <option value="">선택 안함</option>
                 {filteredRooms.map(r => <option key={r.id} value={r.id}>{r.room_number}호</option>)}
               </select>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs text-gray-400 mb-1">입실일</label>
+                <label className="block text-xs text-gray-600 mb-1">입실일</label>
                 <input type="date" value={checkInDate} onChange={e => setCheckInDate(e.target.value)}
-                  className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2" />
+                  className="w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2" />
               </div>
               <div>
-                <label className="block text-xs text-gray-400 mb-1">퇴실일</label>
+                <label className="block text-xs text-gray-600 mb-1">퇴실일</label>
                 <input type="date" value={checkOutDate} onChange={e => setCheckOutDate(e.target.value)}
-                  className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2" />
+                  className="w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2" />
               </div>
             </div>
             {nights >= 2 && (
               <div className="text-center text-sm font-bold text-purple-400">{nights}박</div>
             )}
             <div>
-              <label className="block text-xs text-gray-400 mb-1">총액</label>
+              <label className="block text-xs text-gray-600 mb-1">총액</label>
               <input type="number" value={totalAmount || ''} onChange={e => setTotalAmount(Number(e.target.value))}
-                className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2" placeholder="0" step={1000} />
+                className="w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2" placeholder="0" step={1000} />
               {nights >= 2 && totalAmount > 0 && splitMethod === 'equal' && (
                 <p className="text-xs text-gray-500 mt-1">1박 평균 {fmt(Math.round(totalAmount / nights))}원</p>
               )}
             </div>
             <div>
-              <label className="block text-xs text-gray-400 mb-2">분배 방식</label>
+              <label className="block text-xs text-gray-600 mb-2">분배 방식</label>
               <div className="flex gap-2">
                 {([['equal', '균등'], ['by_day', '요일별'], ['manual', '수동']] as [SplitMethod, string][]).map(([m, label]) => (
                   <button key={m} onClick={() => setSplitMethod(m)}
-                    className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-colors ${splitMethod === m ? 'bg-purple-700 text-white' : 'bg-[#2a2a2a] text-gray-400'}`}>{label}</button>
+                    className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-colors ${splitMethod === m ? 'bg-purple-700 text-white' : 'bg-gray-100 text-gray-600'}`}>{label}</button>
                 ))}
               </div>
             </div>
             {/* 일별 미리보기 */}
             {dailyPreview.length > 0 && (
-              <div className="max-h-48 overflow-y-auto border border-[#333] rounded-lg">
+              <div className="max-h-48 overflow-y-auto border border-gray-200 rounded-lg">
                 <table className="w-full text-xs">
-                  <thead><tr className="bg-[#222] text-gray-500"><th className="px-2 py-1 text-left">날짜</th><th className="px-2 py-1 text-center">요일</th><th className="px-2 py-1 text-right">금액</th></tr></thead>
+                  <thead><tr className="bg-gray-100 text-gray-500"><th className="px-2 py-1 text-left">날짜</th><th className="px-2 py-1 text-center">요일</th><th className="px-2 py-1 text-right">금액</th></tr></thead>
                   <tbody>
                     {dailyPreview.map((d, i) => (
-                      <tr key={d.date} className="border-t border-[#2a2a2a]">
-                        <td className="px-2 py-1 text-gray-300">{d.date.slice(5)}</td>
-                        <td className="px-2 py-1 text-center text-gray-400">{d.day}</td>
+                      <tr key={d.date} className="border-t border-gray-200">
+                        <td className="px-2 py-1 text-gray-700">{d.date.slice(5)}</td>
+                        <td className="px-2 py-1 text-center text-gray-600">{d.day}</td>
                         <td className="px-2 py-1 text-right">
                           {splitMethod === 'manual' ? (
                             <input type="number" value={d.amount || ''} onChange={e => {
                               const updated = [...dailyPreview];
                               updated[i] = { ...d, amount: Number(e.target.value) };
                               setDailyPreview(updated);
-                            }} className="w-20 bg-[#2a2a2a] border border-[#444] rounded px-2 py-0.5 text-right text-xs" step={1000} />
+                            }} className="w-20 bg-gray-100 border border-gray-300 rounded px-2 py-0.5 text-right text-xs" step={1000} />
                           ) : (
-                            <span className="text-gray-200">{fmt(d.amount)}</span>
+                            <span className="text-gray-800">{fmt(d.amount)}</span>
                           )}
                         </td>
                       </tr>
                     ))}
-                    <tr className="border-t border-[#444] bg-[#222]">
-                      <td colSpan={2} className="px-2 py-1 font-bold text-gray-300">합계</td>
+                    <tr className="border-t border-gray-300 bg-gray-100">
+                      <td colSpan={2} className="px-2 py-1 font-bold text-gray-700">합계</td>
                       <td className="px-2 py-1 text-right font-bold text-[#C9A84C]">{fmt(dailyPreview.reduce((s, d) => s + d.amount, 0))}</td>
                     </tr>
                   </tbody>
@@ -1207,20 +1207,20 @@ function SaleModal({ saleDate, rooms, editSale, defaults, onClose, onSaved, onDe
             )}
             {/* 연박 결제 시점 */}
             <div>
-              <label className="block text-xs text-gray-400 mb-2">결제 시점</label>
+              <label className="block text-xs text-gray-600 mb-2">결제 시점</label>
               <div className="flex gap-2">
                 {([['현장', '현장결제'], ['예약금', '예약금'], ['완불', '완불']] as const).map(([v, label]) => (
                   <button key={v} onClick={() => setPayTiming(v)}
-                    className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-colors ${payTiming === v ? v === '완불' ? 'bg-green-700 text-white' : v === '예약금' ? 'bg-blue-700 text-white' : 'bg-[#444] text-white' : 'bg-[#2a2a2a] text-gray-500'}`}>{label}</button>
+                    className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-colors ${payTiming === v ? v === '완불' ? 'bg-green-700 text-white' : v === '예약금' ? 'bg-blue-700 text-white' : 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-500'}`}>{label}</button>
                 ))}
               </div>
               {payTiming === '예약금' && (
-                <div className="mt-2 space-y-2 bg-[#222] rounded-lg p-3 border border-blue-900/40">
+                <div className="mt-2 space-y-2 bg-gray-100 rounded-lg p-3 border border-blue-200">
                   <div className="grid grid-cols-2 gap-2">
                     <div>
                       <label className="block text-[10px] text-gray-500 mb-0.5">예약금 결제수단</label>
                       <select value={prepaidMethod} onChange={e => setPrepaidMethod(e.target.value)}
-                        className="w-full bg-[#2a2a2a] border border-[#444] rounded px-2 py-1.5 text-xs">
+                        className="w-full bg-gray-100 border border-gray-300 rounded px-2 py-1.5 text-xs">
                         <option value="">선택</option>
                         {PAYMENT_METHODS.filter(p => p !== '미수').map(pm => <option key={pm} value={pm}>{pm}</option>)}
                       </select>
@@ -1228,7 +1228,7 @@ function SaleModal({ saleDate, rooms, editSale, defaults, onClose, onSaved, onDe
                     <div>
                       <label className="block text-[10px] text-gray-500 mb-0.5">예약금 금액</label>
                       <input type="number" value={prepaidAmount || ''} onChange={e => setPrepaidAmount(Number(e.target.value))}
-                        className="w-full bg-[#2a2a2a] border border-[#444] rounded px-2 py-1.5 text-xs" step={1000} />
+                        className="w-full bg-gray-100 border border-gray-300 rounded px-2 py-1.5 text-xs" step={1000} />
                     </div>
                   </div>
                   {totalAmount > 0 && prepaidAmount > 0 && (
@@ -1237,14 +1237,14 @@ function SaleModal({ saleDate, rooms, editSale, defaults, onClose, onSaved, onDe
                 </div>
               )}
               {payTiming === '완불' && (
-                <p className="mt-2 text-xs text-green-400 bg-[#222] rounded-lg p-3 border border-green-900/40">전액 선결제 완료 (결제일: 오늘)</p>
+                <p className="mt-2 text-xs text-green-400 bg-gray-100 rounded-lg p-3 border border-green-200">전액 선결제 완료 (결제일: 오늘)</p>
               )}
             </div>
             {customerUI}
             <div>
-              <label className="block text-xs text-gray-400 mb-1">메모</label>
+              <label className="block text-xs text-gray-600 mb-1">메모</label>
               <input type="text" value={form.memo || ''} onChange={e => setField('memo', e.target.value)}
-                className="w-full bg-[#2a2a2a] border border-[#444] rounded-lg px-3 py-2" placeholder="메모" />
+                className="w-full bg-gray-100 border border-gray-300 rounded-lg px-3 py-2" placeholder="메모" />
             </div>
             <button onClick={handleSubmitMulti} disabled={loading || !form.channel || !totalAmount || nights < 2}
               className="w-full py-3 rounded-lg font-bold text-base bg-purple-700 text-white hover:bg-purple-600 transition-colors disabled:opacity-40">
@@ -1265,8 +1265,8 @@ function HelpSection({ title, items }: { title: string; items: { label: string; 
       <div className="space-y-1.5">
         {items.map((item, i) => (
           <div key={i} className="flex gap-2 text-xs">
-            <span className="text-white font-medium shrink-0 w-28">{item.label}</span>
-            <span className="text-gray-400">{item.desc}</span>
+            <span className="text-gray-900 font-medium shrink-0 w-28">{item.label}</span>
+            <span className="text-gray-600">{item.desc}</span>
           </div>
         ))}
       </div>
