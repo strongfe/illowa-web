@@ -2259,6 +2259,13 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
       <div className="px-3 py-1.5 bg-gray-50 text-xs text-gray-600 flex items-center justify-between gap-3 border-t border-gray-200">
         <span>소계: {filledCount}건</span>
         <span className="flex items-center gap-3">
+          <span className="text-gray-500">
+            금액{' '}
+            <b className="text-gray-800">
+              {baseSubtotal.toLocaleString('ko-KR')}
+            </b>
+            원
+          </span>
           {extraSubtotal > 0 && (
             <span className="text-gray-500">
               추금액{' '}
