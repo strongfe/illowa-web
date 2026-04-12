@@ -25,7 +25,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import SalesGridPanel from './SalesGridPanel';
 import { VacancyTable, ChannelRevenueTable } from './StatsPanel';
-import type { Sale, RoomType, Room } from '@/types/hotel';
+import type { Sale, RoomType, Booking } from '@/types/hotel';
 import { ROOM_TYPE_CAPACITY } from '@/types/hotel';
 
 const ROOM_TYPES: RoomType[] = ['GS', 'GD', 'S', 'D', 'P', 'PT'];
@@ -72,7 +72,9 @@ function sumAmount(sales: Sale[]) {
 export default function SalesGridPage() {
   const [saleDate, setSaleDate] = useState(todayStr());
   const [sales, setSales] = useState<Sale[]>([]);
-  const [rooms, setRooms] = useState<Room[]>([]);
+  const [bookingsMap, setBookingsMap] = useState<Map<string, Booking>>(
+    () => new Map(),
+  );
   const [loading, setLoading] = useState(false);
   const [availPopup, setAvailPopup] = useState(false);
   const [helpPopup, setHelpPopup] = useState(false);
@@ -116,26 +118,25 @@ export default function SalesGridPage() {
 
   useEffect(() => { fetchSales(); }, [fetchSales]);
 
-  // CP5 — Fetch the room master list once. Required by the Legacy
-  // SaleModal's room number dropdown. The endpoint is cacheable
-  // because room inventory rarely changes during a shift, so a
-  // single request per page mount is enough.
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await fetch('/api/admin/hotel/rooms');
-        if (!res.ok) return;
-        const data: Room[] = await res.json();
-        if (!cancelled) setRooms(data);
-      } catch {
-        /* ignore — modal will fall back to a plain text input */
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
+
+  // Fetch bookings once on mount + whenever sales are refetched so
+  // the memo column can display "12-15(퇴)3박" for multi-night rows.
+  // Builds a Map<booking_id, Booking> for O(1) lookup per row.
+  const fetchBookings = useCallback(async () => {
+    try {
+      const res = await fetch('/api/admin/hotel/bookings');
+      if (!res.ok) return;
+      const data: Booking[] = await res.json();
+      const m = new Map<string, Booking>();
+      for (const b of data) m.set(b.id, b);
+      setBookingsMap(m);
+    } catch {
+      /* noop */
+    }
   }, []);
+  useEffect(() => {
+    fetchBookings();
+  }, [fetchBookings, sales]); // re-run when sales changes (date switch, 30s refresh, onRowSaved)
 
   // CP4.3 — Track which panels currently hold unsaved edits so the
   // beforeunload handler can warn the user before navigation. Each
@@ -298,14 +299,14 @@ export default function SalesGridPage() {
            style={{ gridTemplateColumns: '4fr 4fr 5fr auto', gridTemplateRows: 'auto auto' }}>
         {/* 대실 행 (1~3열) */}
         <SalesGridPanel title="야놀자"   saleType="대실" variant="ota" sales={groups.yanolja_daesil} saleDate={saleDate}
-          panelKey="yanolja_daesil"   occupiedRooms={occupiedRooms} rooms={rooms}
-          onDirtyChange={handlePanelDirtyChange} onRowSaved={handleRowSaved} onRefetchRequested={fetchSales} />
+          panelKey="yanolja_daesil"   occupiedRooms={occupiedRooms}
+          onDirtyChange={handlePanelDirtyChange} onRowSaved={handleRowSaved} bookingsMap={bookingsMap} />
         <SalesGridPanel title="여기어때" saleType="대실" variant="ota" sales={groups.yeogi_daesil}   saleDate={saleDate}
-          panelKey="yeogi_daesil"     occupiedRooms={occupiedRooms} rooms={rooms}
-          onDirtyChange={handlePanelDirtyChange} onRowSaved={handleRowSaved} onRefetchRequested={fetchSales} />
+          panelKey="yeogi_daesil"     occupiedRooms={occupiedRooms}
+          onDirtyChange={handlePanelDirtyChange} onRowSaved={handleRowSaved} bookingsMap={bookingsMap} />
         <SalesGridPanel title="기타"     saleType="대실" variant="etc" sales={groups.etc_daesil}     saleDate={saleDate}
-          panelKey="etc_daesil"       occupiedRooms={occupiedRooms} rooms={rooms}
-          onDirtyChange={handlePanelDirtyChange} onRowSaved={handleRowSaved} onRefetchRequested={fetchSales} />
+          panelKey="etc_daesil"       occupiedRooms={occupiedRooms}
+          onDirtyChange={handlePanelDirtyChange} onRowSaved={handleRowSaved} bookingsMap={bookingsMap} />
 
         {/* 4번째 열: 통계 (row-span 2 — 대실행+숙박행 전체 차지) */}
         <div className="row-span-2 flex flex-col gap-3 min-w-[160px]">
@@ -315,14 +316,14 @@ export default function SalesGridPage() {
 
         {/* 숙박 행 (1~3열, 4열은 이미 span) */}
         <SalesGridPanel title="야놀자"   saleType="숙박" variant="ota" sales={groups.yanolja_sukbak} saleDate={saleDate}
-          panelKey="yanolja_sukbak"   occupiedRooms={occupiedRooms} rooms={rooms}
-          onDirtyChange={handlePanelDirtyChange} onRowSaved={handleRowSaved} onRefetchRequested={fetchSales} />
+          panelKey="yanolja_sukbak"   occupiedRooms={occupiedRooms}
+          onDirtyChange={handlePanelDirtyChange} onRowSaved={handleRowSaved} bookingsMap={bookingsMap} />
         <SalesGridPanel title="여기어때" saleType="숙박" variant="ota" sales={groups.yeogi_sukbak}   saleDate={saleDate}
-          panelKey="yeogi_sukbak"     occupiedRooms={occupiedRooms} rooms={rooms}
-          onDirtyChange={handlePanelDirtyChange} onRowSaved={handleRowSaved} onRefetchRequested={fetchSales} />
+          panelKey="yeogi_sukbak"     occupiedRooms={occupiedRooms}
+          onDirtyChange={handlePanelDirtyChange} onRowSaved={handleRowSaved} bookingsMap={bookingsMap} />
         <SalesGridPanel title="기타"     saleType="숙박" variant="etc" sales={groups.etc_sukbak}     saleDate={saleDate}
-          panelKey="etc_sukbak"       occupiedRooms={occupiedRooms} rooms={rooms}
-          onDirtyChange={handlePanelDirtyChange} onRowSaved={handleRowSaved} onRefetchRequested={fetchSales} />
+          panelKey="etc_sukbak"       occupiedRooms={occupiedRooms}
+          onDirtyChange={handlePanelDirtyChange} onRowSaved={handleRowSaved} bookingsMap={bookingsMap} />
       </div>
 
       {/* 전체 요약 */}

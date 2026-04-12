@@ -43,9 +43,10 @@ import {
   type CellDirection,
   type SelectOption,
 } from './EditableCell';
-import type { Sale, SaleType, RoomType, Room } from '@/types/hotel';
+import { MemoPopup } from './MemoPopup';
+import type { Sale, SaleType, RoomType, Booking } from '@/types/hotel';
 import { OTHER_CHANNELS, PAYMENT_METHODS } from '@/types/hotel';
-import { SaleModal } from '../SalesPageLegacy';
+// SaleModal import removed — 연박/예약 편집은 전용 페이지에서 처리
 
 // ─────────────────────────────────────────────────────────────
 // Constants
@@ -278,6 +279,85 @@ function coerceForPaste(
 }
 
 // ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// Booking memo prefix (연박 비고 표시)
+// ─────────────────────────────────────────────────────────────
+
+/**
+ * Build the "12-15(퇴)3박" prefix that appears in the memo column
+ * for multi-night booking rows. Returns '' for non-booking rows.
+ *
+ * Format rules:
+ *  - Same month:    "12-15 3박"   or  "12-15(퇴)3박"
+ *  - Cross month:   "4/30-5/2 3박"
+ *  - (퇴) only when sale.status === 'checked_out'
+ */
+function bookingMemoPrefix(
+  sale: Sale | null,
+  bookingsMap: ReadonlyMap<string, Booking> | undefined,
+): string {
+  if (!sale || !sale.booking_id || !bookingsMap) return '';
+  const booking = bookingsMap.get(sale.booking_id);
+  if (!booking) return '';
+
+  const cin = booking.check_in_date; // "2026-04-12"
+  const cout = booking.check_out_date; // "2026-04-15"
+  const cinMonth = cin.slice(5, 7);
+  const cinDay = cin.slice(8, 10);
+  const coutMonth = cout.slice(5, 7);
+  const coutDay = cout.slice(8, 10);
+
+  // Remove leading zeros for display: "04" → "4", "12" → "12"
+  const d1 = String(parseInt(cinDay, 10));
+  const d2 = String(parseInt(coutDay, 10));
+  const m1 = String(parseInt(cinMonth, 10));
+  const m2 = String(parseInt(coutMonth, 10));
+
+  const dateRange =
+    cinMonth === coutMonth
+      ? `${d1}-${d2}`
+      : `${m1}/${d1}-${m2}/${d2}`;
+
+  const checkout = sale.status === 'checked_out' ? '(퇴)' : '';
+  const nights = booking.total_nights;
+
+  return `${dateRange}${checkout} ${nights}박`;
+}
+
+/**
+ * Build the "예약 20,000" or "완불 80,000" prefix for the memo
+ * column on rows with payment_timing === '예약금' or '완불'.
+ * Returns '' for 현장 결제 rows.
+ */
+function paymentMemoPrefix(sale: Sale | null): {
+  text: string;
+  colorClass: string;
+} {
+  if (!sale) return { text: '', colorClass: '' };
+
+  if (sale.payment_timing === '예약금') {
+    if (sale.balance_paid) {
+      return {
+        text: `완불 ${sale.amount.toLocaleString('ko-KR')}`,
+        colorClass: 'text-green-600',
+      };
+    }
+    return {
+      text: `예약 ${(sale.prepaid_amount || 0).toLocaleString('ko-KR')}`,
+      colorClass: 'text-blue-600',
+    };
+  }
+
+  if (sale.payment_timing === '완불') {
+    return {
+      text: `완불 ${sale.amount.toLocaleString('ko-KR')}`,
+      colorClass: 'text-green-600',
+    };
+  }
+
+  return { text: '', colorClass: '' };
+}
+
 // Row flags (CP4.4)
 // ─────────────────────────────────────────────────────────────
 
@@ -337,7 +417,7 @@ function computeRowFlags(original: Sale | null): RowFlags {
     bookingId.length >= 32 &&
     /^[0-9a-f-]+$/i.test(bookingId)
   ) {
-    flags.nameColor = 'text-amber-600 font-semibold';
+    flags.nameColor = 'text-purple-700 font-semibold';
     flags.nameTooltip = '연박';
   }
 
@@ -533,6 +613,10 @@ interface ColumnRenderProps {
    * 완불 → green, 연박 → gold, etc.). Null fields mean no tint.
    */
   flags: RowFlags;
+  /** Booking memo prefix (e.g. "12-15(퇴)3박") for the memo column. */
+  bookingPrefix: string;
+  /** Payment memo prefix (e.g. "예약 20,000" or "완불 80,000"). */
+  paymentPrefix: { text: string; colorClass: string };
   cellProps: BaseCellProps;
 }
 
@@ -564,7 +648,7 @@ function buildColumns(variant: PanelVariant): ColumnDef[] {
     cols.push({
       key: 'channel',
       header: '구분',
-      width: 44,
+      width: 36,
       align: 'center',
       render: ({ draft, setField, cellProps }) => (
         <SelectCell
@@ -582,7 +666,7 @@ function buildColumns(variant: PanelVariant): ColumnDef[] {
   cols.push({
     key: 'guest_name',
     header: '성명',
-    width: 90,
+    width: 130,
     align: 'left',
     render: ({ draft, setField, flags, cellProps }) => (
       <TextCell
@@ -600,7 +684,7 @@ function buildColumns(variant: PanelVariant): ColumnDef[] {
   cols.push({
     key: 'room_type',
     header: '타입',
-    width: 40,
+    width: 26,
     align: 'center',
     render: ({ draft, setField, cellProps }) => (
       <SelectCell
@@ -617,7 +701,7 @@ function buildColumns(variant: PanelVariant): ColumnDef[] {
   cols.push({
     key: 'check_in_time',
     header: '입실',
-    width: 36,
+    width: 26,
     align: 'center',
     render: ({ draft, setField, cellProps }) => (
       <TimeCell
@@ -631,7 +715,7 @@ function buildColumns(variant: PanelVariant): ColumnDef[] {
   cols.push({
     key: 'check_out_time',
     header: '퇴실',
-    width: 36,
+    width: 26,
     align: 'center',
     render: ({ draft, setField, cellProps }) => (
       <TimeCell
@@ -646,7 +730,7 @@ function buildColumns(variant: PanelVariant): ColumnDef[] {
     cols.push({
       key: 'payment_method',
       header: '결재',
-      width: 48,
+      width: 40,
       align: 'center',
       render: ({ draft, setField, cellProps }) => (
         <SelectCell
@@ -663,7 +747,7 @@ function buildColumns(variant: PanelVariant): ColumnDef[] {
   cols.push({
     key: 'amount',
     header: variant === 'ota' ? '입금가' : '금액',
-    width: 72,
+    width: 64,
     align: 'right',
     render: ({ draft, setField, flags, cellProps }) => (
       <NumberCell
@@ -679,7 +763,7 @@ function buildColumns(variant: PanelVariant): ColumnDef[] {
   cols.push({
     key: 'room_number',
     header: '호실',
-    width: 44,
+    width: 32,
     align: 'center',
     render: ({ draft, setField, cellProps }) => (
       <TextCell
@@ -695,7 +779,7 @@ function buildColumns(variant: PanelVariant): ColumnDef[] {
   cols.push({
     key: 'checked_out',
     header: '퇴실',
-    width: 36,
+    width: 22,
     align: 'center',
     render: ({ draft, onCheckoutToggle, cellProps }) => (
       <CheckCell
@@ -709,7 +793,7 @@ function buildColumns(variant: PanelVariant): ColumnDef[] {
   cols.push({
     key: 'car_number',
     header: '차번호',
-    width: 64,
+    width: 40,
     align: 'left',
     render: ({ draft, setField, cellProps }) => (
       <TextCell
@@ -725,16 +809,37 @@ function buildColumns(variant: PanelVariant): ColumnDef[] {
   cols.push({
     key: 'memo',
     header: '비고',
-    width: 110,
+    width: 170,
     align: 'left',
-    render: ({ draft, setField, cellProps }) => (
-      <TextCell
-        {...cellProps}
-        value={draft.memo}
-        onChange={(v) => setField('memo', v)}
-        align="left"
-      />
-    ),
+    render: ({ draft, setField, bookingPrefix, paymentPrefix, cellProps }) => {
+      // Combined display: "12-15 3박 예약 20,000 기존메모"
+      const parts: string[] = [];
+      if (bookingPrefix) parts.push(bookingPrefix);
+      if (paymentPrefix.text) parts.push(paymentPrefix.text);
+      if (draft.memo) parts.push(draft.memo);
+      const displayValue = parts.join(' ');
+
+      // Color priority: booking amber > payment blue/green > default
+      const colorClass = bookingPrefix
+        ? 'text-purple-700'
+        : paymentPrefix.colorClass || undefined;
+
+      // Readonly prefix lines for the popup header
+      const prefixLines: string[] = [];
+      if (bookingPrefix) prefixLines.push(`🛏️ ${bookingPrefix}`);
+      if (paymentPrefix.text) prefixLines.push(`💰 ${paymentPrefix.text}`);
+
+      return (
+        <MemoPopup
+          {...cellProps}
+          value={draft.memo}
+          onChange={(v) => setField('memo', v)}
+          displayValue={displayValue}
+          textClassName={colorClass}
+          prefixLines={prefixLines}
+        />
+      );
+    },
   });
 
   cols.push({
@@ -812,17 +917,10 @@ export interface SalesGridPanelProps {
    */
   onRowSaved?: (saved: Sale) => void;
   /**
-   * CP5 — Room master list forwarded to the reused Legacy SaleModal
-   * for room number dropdowns. The page fetches this once and shares
-   * across all 6 panels.
+   * Booking lookup map for displaying "12-15(퇴)3박" in the memo
+   * column of multi-night rows. Keyed by booking_id.
    */
-  rooms?: Room[];
-  /**
-   * CP5 — Called when any inline-edit side effect reshapes the whole
-   * sales list (e.g. a 연박 cancel from the modal deletes N rows).
-   * The parent should refetch instead of trying to splice in place.
-   */
-  onRefetchRequested?: () => void;
+  bookingsMap?: ReadonlyMap<string, Booking>;
   /** Reserved for checkpoint 4. Currently not invoked. */
   onRowCommit?: (rowIdx: number, draft: RowDraft, original: Sale | null) => void;
 }
@@ -847,20 +945,13 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
     onDirtyChange,
     panelKey,
     onRowSaved,
-    rooms,
-    onRefetchRequested,
+    bookingsMap,
   } = props;
   // Stable ref so commitRow/commitCheckout can call it without
   // re-creating their callbacks every render.
   const onRowSavedRef = useRef(onRowSaved);
   onRowSavedRef.current = onRowSaved;
-  const onRefetchRequestedRef = useRef(onRefetchRequested);
-  onRefetchRequestedRef.current = onRefetchRequested;
 
-  // CP5 — advanced edit modal state.
-  // `modalSale` is the Sale being edited in the reused Legacy
-  // SaleModal (연박/예약금/CRM). Null = modal closed.
-  const [modalSale, setModalSale] = useState<Sale | null>(null);
 
   // CP4.5 — range selection + copy/paste/undo
   //
@@ -1516,13 +1607,8 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
     [],
   );
 
-  // CP5 — detect rows that should open the Legacy SaleModal instead
-  // of inline editing. 연박 rows are fully gated (any cell click
-  // opens the modal, no inline edits). 예약금 rows only gate the
-  // 금액 cell so staff can still tweak guest_name / room_number
-  // inline, but balance-payment actions flow through the modal.
-  // Declared here (above the CP4.5 action callbacks) because
-  // pasteFromClipboard needs it in its dependency array.
+  // Booking UUID check — still needed by pasteFromClipboard to
+  // skip multi-night rows during paste operations.
   const isConnectedBookingRow = useCallback(
     (sale: Sale | null): boolean => {
       if (!sale) return false;
@@ -1532,17 +1618,6 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
         bid.length >= 32 &&
         /^[0-9a-f-]+$/i.test(bid)
       );
-    },
-    [],
-  );
-
-  const openRowModal = useCallback(
-    (rowIdx: number) => {
-      const row = rowsRef.current[rowIdx];
-      if (!row?.original) return;
-      // Drop any edit/focus in progress so the modal starts clean.
-      setEditing(null);
-      setModalSale(row.original);
     },
     [],
   );
@@ -1794,34 +1869,14 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
   const handleRequestEdit = useCallback(
     (row: number, col: number) => {
       // CP4.5 — if this click is the tail end of a shift-click or
-      // drag-to-select, do NOT enter edit mode. The flag is consumed
-      // here so the next genuine click still works.
+      // drag-to-select, do NOT enter edit mode.
       if (suppressNextEditRef.current) {
         suppressNextEditRef.current = false;
         return;
       }
-      const rowState = rowsRef.current[row];
-      const original = rowState?.original ?? null;
-      // CP5 routing: if the row is a multi-night booking, always
-      // route to the modal regardless of which cell was clicked.
-      if (isConnectedBookingRow(original)) {
-        openRowModal(row);
-        return;
-      }
-      // CP5 routing: if the row has 예약금 accounting and the user
-      // is trying to touch the amount cell specifically, the modal
-      // owns balance-payment state. Other cells can still be edited
-      // inline (guest name, memo, room number, etc.).
-      if (
-        original?.payment_timing === '예약금' &&
-        columns[col]?.key === 'amount'
-      ) {
-        openRowModal(row);
-        return;
-      }
       focusCell(row, col, true);
     },
-    [focusCell, isConnectedBookingRow, openRowModal, columns],
+    [focusCell],
   );
 
   const handleCommit = useCallback(() => {
@@ -2120,6 +2175,8 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
               const focusedCol = focused?.row === rowIdx ? focused.col : null;
               const editingCol = editing?.row === rowIdx ? editing.col : null;
               const flags = computeRowFlags(row.original);
+              const bPrefix = bookingMemoPrefix(row.original, bookingsMap);
+              const pPrefix = paymentMemoPrefix(row.original);
               const rowInSel =
                 selRect !== null &&
                 rowIdx >= selRect.r0 &&
@@ -2140,6 +2197,8 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
                   errorMessage={row.error}
                   fieldErrors={row.fieldErrors}
                   flags={flags}
+                  bookingPrefix={bPrefix}
+                  paymentPrefix={pPrefix}
                   selRect={rowInSel ? selRect : null}
                   setField={setField}
                   onCheckoutToggle={commitCheckout}
@@ -2149,7 +2208,6 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
                   onMove={(col, dir) => move({ row: rowIdx, col }, dir)}
                   onTab={(col, shift) => tab({ row: rowIdx, col }, shift)}
                   onRetry={commitRow}
-                  onOpenModal={openRowModal}
                   onCellMouseDown={handleCellMouseDown}
                 />
               );
@@ -2178,31 +2236,6 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
         </span>
       </div>
 
-      {/* CP5 — Legacy SaleModal reuse for advanced edits
-          (연박 / 예약금 / 고객정보). We open it with the current
-          row's Sale and wire onSaved/onDeleted back into the inline
-          grid so the page footer + panel rows stay consistent. */}
-      {modalSale && (
-        <SaleModal
-          saleDate={saleDate}
-          rooms={rooms ?? []}
-          editSale={modalSale}
-          defaults={null}
-          onClose={() => setModalSale(null)}
-          onSaved={() => {
-            setModalSale(null);
-            // The modal may have touched booking_id-linked sibling
-            // rows, prepaid/balance fields, or customer linkage —
-            // anything a single PATCH would not capture cleanly.
-            // Ask the page to refetch so every panel reconciles.
-            onRefetchRequestedRef.current?.();
-          }}
-          onDeleted={() => {
-            setModalSale(null);
-            onRefetchRequestedRef.current?.();
-          }}
-        />
-      )}
     </div>
   );
 }
@@ -2231,6 +2264,10 @@ interface GridRowProps {
   fieldErrors: Partial<Record<keyof RowDraft, string>>;
   /** Row flags used to color the 성명 / 금액 cells. */
   flags: RowFlags;
+  /** Booking memo prefix (e.g. "12-15(퇴)3박") for the memo column. */
+  bookingPrefix: string;
+  /** Payment memo prefix (e.g. "예약 20,000"). */
+  paymentPrefix: { text: string; colorClass: string };
   setField: <K extends keyof RowDraft>(
     rowIdx: number,
     key: K,
@@ -2243,9 +2280,6 @@ interface GridRowProps {
   onMove: (col: number, dir: CellDirection) => void;
   onTab: (col: number, shift: boolean) => void;
   onRetry: (row: number) => void;
-  /** CP5 — open the Legacy SaleModal for this row (Ctrl/Meta+click,
-   *  연박 row, or 예약금 amount cell). No-op for empty rows. */
-  onOpenModal: (row: number) => void;
   /** CP4.5 — selection rectangle that THIS row intersects, or null
    *  when the row is outside the current selection. Passed as a
    *  normalised {r0,r1,c0,c1} so the row only does cheap arithmetic
@@ -2271,6 +2305,8 @@ const GridRow = React.memo(function GridRow(props: GridRowProps) {
     errorMessage,
     fieldErrors,
     flags,
+    bookingPrefix,
+    paymentPrefix,
     selRect,
     setField,
     onCheckoutToggle,
@@ -2280,7 +2316,6 @@ const GridRow = React.memo(function GridRow(props: GridRowProps) {
     onMove,
     onTab,
     onRetry,
-    onOpenModal,
     onCellMouseDown,
   } = props;
 
@@ -2301,22 +2336,9 @@ const GridRow = React.memo(function GridRow(props: GridRowProps) {
     ? ''
     : 'bg-white';
 
-  // CP5 — capture Ctrl/Meta+click before individual cells see it so
-  // the modal opens even when the click lands on a cell that would
-  // otherwise flip into edit mode. Plain clicks fall through to the
-  // per-cell onRequestEdit.
-  const handleRowMouseDownCapture = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!hasOriginal) return;
-    if (!(e.ctrlKey || e.metaKey)) return;
-    e.preventDefault();
-    e.stopPropagation();
-    onOpenModal(rowIdx);
-  };
-
   return (
     <div
       className={`flex border-b border-gray-100 ${rowTint} hover:bg-gray-50/50 transition-colors`}
-      onMouseDownCapture={handleRowMouseDownCapture}
     >
       <div
         className="shrink-0 px-1 text-center text-[11px] leading-6"
@@ -2369,6 +2391,8 @@ const GridRow = React.memo(function GridRow(props: GridRowProps) {
                 setField: setFieldForRow,
                 onCheckoutToggle: (next) => onCheckoutToggle(rowIdx, next),
                 flags,
+                bookingPrefix,
+                paymentPrefix,
                 cellProps: {
                   isFocused,
                   isEditing,
@@ -2391,6 +2415,17 @@ const GridRow = React.memo(function GridRow(props: GridRowProps) {
                     ? flags.nameColor ?? undefined
                     : col.key === 'amount'
                     ? flags.amountColor ?? undefined
+                    : col.key === 'memo' && (bookingPrefix || paymentPrefix.text)
+                    ? bookingPrefix
+                      ? 'text-purple-700'
+                      : paymentPrefix.colorClass || undefined
+                    : undefined
+                }
+                displayOverride={
+                  col.key === 'memo' && (bookingPrefix || paymentPrefix.text)
+                    ? [bookingPrefix, paymentPrefix.text, draft.memo]
+                        .filter(Boolean)
+                        .join(' ') || undefined
                     : undefined
                 }
                 onClick={() => onRequestEdit(rowIdx, colIdx)}
@@ -2466,8 +2501,10 @@ interface LightweightCellProps {
   col: ColumnDef;
   isFocused: boolean;
   hasError: boolean;
-  /** Optional tint class for the 성명 / 금액 columns. */
+  /** Optional tint class for the 성명 / 금액 / memo columns. */
   textClassName?: string;
+  /** Override the display string (e.g. booking prefix + memo). */
+  displayOverride?: string;
   onClick: () => void;
 }
 
@@ -2477,11 +2514,14 @@ function LightweightCell({
   isFocused,
   hasError,
   textClassName,
+  displayOverride,
   onClick,
 }: LightweightCellProps) {
   const value = draft[col.key];
   let display = '';
-  if (value == null || value === '' || value === 0 || value === false) {
+  if (displayOverride != null) {
+    display = displayOverride;
+  } else if (value == null || value === '' || value === 0 || value === false) {
     display = '';
   } else if (typeof value === 'number') {
     display = value.toLocaleString('ko-KR');
