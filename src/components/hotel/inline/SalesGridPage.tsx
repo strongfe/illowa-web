@@ -24,6 +24,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import SalesGridPanel from './SalesGridPanel';
+import { VacancyTable, ChannelRevenueTable } from './StatsPanel';
 import type { Sale, RoomType, Room } from '@/types/hotel';
 import { ROOM_TYPE_CAPACITY } from '@/types/hotel';
 
@@ -291,8 +292,11 @@ export default function SalesGridPage() {
         </div>
       </div>
 
-      {/* 대실 행 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+      {/* 6패널 + 통계 — 4열 그리드. 4번째 열(통계)은 2행 span.
+          xl 미만에서는 3열로 떨어지고 통계가 아래로 이동. */}
+      <div className="grid gap-3"
+           style={{ gridTemplateColumns: '4fr 4fr 5fr auto', gridTemplateRows: 'auto auto' }}>
+        {/* 대실 행 (1~3열) */}
         <SalesGridPanel title="야놀자"   saleType="대실" variant="ota" sales={groups.yanolja_daesil} saleDate={saleDate}
           panelKey="yanolja_daesil"   occupiedRooms={occupiedRooms} rooms={rooms}
           onDirtyChange={handlePanelDirtyChange} onRowSaved={handleRowSaved} onRefetchRequested={fetchSales} />
@@ -302,10 +306,14 @@ export default function SalesGridPage() {
         <SalesGridPanel title="기타"     saleType="대실" variant="etc" sales={groups.etc_daesil}     saleDate={saleDate}
           panelKey="etc_daesil"       occupiedRooms={occupiedRooms} rooms={rooms}
           onDirtyChange={handlePanelDirtyChange} onRowSaved={handleRowSaved} onRefetchRequested={fetchSales} />
-      </div>
 
-      {/* 숙박 행 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+        {/* 4번째 열: 통계 (row-span 2 — 대실행+숙박행 전체 차지) */}
+        <div className="row-span-2 flex flex-col gap-3 min-w-[160px]">
+          <VacancyTable sales={sales} />
+          <ChannelRevenueTable sales={sales} />
+        </div>
+
+        {/* 숙박 행 (1~3열, 4열은 이미 span) */}
         <SalesGridPanel title="야놀자"   saleType="숙박" variant="ota" sales={groups.yanolja_sukbak} saleDate={saleDate}
           panelKey="yanolja_sukbak"   occupiedRooms={occupiedRooms} rooms={rooms}
           onDirtyChange={handlePanelDirtyChange} onRowSaved={handleRowSaved} onRefetchRequested={fetchSales} />
