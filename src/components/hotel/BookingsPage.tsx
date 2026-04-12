@@ -92,6 +92,7 @@ export default function BookingsPage() {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('전체');
+  const [nameSearch, setNameSearch] = useState('');
 
   // Modal state — null means the modal is closed. When the user
   // clicks a row we fetch the representative sale and put it here.
@@ -146,9 +147,12 @@ export default function BookingsPage() {
   // Filtered view — date range intersects the booking's stay
   // window, and status matches the filter group.
   const visible = useMemo(() => {
+    const nameKey = nameSearch.trim().toLowerCase();
     return bookings
       .map((b) => ({ b, s: deriveStatus(b, today) }))
       .filter(({ b, s }) => {
+        // name search filter
+        if (nameKey && !b.guest_name.toLowerCase().includes(nameKey)) return false;
         // date range filter: show bookings whose stay window
         // overlaps [dateFrom, dateTo]
         if (dateFrom && b.check_out_date < dateFrom) return false;
@@ -163,7 +167,7 @@ export default function BookingsPage() {
         }
         return true;
       });
-  }, [bookings, today, dateFrom, dateTo, statusFilter]);
+  }, [bookings, today, dateFrom, dateTo, statusFilter, nameSearch]);
 
   // Summary card totals — computed from the full unfiltered set so
   // the cards don't flicker when the user toggles filters.
@@ -281,6 +285,16 @@ export default function BookingsPage() {
       {/* Filters */}
       <div className="bg-white rounded-xl border border-gray-200 p-4 flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-2">
+          <label className="text-xs text-gray-600">성명</label>
+          <input
+            type="text"
+            value={nameSearch}
+            onChange={(e) => setNameSearch(e.target.value)}
+            placeholder="이름 검색"
+            className="bg-gray-100 border border-gray-300 rounded-lg px-2 py-1 text-sm w-28"
+          />
+        </div>
+        <div className="flex items-center gap-2">
           <label className="text-xs text-gray-600">기간</label>
           <input
             type="date"
@@ -295,11 +309,12 @@ export default function BookingsPage() {
             onChange={(e) => setDateTo(e.target.value)}
             className="bg-gray-100 border border-gray-300 rounded-lg px-2 py-1 text-sm"
           />
-          {(dateFrom || dateTo) && (
+          {(dateFrom || dateTo || nameSearch) && (
             <button
               onClick={() => {
                 setDateFrom('');
                 setDateTo('');
+                setNameSearch('');
               }}
               className="text-xs text-gray-500 hover:text-gray-900 px-2"
             >
