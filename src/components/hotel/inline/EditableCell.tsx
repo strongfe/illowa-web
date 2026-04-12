@@ -31,7 +31,6 @@
 import React, {
   useCallback,
   useEffect,
-  useId,
   useMemo,
   useRef,
   useState,
@@ -787,7 +786,8 @@ export function SelectCell<V extends string | number = string>(
   const inputRef = useRef<HTMLInputElement>(null);
   const composingRef = useRef(false);
   const enterByTypingRef = useRef(false);
-  const listId = useId();
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [highlightIdx, setHighlightIdx] = useState(-1);
 
   const currentLabel = useMemo(() => {
     const found = options.find((o) => o.value === value);
@@ -963,6 +963,65 @@ export function SelectCell<V extends string | number = string>(
 
   const effectiveError = error ?? localError;
 
+  // Filtered options for dropdown
+  const filteredOptions = useMemo(() => {
+    const available = options.filter((o) => !o.disabled);
+    if (!draft.trim()) return available;
+    const lower = draft.trim().toLowerCase();
+    return available.filter((o) => o.label.toLowerCase().includes(lower));
+  }, [options, draft]);
+
+  // Reset highlight when filtered list changes
+  const [prevFiltered, setPrevFiltered] = useState(filteredOptions);
+  if (filteredOptions !== prevFiltered) {
+    setPrevFiltered(filteredOptions);
+    setHighlightIdx(-1);
+  }
+
+  // Scroll highlighted item into view
+  useEffect(() => {
+    if (highlightIdx >= 0 && dropdownRef.current) {
+      const items = dropdownRef.current.children;
+      if (items[highlightIdx]) {
+        (items[highlightIdx] as HTMLElement).scrollIntoView({ block: 'nearest' });
+      }
+    }
+  }, [highlightIdx]);
+
+  const handleInputKeyDown2 = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (composingRef.current || e.nativeEvent.isComposing || e.keyCode === 229) {
+      return;
+    }
+    // Arrow up/down navigate the dropdown list
+    if (e.key === 'ArrowDown' && filteredOptions.length > 0) {
+      e.preventDefault();
+      setHighlightIdx((prev) => Math.min(prev + 1, filteredOptions.length - 1));
+      return;
+    }
+    if (e.key === 'ArrowUp' && filteredOptions.length > 0) {
+      e.preventDefault();
+      setHighlightIdx((prev) => Math.max(prev - 1, 0));
+      return;
+    }
+    // Enter: if highlighted, select it; otherwise commit typed text
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (highlightIdx >= 0 && highlightIdx < filteredOptions.length) {
+        const selected = filteredOptions[highlightIdx];
+        setDraft(selected.label);
+        setLocalError(null);
+        onChange(selected.value);
+        onCommit?.();
+        onMove?.('down');
+      } else {
+        if (commit()) onMove?.('down');
+      }
+      return;
+    }
+    // Delegate other keys (Escape, Tab) to the original handler
+    handleInputKeyDown(e);
+  };
+
   return (
     <div
       ref={wrapRef}
@@ -978,28 +1037,55 @@ export function SelectCell<V extends string | number = string>(
       })}
     >
       {isEditing ? (
-        <>
+        <div className="relative w-full">
           <input
             ref={inputRef}
             type="text"
-            list={listId}
             value={draft}
             onChange={(e) => { setDraft(e.target.value); setLocalError(null); }}
             onCompositionStart={() => { composingRef.current = true; }}
             onCompositionEnd={() => { composingRef.current = false; }}
-            onKeyDown={handleInputKeyDown}
-            onBlur={() => { commit(); }}
+            onKeyDown={handleInputKeyDown2}
+            onBlur={(e) => {
+              // Delay commit to allow dropdown click to fire first
+              const related = e.relatedTarget as HTMLElement | null;
+              if (related && dropdownRef.current?.contains(related)) return;
+              setTimeout(() => { commit(); }, 150);
+            }}
             placeholder={placeholder}
             className="w-full bg-transparent outline-none border-none p-0 text-xs text-center"
           />
-          <datalist id={listId}>
-            {options
-              .filter((o) => !o.disabled)
-              .map((o) => (
-                <option key={String(o.value)} value={o.label} />
+          {filteredOptions.length > 0 && (
+            <div
+              ref={dropdownRef}
+              className="absolute left-0 right-0 top-full mt-0.5 z-[9999] bg-white border border-gray-300 rounded shadow-lg max-h-48 overflow-y-auto"
+            >
+              {filteredOptions.map((o, idx) => (
+                <div
+                  key={String(o.value)}
+                  tabIndex={-1}
+                  onMouseDown={(e) => {
+                    e.preventDefault(); // prevent input blur
+                    setDraft(o.label);
+                    setLocalError(null);
+                    onChange(o.value);
+                    onCommit?.();
+                  }}
+                  onMouseEnter={() => setHighlightIdx(idx)}
+                  className={`px-2 py-1.5 text-xs cursor-pointer ${
+                    idx === highlightIdx
+                      ? 'bg-[#C9A84C]/20 text-gray-900'
+                      : o.value === value
+                        ? 'bg-blue-50 text-gray-900'
+                        : 'text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  {o.label}
+                </div>
               ))}
-          </datalist>
-        </>
+            </div>
+          )}
+        </div>
       ) : (
         <span className={currentLabel ? '' : 'text-gray-300'}>
           {currentLabel || placeholder || ''}
