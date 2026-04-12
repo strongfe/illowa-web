@@ -1544,6 +1544,16 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
               next.push(buildRowState(null));
               return next;
             });
+            // Rebuild mounted set: row indices shifted after deletion,
+            // so clear all entries at or after the deleted row index.
+            setMounted((prev) => {
+              const next = new Set<string>();
+              for (const key of prev) {
+                const r = parseInt(key.split(':')[0], 10);
+                if (r < rowIdx) next.add(key);
+              }
+              return next;
+            });
             // Clear focus so it doesn't point at a shifted row
             setFocused(null);
             setEditing(null);
