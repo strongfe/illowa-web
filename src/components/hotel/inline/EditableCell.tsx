@@ -1027,8 +1027,6 @@ export interface CheckCellProps extends BaseCellProps {
 export function CheckCell(props: CheckCellProps) {
   const {
     value, onChange,
-    checkedLabel = '☑ 퇴실',
-    uncheckedLabel = '☐',
     isFocused, readOnly, isSaving, justSaved, error, ariaLabel,
     onMove, onTab,
   } = props;
@@ -1085,11 +1083,11 @@ export function CheckCell(props: CheckCellProps) {
       })}
     >
       <span
-        className={`text-[10px] font-bold ${
-          value ? 'text-orange-700' : 'text-gray-400'
+        className={`text-xs font-bold whitespace-nowrap ${
+          value ? 'text-green-600' : 'text-gray-400'
         }`}
       >
-        {value ? checkedLabel : uncheckedLabel}
+        {value ? '✓' : '□'}
       </span>
       {isSaving && <SavingSpinner />}
       {error && isFocused && <ErrorTooltip message={error} />}

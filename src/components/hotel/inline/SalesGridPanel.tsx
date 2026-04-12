@@ -779,7 +779,7 @@ function buildColumns(variant: PanelVariant): ColumnDef[] {
   cols.push({
     key: 'checked_out',
     header: '퇴실',
-    width: 22,
+    width: 36,
     align: 'center',
     render: ({ draft, onCheckoutToggle, cellProps }) => (
       <CheckCell
@@ -809,7 +809,7 @@ function buildColumns(variant: PanelVariant): ColumnDef[] {
   cols.push({
     key: 'memo',
     header: '비고',
-    width: 170,
+    width: 156,
     align: 'left',
     render: ({ draft, setField, bookingPrefix, paymentPrefix, cellProps }) => {
       // Combined display: "12-15 3박 예약 20,000 기존메모"
