@@ -329,7 +329,7 @@ export default function ClosingPage() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 max-w-4xl mx-auto">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-[#C9A84C]">일일 마감</h1>
         <input
@@ -367,10 +367,20 @@ export default function ClosingPage() {
 
       {/* 총계 */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <table className="w-full text-xs">
+        <table className="w-full text-xs table-fixed">
+          <colgroup>
+            <col style={{ width: 56 }} />
+            <col style={{ width: 24 }} /><col style={{ width: 60 }} />
+            <col style={{ width: 24 }} /><col style={{ width: 60 }} />
+            <col style={{ width: 24 }} /><col style={{ width: 60 }} />
+            <col style={{ width: 24 }} /><col style={{ width: 60 }} />
+            <col style={{ width: 24 }} /><col style={{ width: 60 }} />
+            <col style={{ width: 24 }} /><col style={{ width: 60 }} />
+            <col style={{ width: 94 }} />
+          </colgroup>
           <tbody>
-            <tr className="bg-[#C9A84C]/10 font-bold text-sm">
-              <td className="px-3 py-2 w-16">총계</td>
+            <tr className="bg-[#C9A84C]/10 font-bold text-xs">
+              <td className="px-1 py-1.5 text-center">총계</td>
               <NumTd v={grandTotal.inputDC} />
               <NumTd v={grandTotal.inputDA} />
               <NumTd v={grandTotal.inputSC} />
@@ -420,37 +430,40 @@ function ReconTable({
         <h2 className="font-bold text-sm text-gray-800">{title}</h2>
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full text-xs whitespace-nowrap">
+        <table className="w-full text-xs whitespace-nowrap table-fixed">
+          <colgroup>
+            <col style={{ width: 56 }} />{/* 채널 */}
+            <col style={{ width: 24 }} />{/* 대건 */}
+            <col style={{ width: 60 }} />{/* 대금 */}
+            <col style={{ width: 24 }} />{/* 숙건 */}
+            <col style={{ width: 60 }} />{/* 숙금 */}
+            <col style={{ width: 24 }} />{/* 대건 */}
+            <col style={{ width: 60 }} />{/* 대금 */}
+            <col style={{ width: 24 }} />{/* 숙건 */}
+            <col style={{ width: 60 }} />{/* 숙금 */}
+            <col style={{ width: 24 }} />{/* 대건 */}
+            <col style={{ width: 60 }} />{/* 대금 */}
+            <col style={{ width: 24 }} />{/* 숙건 */}
+            <col style={{ width: 60 }} />{/* 숙금 */}
+            <col style={{ width: 94 }} />{/* 비고 */}
+          </colgroup>
           <thead>
             <tr className="bg-gray-100 text-gray-500 text-[10px]">
-              <th className="px-2 py-1 text-left w-16" rowSpan={2}>
-                채널
-              </th>
-              <th className="px-1 py-1 text-center border-l border-gray-300" colSpan={4}>
-                입력
-              </th>
-              <th className="px-1 py-1 text-center border-l border-gray-300" colSpan={4}>
-                실재
-              </th>
-              <th className="px-1 py-1 text-center border-l border-gray-300" colSpan={4}>
-                차이
-              </th>
-              <th className="px-1 py-1 text-center border-l border-gray-300 w-20" rowSpan={2}>
-                비고
-              </th>
+              <th className="px-1 py-1 text-center" rowSpan={2}>채널</th>
+              <th className="px-1 py-1 text-center border-l border-gray-300" colSpan={4}>입력</th>
+              <th className="px-1 py-1 text-center border-l border-gray-300" colSpan={4}>실재</th>
+              <th className="px-1 py-1 text-center border-l border-gray-300" colSpan={4}>차이</th>
+              <th className="px-1 py-1 text-center border-l border-gray-300" rowSpan={2}>비고</th>
             </tr>
             <tr className="bg-gray-50 text-gray-400 text-[10px]">
-              {/* 입력 */}
               <th className="px-1 py-0.5 text-center border-l border-gray-300">대건</th>
               <th className="px-1 py-0.5 text-center">대금</th>
               <th className="px-1 py-0.5 text-center">숙건</th>
               <th className="px-1 py-0.5 text-center">숙금</th>
-              {/* 실재 */}
               <th className="px-1 py-0.5 text-center border-l border-gray-300">대건</th>
               <th className="px-1 py-0.5 text-center">대금</th>
               <th className="px-1 py-0.5 text-center">숙건</th>
               <th className="px-1 py-0.5 text-center">숙금</th>
-              {/* 차이 */}
               <th className="px-1 py-0.5 text-center border-l border-gray-300">대건</th>
               <th className="px-1 py-0.5 text-center">대금</th>
               <th className="px-1 py-0.5 text-center">숙건</th>
@@ -468,7 +481,7 @@ function ReconTable({
             ))}
             {/* Subtotal */}
             <tr className="border-t-2 border-gray-300 font-bold bg-gray-50">
-              <td className="px-2 py-1">소계</td>
+              <td className="px-1 py-1 text-center">소계</td>
               <NumTd v={subtotal.inputDC} />
               <NumTd v={subtotal.inputDA} />
               <NumTd v={subtotal.inputSC} />
@@ -528,7 +541,7 @@ function ReconRow({
 
   return (
     <tr className="border-t border-gray-100 hover:bg-gray-50/50">
-      <td className="px-2 py-1 font-medium">{def.label}</td>
+      <td className="px-1 py-1 font-medium text-center truncate">{def.label}</td>
       {/* Input (auto-calculated, read-only) */}
       <NumTd v={isRefund ? 0 : input.daesilCount} dim={isRefund} />
       <NumTd v={isRefund ? 0 : input.daesilAmount} dim={isRefund} />
