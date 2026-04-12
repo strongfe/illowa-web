@@ -1536,12 +1536,17 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
               const body = await res.json().catch(() => ({}));
               throw new Error(body.error || '삭제 실패');
             }
-            // Reset the row to empty
+            // Remove the row and shift remaining rows up,
+            // then append an empty row at the bottom.
             setRows((prev) => {
               const next = prev.slice();
-              next[rowIdx] = buildRowState(null);
+              next.splice(rowIdx, 1);
+              next.push(buildRowState(null));
               return next;
             });
+            // Clear focus so it doesn't point at a shifted row
+            setFocused(null);
+            setEditing(null);
             // Notify sibling panels
             onRowSavedRef.current?.(null as unknown as Sale);
           })
