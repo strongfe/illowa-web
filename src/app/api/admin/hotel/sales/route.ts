@@ -172,6 +172,28 @@ export async function DELETE(req: NextRequest) {
   const id = req.nextUrl.searchParams.get('id');
   if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 });
 
+  // Safety: reject deletion of booking-linked or reservation-deposit rows
+  const { data: row } = await supabase
+    .from('sales')
+    .select('booking_id, payment_timing')
+    .eq('id', id)
+    .single();
+
+  if (!row) return NextResponse.json({ error: 'not found' }, { status: 404 });
+
+  if (row.booking_id) {
+    return NextResponse.json(
+      { error: '연박 행은 연박현황에서 관리하세요' },
+      { status: 403 },
+    );
+  }
+  if (row.payment_timing && row.payment_timing !== '현장') {
+    return NextResponse.json(
+      { error: '예약금 행은 예약현황에서 관리하세요' },
+      { status: 403 },
+    );
+  }
+
   const { error } = await supabase
     .from('sales')
     .delete()

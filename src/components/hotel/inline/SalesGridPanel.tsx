@@ -1037,6 +1037,12 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
     () => new Set(),
   );
 
+  // ── Row deletion (Del × 2) ──
+  // pendingDeleteRow: row index awaiting 2nd Del press, or null.
+  const [pendingDeleteRow, setPendingDeleteRow] = useState<number | null>(null);
+  const deleteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [deletingRow, setDeletingRow] = useState<number | null>(null);
+
   // Focus / edit / mount state
   const [focused, setFocused] = useState<FocusPos | null>(null);
   const [editing, setEditing] = useState<FocusPos | null>(null);
@@ -1481,6 +1487,92 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
     [scheduleFlashClear],
   );
 
+  // ── Row deletion helpers ──
+
+  const cancelPendingDelete = useCallback(() => {
+    if (deleteTimerRef.current) {
+      clearTimeout(deleteTimerRef.current);
+      deleteTimerRef.current = null;
+    }
+    setPendingDeleteRow(null);
+  }, []);
+
+  /**
+   * Returns true if the row at `rowIdx` is deletable (has an original
+   * sale AND is not a booking-linked or deposit row).
+   */
+  const isDeletableRow = useCallback(
+    (rowIdx: number): boolean => {
+      const row = rowsRef.current[rowIdx];
+      if (!row?.original) return false;
+      if (row.original.booking_id) return false;
+      const pt = row.original.payment_timing;
+      if (pt && pt !== '현장') return false;
+      return true;
+    },
+    [],
+  );
+
+  /**
+   * Handle Delete key press (display mode only).
+   *  - 1st press: mark row pending (red tint + trash icon, 3s timeout)
+   *  - 2nd press within 3s: fire DELETE API and reset row to empty
+   */
+  const handleDeleteKey = useCallback(
+    (rowIdx: number) => {
+      if (!isDeletableRow(rowIdx)) return;
+      const row = rowsRef.current[rowIdx];
+      if (!row?.original) return;
+
+      if (pendingDeleteRow === rowIdx) {
+        // ── 2nd Del: execute deletion ──
+        cancelPendingDelete();
+        setDeletingRow(rowIdx);
+
+        const saleId = row.original.id;
+        fetch(`/api/admin/hotel/sales?id=${saleId}`, { method: 'DELETE' })
+          .then(async (res) => {
+            if (!res.ok) {
+              const body = await res.json().catch(() => ({}));
+              throw new Error(body.error || '삭제 실패');
+            }
+            // Reset the row to empty
+            setRows((prev) => {
+              const next = prev.slice();
+              next[rowIdx] = buildRowState(null);
+              return next;
+            });
+            // Notify sibling panels
+            onRowSavedRef.current?.(null as unknown as Sale);
+          })
+          .catch((err) => {
+            setRows((prev) => {
+              const next = prev.slice();
+              const cur = next[rowIdx];
+              next[rowIdx] = { ...cur, error: String(err.message || '삭제 실패') };
+              return next;
+            });
+          })
+          .finally(() => setDeletingRow(null));
+      } else {
+        // ── 1st Del: mark pending ──
+        cancelPendingDelete();
+        setPendingDeleteRow(rowIdx);
+        deleteTimerRef.current = setTimeout(() => {
+          setPendingDeleteRow(null);
+          deleteTimerRef.current = null;
+        }, 3000);
+      }
+    },
+    [pendingDeleteRow, cancelPendingDelete, isDeletableRow],
+  );
+
+  // Cancel pending delete when focus moves to a different row or any
+  // other key is pressed.
+  const cancelDeleteOnInteraction = useCallback(() => {
+    if (pendingDeleteRow !== null) cancelPendingDelete();
+  }, [pendingDeleteRow, cancelPendingDelete]);
+
   /** Apply a focus change. `alsoEdit=true` enters edit mode (Tab/click/typing). */
   const focusCell = useCallback(
     (row: number, col: number, alsoEdit: boolean) => {
@@ -1488,6 +1580,9 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
       const c = Math.max(0, Math.min(colCount - 1, col));
       // Capture the row we are leaving before we overwrite the ref.
       const prevRow = focusedRowRef.current;
+
+      // Cancel pending delete when moving to a different row
+      if (prevRow !== r) cancelDeleteOnInteraction();
 
       ensureMounted(r, c);
       setFocused({ row: r, col: c });
@@ -2059,8 +2154,7 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
     const handler = (e: KeyboardEvent) => {
       if (!panelRef.current) return;
       if (!panelRef.current.contains(document.activeElement)) return;
-      const ctrl = e.ctrlKey || e.metaKey;
-      if (!ctrl) return;
+
       // If the user is inside an editable input (cell edit mode,
       // modal field, etc.) let the native shortcut run so they can
       // copy/paste/undo inside that input normally.
@@ -2068,6 +2162,24 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
       const tag = ae?.tagName;
       const inEditable =
         tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+
+      // ── Delete key (display mode only) — row deletion ──
+      if (e.key === 'Delete' && !inEditable) {
+        const foc = focusedFullRef.current;
+        if (foc) {
+          e.preventDefault();
+          handleDeleteKey(foc.row);
+          return;
+        }
+      }
+
+      // Cancel pending delete on any other key press
+      if (e.key !== 'Delete') {
+        cancelDeleteOnInteraction();
+      }
+
+      const ctrl = e.ctrlKey || e.metaKey;
+      if (!ctrl) return;
 
       switch (e.key.toLowerCase()) {
         case 'c':
@@ -2094,7 +2206,7 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
     };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
-  }, [copyToClipboard, pasteFromClipboard, undoOne, selectAll]);
+  }, [copyToClipboard, pasteFromClipboard, undoOne, selectAll, handleDeleteKey, cancelDeleteOnInteraction]);
 
   // Compute total content width for the inner scroll container.
   const totalWidth = useMemo(
@@ -2237,6 +2349,8 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
                   flags={flags}
                   bookingPrefix={bPrefix}
                   paymentPrefix={pPrefix}
+                  isPendingDelete={pendingDeleteRow === rowIdx}
+                  isDeleting={deletingRow === rowIdx}
                   selRect={rowInSel ? selRect : null}
                   setField={setField}
                   onCheckoutToggle={commitCheckout}
@@ -2313,6 +2427,10 @@ interface GridRowProps {
   bookingPrefix: string;
   /** Payment memo prefix (e.g. "예약 20,000"). */
   paymentPrefix: { text: string; colorClass: string };
+  /** Row is in "pending delete" state (1st Del pressed, waiting for 2nd). */
+  isPendingDelete: boolean;
+  /** Row is currently being deleted (DELETE API in flight). */
+  isDeleting: boolean;
   setField: <K extends keyof RowDraft>(
     rowIdx: number,
     key: K,
@@ -2364,6 +2482,8 @@ const GridRow = React.memo(function GridRow(props: GridRowProps) {
     onCellMouseDown,
   } = props;
 
+  const { isPendingDelete, isDeleting } = props;
+
   // Bind row index into the field setter so each cell column only sees
   // a 2-arg signature.
   const setFieldForRow = useCallback(
@@ -2375,7 +2495,11 @@ const GridRow = React.memo(function GridRow(props: GridRowProps) {
   // Row tint: green wash during the brief post-save confirmation.
   // The dirty/saving/error states are surfaced in the # column badge
   // so they don't fight the focused cell's gold outline.
-  const rowTint = justSaved
+  const rowTint = isPendingDelete
+    ? 'bg-red-50 border-red-300'
+    : isDeleting
+    ? 'bg-red-100 opacity-60'
+    : justSaved
     ? 'bg-green-50'
     : hasOriginal
     ? ''
@@ -2383,21 +2507,30 @@ const GridRow = React.memo(function GridRow(props: GridRowProps) {
 
   return (
     <div
-      className={`flex border-b border-gray-100 ${rowTint} hover:bg-gray-50/50 transition-colors`}
+      className={`flex border-b ${isPendingDelete ? 'border-red-300' : 'border-gray-100'} ${rowTint} hover:bg-gray-50/50 transition-colors`}
     >
       <div
         className="shrink-0 px-1 text-center text-[11px] leading-6"
         style={{ width: 28 }}
-        title={errorMessage ?? undefined}
+        title={isPendingDelete ? '한 번 더 Del 키를 누르면 삭제됩니다' : errorMessage ?? undefined}
       >
-        <RowStatusIndicator
-          rowIdx={rowIdx}
-          isDirty={isDirty}
-          isSaving={isSaving}
-          justSaved={justSaved}
-          errorMessage={errorMessage}
-          onRetry={() => onRetry(rowIdx)}
-        />
+        {isPendingDelete ? (
+          <span className="text-red-500" title="한 번 더 Del 키를 누르면 삭제됩니다">🗑️</span>
+        ) : isDeleting ? (
+          <span
+            aria-label="삭제 중"
+            className="inline-block w-3 h-3 rounded-full border-2 border-red-300 border-t-red-600 animate-spin align-middle"
+          />
+        ) : (
+          <RowStatusIndicator
+            rowIdx={rowIdx}
+            isDirty={isDirty}
+            isSaving={isSaving}
+            justSaved={justSaved}
+            errorMessage={errorMessage}
+            onRetry={() => onRetry(rowIdx)}
+          />
+        )}
       </div>
       {columns.map((col, colIdx) => {
         const k = `${rowIdx}:${colIdx}`;
