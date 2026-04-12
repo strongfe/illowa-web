@@ -39,8 +39,8 @@ const HOTEL_SCHEMA = {
   description:
     '안양역 1호선 도보 5분 거리의 프리미엄 부티크 호텔. 전 객실 무료 OTT(넷플릭스, 웨이브, 티빙), RTX 3060 고사양 게이밍 스위트룸 13개, 100여 종 컵라면 24시간 무제한 스낵바 완비.',
   url: 'https://www.illowa-hotel.com',
-  telephone: '+82-503-5051-6355',
-  email: 'chon9129@naver.com',
+  telephone: '+82-31-464-9661',
+  email: 'ch8773@naver.com',
   address: {
     '@type': 'PostalAddress',
     streetAddress: '안양로268번길 41',

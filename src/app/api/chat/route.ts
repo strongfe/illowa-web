@@ -15,8 +15,8 @@ const HOTEL_CONTEXT = `
 ### 위치 & 연락처
 - 주소: 경기도 안양시 만안구 안양로268번길 41 (안양동 622-19)
 - 교통: 수도권 1호선 안양역 1번 출구 도보 500m (약 5분)
-- 전화: 0503-5051-6355
-- 이메일: chon9129@naver.com
+- 전화: 031-464-9661
+- 이메일: ch8773@naver.com
 - 프론트: 24시간 연중무휴 (한국어·중국어 응대)
 
 ### 체크인/체크아웃
@@ -93,7 +93,7 @@ IMPORTANT LANGUAGE RULES:
 
 BEHAVIOR GUIDELINES:
 - Be warm, concise, and helpful
-- For booking questions, direct them to call 0503-5051-6355 or use OTA platforms (Booking.com, Agoda, etc.)
+- For booking questions, direct them to call 031-464-9661 or use OTA platforms (Booking.com, Agoda, etc.)
 - Only answer questions about ILLOWA HOTEL — politely decline unrelated questions
 - Keep responses short (2-4 sentences) unless detailed info is needed
 - Use friendly tone appropriate for a hotel concierge`;

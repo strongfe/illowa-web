@@ -330,7 +330,7 @@ function InvoicePopup({
             <div>상호명 : 일로와(illOwa) &nbsp;|&nbsp; 대표자 : 전대홍</div>
             <div>사업자등록번호 : 123-36-55369</div>
             <div>주소 : 경기도 안양시 만안구 안양로268번길 41 (안양동 622-19)</div>
-            <div>전화 : 0503-5051-6355 &nbsp;|&nbsp; 이메일 : chon9129@naver.com</div>
+            <div>전화 : 031-464-9661 &nbsp;|&nbsp; 이메일 : ch8773@naver.com</div>
           </div>
 
           {/* Divider */}

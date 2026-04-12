@@ -46,7 +46,7 @@ export default function Header() {
                         <LocaleSwitcher />
                     </div>
                     <a
-                        href="tel:0503-5051-6355"
+                        href="tel:031-464-9661"
                         className="bg-transparent border border-gold text-gold py-2 px-3 md:py-2.5 md:px-7 text-[10px] tracking-[2px] md:tracking-[3px] uppercase font-montserrat hover:bg-gold hover:text-black transition-all whitespace-nowrap"
                         data-track="click_call_header"
                     >
@@ -75,7 +75,7 @@ export default function Header() {
                         <li><Link href="#amenities" onClick={() => setMobileOpen(false)} className="block py-3 px-3.5 text-white2 text-[12px] tracking-[2px] uppercase border border-gold/10 bg-white/5 hover:text-gold hover:border-gold/25">{t('mobile_amenities')}</Link></li>
                         <li><Link href="#gallery" onClick={() => setMobileOpen(false)} className="block py-3 px-3.5 text-white2 text-[12px] tracking-[2px] uppercase border border-gold/10 bg-white/5 hover:text-gold hover:border-gold/25">{t('mobile_gallery')}</Link></li>
                         <li><Link href="#contact" onClick={() => setMobileOpen(false)} className="block py-3 px-3.5 text-white2 text-[12px] tracking-[2px] uppercase border border-gold/10 bg-white/5 hover:text-gold hover:border-gold/25">{t('mobile_contact')}</Link></li>
-                        <li><a href="tel:0503-5051-6355" className="block py-3 px-3.5 text-white2 text-[12px] tracking-[2px] uppercase border border-gold/10 bg-white/5 hover:text-gold hover:border-gold/25">{t('mobile_call')}</a></li>
+                        <li><a href="tel:031-464-9661" className="block py-3 px-3.5 text-white2 text-[12px] tracking-[2px] uppercase border border-gold/10 bg-white/5 hover:text-gold hover:border-gold/25">{t('mobile_call')}</a></li>
                     </ul>
                 </div>
             )}
