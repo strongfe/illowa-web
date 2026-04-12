@@ -971,10 +971,10 @@ export function SelectCell<V extends string | number = string>(
     return available.filter((o) => o.label.toLowerCase().includes(lower));
   }, [options, draft]);
 
-  // Reset highlight when filtered list changes
-  const [prevFiltered, setPrevFiltered] = useState(filteredOptions);
-  if (filteredOptions !== prevFiltered) {
-    setPrevFiltered(filteredOptions);
+  // Reset highlight when filtered list length changes
+  const [prevFilteredLen, setPrevFilteredLen] = useState(filteredOptions.length);
+  if (filteredOptions.length !== prevFilteredLen) {
+    setPrevFilteredLen(filteredOptions.length);
     setHighlightIdx(-1);
   }
 
