@@ -23,6 +23,7 @@ export default function ReceivablesPage() {
   const [resolveMemo, setResolveMemo] = useState('');
   const [saving, setSaving] = useState(false);
   const [showResolved, setShowResolved] = useState(false);
+  const [nameSearch, setNameSearch] = useState('');
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -33,8 +34,9 @@ export default function ReceivablesPage() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  const openItems = items.filter(i => !i.resolved_at);
-  const resolvedItems = items.filter(i => i.resolved_at);
+  const nameKey = nameSearch.trim().toLowerCase();
+  const openItems = items.filter(i => !i.resolved_at && (!nameKey || (i.guest_name || '').toLowerCase().includes(nameKey)));
+  const resolvedItems = items.filter(i => i.resolved_at && (!nameKey || (i.guest_name || '').toLowerCase().includes(nameKey)));
 
   const totalOpen = openItems.reduce((s, i) => s + i.receivable_amount, 0);
   const totalResolved = resolvedItems.reduce((s, i) => s + i.receivable_amount, 0);
@@ -75,6 +77,26 @@ export default function ReceivablesPage() {
           <p className="text-sm text-gray-600">미수 잔액</p>
           <p className="text-2xl font-bold text-[#C9A84C] mt-1">{fmt(totalOpen)}원</p>
         </div>
+      </div>
+
+      {/* 검색 */}
+      <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
+        <label className="text-xs text-gray-600">성명</label>
+        <input
+          type="text"
+          value={nameSearch}
+          onChange={(e) => setNameSearch(e.target.value)}
+          placeholder="이름 검색"
+          className="bg-gray-100 border border-gray-300 rounded-lg px-2 py-1 text-sm w-36"
+        />
+        {nameSearch && (
+          <button
+            onClick={() => setNameSearch('')}
+            className="text-xs text-gray-500 hover:text-gray-900 px-2"
+          >
+            초기화
+          </button>
+        )}
       </div>
 
       {/* 미수 목록 */}
