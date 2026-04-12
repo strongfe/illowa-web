@@ -2178,21 +2178,6 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
       const inEditable =
         tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
 
-      // ── Delete key (display mode only) — row deletion ──
-      if (e.key === 'Delete' && !inEditable) {
-        const foc = focusedFullRef.current;
-        if (foc) {
-          e.preventDefault();
-          handleDeleteKey(foc.row);
-          return;
-        }
-      }
-
-      // Cancel pending delete on any other key press
-      if (e.key !== 'Delete') {
-        cancelDeleteOnInteraction();
-      }
-
       const ctrl = e.ctrlKey || e.metaKey;
       if (!ctrl) return;
 
@@ -2221,7 +2206,7 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
     };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
-  }, [copyToClipboard, pasteFromClipboard, undoOne, selectAll, handleDeleteKey, cancelDeleteOnInteraction]);
+  }, [copyToClipboard, pasteFromClipboard, undoOne, selectAll]);
 
   // Compute total content width for the inner scroll container.
   const totalWidth = useMemo(
