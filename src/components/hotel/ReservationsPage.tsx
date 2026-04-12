@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import type { Sale } from '@/types/hotel';
+import type { Sale, Room } from '@/types/hotel';
 import { PAYMENT_METHODS } from '@/types/hotel';
+import { SaleModal } from './SalesPageLegacy';
 
 function fmt(n: number) {
   return n.toLocaleString('ko-KR');
@@ -26,10 +27,15 @@ function endOfWeekStr() {
 
 export default function ReservationsPage() {
   const [items, setItems] = useState<Sale[]>([]);
+  const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
   const [resolveTarget, setResolveTarget] = useState<Sale | null>(null);
   const [balanceMethod, setBalanceMethod] = useState('');
   const [saving, setSaving] = useState(false);
+  // Opens the reused Legacy SaleModal in CREATE mode (editSale=null)
+  // so staff can enter a brand-new 예약금 / 완불 / 연박 booking from
+  // this page without going through the sales grid.
+  const [createOpen, setCreateOpen] = useState(false);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -39,6 +45,26 @@ export default function ReservationsPage() {
   }, []);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  // Fetch the room master list once on mount. The SaleModal needs
+  // it for its room-number dropdown. Silent failure is fine — the
+  // modal will simply show an empty list in that case.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/admin/hotel/rooms');
+        if (!res.ok) return;
+        const data: Room[] = await res.json();
+        if (!cancelled) setRooms(data);
+      } catch {
+        /* noop */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const today = todayStr();
   const tomorrow = tomorrowStr();
@@ -79,7 +105,15 @@ export default function ReservationsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-[#C9A84C]">예약 현황</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-[#C9A84C]">예약 현황</h1>
+        <button
+          onClick={() => setCreateOpen(true)}
+          className="px-4 py-2 bg-[#C9A84C] text-black font-bold rounded-lg text-sm hover:bg-[#E8C96A] transition-colors"
+        >
+          + 예약 추가
+        </button>
+      </div>
 
       {/* 요약 카드 */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -184,6 +218,28 @@ export default function ReservationsPage() {
             </button>
           </div>
         </div>
+      )}
+
+      {/* 신규 예약 추가 모달 — Legacy SaleModal 재사용.
+          editSale=null 이면 모달이 CREATE 모드로 열리고, 내부의
+          1박/연박 토글 + 현장/예약금/완불 라디오로 한 번에
+          예약금·완불·연박 모두 입력할 수 있습니다. */}
+      {createOpen && (
+        <SaleModal
+          saleDate={todayStr()}
+          rooms={rooms}
+          editSale={null}
+          defaults={{ channel: '', sale_type: '숙박' }}
+          onClose={() => setCreateOpen(false)}
+          onSaved={() => {
+            setCreateOpen(false);
+            fetchData();
+          }}
+          onDeleted={() => {
+            setCreateOpen(false);
+            fetchData();
+          }}
+        />
       )}
     </div>
   );

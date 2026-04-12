@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { href: '/admin/hotel/closing', label: '일일 마감', icon: '📋' },
   { href: '/admin/hotel/rooms', label: '객실 현황', icon: '🏨' },
   { href: '/admin/hotel/reservations', label: '예약 현황', icon: '📅' },
+  { href: '/admin/hotel/bookings', label: '연박 현황', icon: '🛏️' },
   { href: '/admin/hotel/receivables', label: '미수 관리', icon: '💰' },
 ];
 
