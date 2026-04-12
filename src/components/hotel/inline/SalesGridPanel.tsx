@@ -1236,6 +1236,65 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
       // ── Branch A: update existing row (PATCH via PUT route) ──
       if (row.original) {
         if (row.dirty.size === 0) return;
+
+        // If all key fields are empty, delete the row from DB instead of updating.
+        const d = row.draft;
+        const isAllEmpty =
+          d.guest_name.trim() === '' &&
+          d.amount === 0 &&
+          (d.room_type === null || d.room_type === ('' as RoomType)) &&
+          d.check_in_time === null &&
+          d.check_out_time === null &&
+          d.room_number.trim() === '' &&
+          d.extra_amount === 0;
+
+        if (isAllEmpty && isDeletableRow(rowIdx)) {
+          inFlightRef.current.add(rowIdx);
+          setRows((prev) => {
+            const next = prev.slice();
+            next[rowIdx] = { ...prev[rowIdx], saving: true, error: null };
+            return next;
+          });
+          try {
+            const res = await fetch(
+              `/api/admin/hotel/sales?id=${row.original.id}`,
+              { method: 'DELETE' },
+            );
+            if (!res.ok) {
+              const body2 = await res.json().catch(() => ({}));
+              throw new Error(body2.error || '삭제 실패');
+            }
+            // Remove row, shift up, append empty at bottom
+            setRows((prev) => {
+              const next = prev.slice();
+              next.splice(rowIdx, 1);
+              next.push(buildRowState(null));
+              return next;
+            });
+            setMounted((prev) => {
+              const next = new Set<string>();
+              for (const key of prev) {
+                const r = parseInt(key.split(':')[0], 10);
+                if (r < rowIdx) next.add(key);
+              }
+              return next;
+            });
+            setFocused(null);
+            setEditing(null);
+            onRowSavedRef.current?.(null as unknown as Sale);
+          } catch (err) {
+            const msg = err instanceof Error ? err.message : '삭제 실패';
+            setRows((prev) => {
+              const next = prev.slice();
+              next[rowIdx] = { ...prev[rowIdx], saving: false, error: msg };
+              return next;
+            });
+          } finally {
+            inFlightRef.current.delete(rowIdx);
+          }
+          return;
+        }
+
         if (!runValidation(rowIdx)) return;
         const body = buildPatchBody(row.original.id, row.draft, row.dirty);
         if (!body) return;
