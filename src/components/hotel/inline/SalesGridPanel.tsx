@@ -648,7 +648,7 @@ function buildColumns(variant: PanelVariant): ColumnDef[] {
     cols.push({
       key: 'channel',
       header: '구분',
-      width: 36,
+      width: 50,
       align: 'center',
       render: ({ draft, setField, cellProps }) => (
         <SelectCell
@@ -666,7 +666,7 @@ function buildColumns(variant: PanelVariant): ColumnDef[] {
   cols.push({
     key: 'guest_name',
     header: '성명',
-    width: 130,
+    width: 100,
     align: 'left',
     render: ({ draft, setField, flags, cellProps }) => (
       <TextCell
@@ -684,7 +684,7 @@ function buildColumns(variant: PanelVariant): ColumnDef[] {
   cols.push({
     key: 'room_type',
     header: '타입',
-    width: 26,
+    width: 36,
     align: 'center',
     render: ({ draft, setField, cellProps }) => (
       <SelectCell
@@ -730,7 +730,7 @@ function buildColumns(variant: PanelVariant): ColumnDef[] {
     cols.push({
       key: 'payment_method',
       header: '결재',
-      width: 40,
+      width: 50,
       align: 'center',
       render: ({ draft, setField, cellProps }) => (
         <SelectCell
@@ -1564,6 +1564,9 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
     };
   }, [onDirtyChange, panelKey]);
 
+  // Car number auto-fill: debounce timer per row
+  const carLookupTimerRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
+
   const setField = useCallback(
     <K extends keyof RowDraft>(rowIdx: number, key: K, value: RowDraft[K]) => {
       setRows((prev) => {
@@ -1592,9 +1595,44 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
         // so the user gets immediate positive feedback.
         const fieldErrors = { ...cur.fieldErrors };
         if (fieldErrors[key]) delete fieldErrors[key];
+
+        const newDraft = { ...cur.draft, [key]: value };
+
+        // Auto-fill car_number when guest_name changes (debounced)
+        if (key === 'guest_name' && !cur.draft.car_number) {
+          const name = (value as string).trim();
+          const timers = carLookupTimerRef.current;
+          if (timers[rowIdx]) clearTimeout(timers[rowIdx]);
+          if (name.length >= 2) {
+            timers[rowIdx] = setTimeout(() => {
+              delete timers[rowIdx];
+              fetch(`/api/admin/hotel/car-lookup?name=${encodeURIComponent(name)}`)
+                .then((r) => r.json())
+                .then((d) => {
+                  if (d.car_number) {
+                    setRows((p) => {
+                      const r = p[rowIdx];
+                      if (!r || r.draft.car_number) return p;
+                      const n = p.slice();
+                      const ds = new Set(r.dirty);
+                      ds.add('car_number');
+                      n[rowIdx] = {
+                        ...r,
+                        draft: { ...r.draft, car_number: d.car_number },
+                        dirty: ds,
+                      };
+                      return n;
+                    });
+                  }
+                })
+                .catch(() => {});
+            }, 500);
+          }
+        }
+
         next[rowIdx] = {
           ...cur,
-          draft: { ...cur.draft, [key]: value },
+          draft: newDraft,
           dirty,
           fieldErrors,
           // Typing into a cell clears any lingering save error for
