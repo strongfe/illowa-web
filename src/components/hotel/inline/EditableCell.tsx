@@ -183,20 +183,35 @@ export function TextCell(props: TextCellProps) {
   // next keystroke would replace the existing value.
   const enterByTypingRef = useRef(false);
 
+  // True when edit mode was entered via Korean IME (keyCode 229).
+  // In this case we must delay focus by one animation frame so
+  // the browser's IME context survives the DOM swap from display
+  // div → input element. Without the delay the first composed
+  // syllable is swallowed and appears as its ASCII key equivalent.
+  const imeEntryRef = useRef(false);
+
   // Imperatively focus the right element when state flips
   useEffect(() => {
     if (readOnly) return;
     if (isEditing) {
-      const el = inputRef.current;
-      if (el && document.activeElement !== el) {
-        el.focus();
-        if (enterByTypingRef.current) {
-          const len = el.value.length;
-          el.setSelectionRange(len, len);
-          enterByTypingRef.current = false;
-        } else {
-          el.select();
+      const doFocus = () => {
+        const el = inputRef.current;
+        if (el && document.activeElement !== el) {
+          el.focus();
+          if (enterByTypingRef.current) {
+            const len = el.value.length;
+            el.setSelectionRange(len, len);
+            enterByTypingRef.current = false;
+          } else {
+            el.select();
+          }
         }
+      };
+      if (imeEntryRef.current) {
+        imeEntryRef.current = false;
+        requestAnimationFrame(doFocus);
+      } else {
+        doFocus();
       }
     } else if (isFocused) {
       const el = wrapRef.current;
@@ -235,6 +250,7 @@ export function TextCell(props: TextCellProps) {
     // append the composed glyph to the existing value.
     if (e.key === 'Process' || e.keyCode === 229) {
       enterByTypingRef.current = true;
+      imeEntryRef.current = true;
       onRequestEdit?.();
       return;
     }
@@ -810,19 +826,30 @@ export function SelectCell<V extends string | number = string>(
     }
   }
 
+  // True when edit mode was entered via Korean IME (keyCode 229).
+  const imeEntryRef = useRef(false);
+
   useEffect(() => {
     if (readOnly) return;
     if (isEditing) {
-      const el = inputRef.current;
-      if (el && document.activeElement !== el) {
-        el.focus();
-        if (enterByTypingRef.current) {
-          const len = el.value.length;
-          el.setSelectionRange(len, len);
-          enterByTypingRef.current = false;
-        } else {
-          el.select();
+      const doFocus = () => {
+        const el = inputRef.current;
+        if (el && document.activeElement !== el) {
+          el.focus();
+          if (enterByTypingRef.current) {
+            const len = el.value.length;
+            el.setSelectionRange(len, len);
+            enterByTypingRef.current = false;
+          } else {
+            el.select();
+          }
         }
+      };
+      if (imeEntryRef.current) {
+        imeEntryRef.current = false;
+        requestAnimationFrame(doFocus);
+      } else {
+        doFocus();
       }
     } else if (isFocused) {
       const el = wrapRef.current;
@@ -909,6 +936,7 @@ export function SelectCell<V extends string | number = string>(
     // the input receive compositionstart/compositionend.
     if (e.key === 'Process' || e.keyCode === 229) {
       enterByTypingRef.current = true;
+      imeEntryRef.current = true;
       setDraft('');
       onRequestEdit?.();
       return;
