@@ -164,6 +164,16 @@ export default function SalesGridPage() {
     return () => clearInterval(id);
   }, [fetchSales]);
 
+  // Filter out reservation rows (same logic as groupSales) for stats/summary
+  const displaySales = useMemo(
+    () => sales.filter((s) => {
+      if (s.payment_timing && s.payment_timing !== '현장') return false;
+      if (s.channel === '예약') return false;
+      return true;
+    }),
+    [sales],
+  );
+
   const groups = useMemo(() => groupSales(sales), [sales]);
 
   // CP4.3 — Cross-panel room conflict map.
@@ -261,8 +271,8 @@ export default function SalesGridPage() {
   );
 
   // Overall page footer summary
-  const allDaesil = sales.filter((s) => s.sale_type === '대실');
-  const allSukbak = sales.filter((s) => s.sale_type === '숙박');
+  const allDaesil = displaySales.filter((s) => s.sale_type === '대실');
+  const allSukbak = displaySales.filter((s) => s.sale_type === '숙박');
 
   return (
     <div className="space-y-4">
@@ -313,8 +323,8 @@ export default function SalesGridPage() {
 
         {/* 4번째 열: 통계 (row-span 2 — 대실행+숙박행 전체 차지) */}
         <div className="row-span-2 flex flex-col gap-3 min-w-[160px]">
-          <VacancyTable sales={sales} />
-          <ChannelRevenueTable sales={sales} />
+          <VacancyTable sales={displaySales} />
+          <ChannelRevenueTable sales={displaySales} />
         </div>
 
         {/* 숙박 행 (1~3열, 4열은 이미 span) */}
@@ -341,8 +351,8 @@ export default function SalesGridPage() {
             <b className="text-green-600">{fmt(sumAmount(allSukbak))}</b>원
           </span>
           <span>
-            합계 <b className="text-[#C9A84C]">{sales.length}</b>건{' '}
-            <b className="text-[#C9A84C]">{fmt(sumAmount(sales))}</b>원
+            합계 <b className="text-[#C9A84C]">{displaySales.length}</b>건{' '}
+            <b className="text-[#C9A84C]">{fmt(sumAmount(displaySales))}</b>원
           </span>
         </div>
       </div>
