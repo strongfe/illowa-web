@@ -176,55 +176,55 @@ export function TextCell(props: TextCellProps) {
 
   const wrapRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  // Hidden proxy input receives keystrokes in display mode so IME works.
+  const proxyRef = useRef<HTMLInputElement>(null);
   const composingRef = useRef(false);
-  // True when edit mode was entered by typing (not by click/F2). In
-  // that case the focus effect must place the caret at the END of the
-  // input instead of select()'ing the existing text — otherwise the
-  // next keystroke would replace the existing value.
   const enterByTypingRef = useRef(false);
-
-  // True when edit mode was entered via Korean IME (keyCode 229).
-  // In this case we must delay focus by one animation frame so
-  // the browser's IME context survives the DOM swap from display
-  // div → input element. Without the delay the first composed
-  // syllable is swallowed and appears as its ASCII key equivalent.
-  const imeEntryRef = useRef(false);
 
   // Imperatively focus the right element when state flips
   useEffect(() => {
     if (readOnly) return;
     if (isEditing) {
-      const doFocus = () => {
-        const el = inputRef.current;
-        if (el && document.activeElement !== el) {
-          el.focus();
-          if (enterByTypingRef.current) {
-            const len = el.value.length;
-            el.setSelectionRange(len, len);
-            enterByTypingRef.current = false;
-          } else {
-            el.select();
-          }
+      const el = inputRef.current;
+      if (el && document.activeElement !== el) {
+        el.focus();
+        if (enterByTypingRef.current) {
+          const len = el.value.length;
+          el.setSelectionRange(len, len);
+          enterByTypingRef.current = false;
+        } else {
+          el.select();
         }
-      };
-      if (imeEntryRef.current) {
-        imeEntryRef.current = false;
-        requestAnimationFrame(doFocus);
-      } else {
-        doFocus();
       }
     } else if (isFocused) {
-      const el = wrapRef.current;
-      if (el && document.activeElement !== el) el.focus();
+      // Focus the hidden proxy input (IME-compatible) instead of the div.
+      const el = proxyRef.current;
+      if (el && document.activeElement !== el) {
+        el.value = '';
+        el.focus();
+      }
       scrollFocusedIntoView(wrapRef.current);
     }
   }, [isFocused, isEditing, readOnly]);
 
-  const handleDisplayKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+  // The proxy input catches typed characters (with proper IME) in
+  // display mode. When the user types, we transfer the composed text
+  // into the real value, clear the proxy, and enter edit mode.
+  const handleProxyInput = () => {
+    const el = proxyRef.current;
+    if (!el) return;
+    const typed = el.value;
+    if (!typed) return;
+    el.value = '';
+    enterByTypingRef.current = true;
+    onChange(typed);
+    onRequestEdit?.();
+  };
+
+  const handleProxyKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (readOnly) return;
-    // If already editing, the input handles its own keystrokes.
-    // Stop the bubbled event here so it is not double-processed.
-    if (isEditing) return;
+    // IME composing — let the proxy input handle it naturally
+    if (composingRef.current || e.nativeEvent.isComposing || e.keyCode === 229) return;
     switch (e.key) {
       case 'F2':
       case 'Enter':
@@ -244,28 +244,6 @@ export function TextCell(props: TextCellProps) {
         e.preventDefault();
         if (value !== '') onChange('');
         return;
-    }
-    // Any printable character (Korean IME or ASCII): enter edit mode.
-    // The div is NOT an IME-compatible element, so on Korean keyboards
-    // keyCode=229 may NOT fire — the raw ASCII key fires instead
-    // (e.g. 'r' for 'ㄱ'). We must NOT append the raw key because it
-    // would insert English letters when the user intended Korean.
-    //
-    // Strategy: just open the editor and let the user type into the
-    // input element (which IS IME-compatible). The first keystroke
-    // opens the cell; the user's next keystroke goes straight into
-    // the input where IME works correctly. Existing content is
-    // selected so the first typed character replaces it (Excel
-    // behavior: typing on a selected cell replaces its content).
-    if (e.key === 'Process' || e.keyCode === 229) {
-      onRequestEdit?.();
-      return;
-    }
-    if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
-      e.preventDefault();
-      enterByTypingRef.current = true;
-      onChange(e.key);
-      onRequestEdit?.();
     }
   };
 
@@ -303,12 +281,11 @@ export function TextCell(props: TextCellProps) {
   return (
     <div
       ref={wrapRef}
-      tabIndex={readOnly ? -1 : 0}
+      tabIndex={-1}
       role="gridcell"
       aria-label={ariaLabel}
       aria-readonly={readOnly || undefined}
       onClick={() => !readOnly && onRequestEdit?.()}
-      onKeyDown={handleDisplayKeyDown}
       className={buildContainerClass({
         isFocused, isEditing, readOnly, error, isSaving, justSaved, align,
       })}
@@ -328,9 +305,32 @@ export function TextCell(props: TextCellProps) {
           className="w-full bg-transparent outline-none border-none p-0 text-xs"
         />
       ) : (
-        <span className={`truncate w-full ${value ? (textClassName ?? '') : 'text-gray-300'}`}>
-          {value || placeholder || ''}
-        </span>
+        <>
+          <span className={`truncate w-full ${value ? (textClassName ?? '') : 'text-gray-300'}`}>
+            {value || placeholder || ''}
+          </span>
+          {/* Hidden proxy input for IME-compatible keystroke capture */}
+          {isFocused && !readOnly && (
+            <input
+              ref={proxyRef}
+              type="text"
+              className="absolute inset-0 w-full h-full opacity-0 cursor-default"
+              tabIndex={-1}
+              onInput={handleProxyInput}
+              onCompositionStart={() => { composingRef.current = true; }}
+              onCompositionEnd={() => {
+                composingRef.current = false;
+                // Flush composed text after composition ends
+                handleProxyInput();
+              }}
+              onKeyDown={handleProxyKeyDown}
+              onBlur={(e) => {
+                // Prevent proxy blur from firing when switching to edit input
+                if (e.relatedTarget === inputRef.current) return;
+              }}
+            />
+          )}
+        </>
       )}
       {isSaving && <SavingSpinner />}
       {error && isFocused && <ErrorTooltip message={error} />}
