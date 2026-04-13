@@ -54,6 +54,8 @@ function groupSales(sales: Sale[]): SalesGroups {
     etc_daesil: [], etc_sukbak: [],
   };
   for (const s of sales) {
+    // 예약금/완불 행은 판매 그리드에서 숨김 (예약현황에서만 관리)
+    if (s.payment_timing && s.payment_timing !== '현장') continue;
     if (s.channel === '야놀자') {
       (s.sale_type === '대실' ? g.yanolja_daesil : g.yanolja_sukbak).push(s);
     } else if (s.channel === '여기어때') {
