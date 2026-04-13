@@ -1169,6 +1169,9 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
       if (!row) return false;
 
       const errs = validateRequired(row.draft);
+      // OTA panels auto-fill channel from the panel title,
+      // so skip the channel-required error for them.
+      if (variant === 'ota' && errs.channel) delete errs.channel;
 
       // Room conflict — only meaningful if the user actually picked
       // a room number. Empty / null rooms skip this check because
