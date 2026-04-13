@@ -1000,11 +1000,25 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
   const columns = useMemo(() => buildColumns(variant), [variant]);
   const colCount = columns.length;
 
+  // For OTA panels, pre-fill channel on empty rows so validation
+  // and create logic always has the channel ready.
+  const buildRow = useCallback(
+    (sale: Sale | null): RowState => {
+      const state = buildRowState(sale);
+      if (!sale && variant === 'ota') {
+        state.draft = { ...state.draft, channel: title };
+        state.snapshot = { ...state.snapshot, channel: title };
+      }
+      return state;
+    },
+    [variant, title],
+  );
+
   // Build initial row states (existing sales + empty padding to ROW_COUNT).
   const buildInitialRows = useCallback(
     () =>
-      Array.from({ length: ROW_COUNT }, (_, i) => buildRowState(sales[i] ?? null)),
-    [sales],
+      Array.from({ length: ROW_COUNT }, (_, i) => buildRow(sales[i] ?? null)),
+    [sales, buildRow],
   );
   const [rows, setRows] = useState<RowState[]>(buildInitialRows);
   // Mirror `rows` into a ref so asynchronous callbacks (commitRow, the
@@ -1103,7 +1117,7 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
           next[i] = cur;
           continue;
         }
-        next[i] = buildRowState(incoming);
+        next[i] = buildRow(incoming);
       }
       return next;
     });
@@ -1271,7 +1285,7 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
             setRows((prev) => {
               const next = prev.slice();
               next.splice(rowIdx, 1);
-              next.push(buildRowState(null));
+              next.push(buildRow(null));
               return next;
             });
             setMounted((prev) => {
@@ -1608,7 +1622,7 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
             setRows((prev) => {
               const next = prev.slice();
               next.splice(rowIdx, 1);
-              next.push(buildRowState(null));
+              next.push(buildRow(null));
               return next;
             });
             // Rebuild mounted set: row indices shifted after deletion,
