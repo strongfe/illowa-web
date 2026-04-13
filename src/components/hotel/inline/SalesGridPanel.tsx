@@ -1095,10 +1095,15 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
     setPrevSales(sales);
     setRows((prevRows) => {
       const next: RowState[] = new Array(ROW_COUNT);
+      const focusedRow = focusedRowRef.current;
       for (let i = 0; i < ROW_COUNT; i++) {
         const cur = prevRows[i];
-        // 1. Protect dirty / saving rows in-place.
-        if (cur && (cur.dirty.size > 0 || cur.saving)) {
+        // 1. Protect dirty / saving / focused / recently-edited rows.
+        //    The focused row may have pending keystrokes that haven't
+        //    been flushed into dirty yet, so always preserve it.
+        //    Also protect rows with a savedAt timestamp (just saved,
+        //    green flash still visible) to avoid visual jitter.
+        if (cur && (cur.dirty.size > 0 || cur.saving || i === focusedRow || cur.savedAt !== null)) {
           next[i] = cur;
           continue;
         }
