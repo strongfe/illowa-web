@@ -383,6 +383,9 @@ export default function ClosingPage() {
             <col style={{ width: 24 }} /><col style={{ width: 60 }} />
             <col style={{ width: 24 }} /><col style={{ width: 60 }} />
             <col style={{ width: 24 }} /><col style={{ width: 60 }} />
+            <col style={{ width: 24 }} /><col style={{ width: 60 }} />
+            <col style={{ width: 24 }} /><col style={{ width: 60 }} />
+            <col style={{ width: 24 }} /><col style={{ width: 60 }} />
             <col style={{ width: 94 }} />
           </colgroup>
           <tbody>
@@ -392,14 +395,20 @@ export default function ClosingPage() {
               <NumTd v={grandTotal.inputDA} />
               <NumTd v={grandTotal.inputSC} />
               <NumTd v={grandTotal.inputSA} />
+              <NumTd v={grandTotal.inputDC + grandTotal.inputSC} />
+              <NumTd v={grandTotal.inputDA + grandTotal.inputSA} />
               <NumTd v={grandTotal.actualDC} />
               <NumTd v={grandTotal.actualDA} />
               <NumTd v={grandTotal.actualSC} />
               <NumTd v={grandTotal.actualSA} />
+              <NumTd v={grandTotal.actualDC + grandTotal.actualSC} />
+              <NumTd v={grandTotal.actualDA + grandTotal.actualSA} />
               <DiffTd v={grandTotal.actualDC - grandTotal.inputDC} />
               <DiffTd v={grandTotal.actualDA - grandTotal.inputDA} />
               <DiffTd v={grandTotal.actualSC - grandTotal.inputSC} />
               <DiffTd v={grandTotal.actualSA - grandTotal.inputSA} />
+              <DiffTd v={(grandTotal.actualDC + grandTotal.actualSC) - (grandTotal.inputDC + grandTotal.inputSC)} />
+              <DiffTd v={(grandTotal.actualDA + grandTotal.actualSA) - (grandTotal.inputDA + grandTotal.inputSA)} />
               <td />
             </tr>
           </tbody>
@@ -440,26 +449,23 @@ function ReconTable({
         <table className="w-full text-xs whitespace-nowrap table-fixed">
           <colgroup>
             <col style={{ width: 56 }} />{/* 채널 */}
-            <col style={{ width: 24 }} />{/* 대건 */}
-            <col style={{ width: 60 }} />{/* 대금 */}
-            <col style={{ width: 24 }} />{/* 숙건 */}
-            <col style={{ width: 60 }} />{/* 숙금 */}
-            <col style={{ width: 24 }} />{/* 대건 */}
-            <col style={{ width: 60 }} />{/* 대금 */}
-            <col style={{ width: 24 }} />{/* 숙건 */}
-            <col style={{ width: 60 }} />{/* 숙금 */}
-            <col style={{ width: 24 }} />{/* 대건 */}
-            <col style={{ width: 60 }} />{/* 대금 */}
-            <col style={{ width: 24 }} />{/* 숙건 */}
-            <col style={{ width: 60 }} />{/* 숙금 */}
+            <col style={{ width: 24 }} /><col style={{ width: 60 }} />
+            <col style={{ width: 24 }} /><col style={{ width: 60 }} />
+            <col style={{ width: 24 }} /><col style={{ width: 60 }} />{/* 입력 건수/금액 */}
+            <col style={{ width: 24 }} /><col style={{ width: 60 }} />
+            <col style={{ width: 24 }} /><col style={{ width: 60 }} />
+            <col style={{ width: 24 }} /><col style={{ width: 60 }} />{/* 실재 건수/금액 */}
+            <col style={{ width: 24 }} /><col style={{ width: 60 }} />
+            <col style={{ width: 24 }} /><col style={{ width: 60 }} />
+            <col style={{ width: 24 }} /><col style={{ width: 60 }} />{/* 차이 건수/금액 */}
             <col style={{ width: 94 }} />{/* 비고 */}
           </colgroup>
           <thead>
             <tr className="bg-gray-100 text-gray-500 text-[10px]">
               <th className="px-1 py-1 text-center" rowSpan={2}>채널</th>
-              <th className="px-1 py-1 text-center border-l border-gray-300" colSpan={4}>입력</th>
-              <th className="px-1 py-1 text-center border-l border-gray-300" colSpan={4}>실재</th>
-              <th className="px-1 py-1 text-center border-l border-gray-300" colSpan={4}>차이</th>
+              <th className="px-1 py-1 text-center border-l border-gray-300" colSpan={6}>입력</th>
+              <th className="px-1 py-1 text-center border-l border-gray-300" colSpan={6}>실재</th>
+              <th className="px-1 py-1 text-center border-l border-gray-300" colSpan={6}>차이</th>
               <th className="px-1 py-1 text-center border-l border-gray-300" rowSpan={2}>비고</th>
             </tr>
             <tr className="bg-gray-50 text-gray-400 text-[10px]">
@@ -467,14 +473,20 @@ function ReconTable({
               <th className="px-1 py-0.5 text-center">대금</th>
               <th className="px-1 py-0.5 text-center">숙건</th>
               <th className="px-1 py-0.5 text-center">숙금</th>
+              <th className="px-1 py-0.5 text-center font-bold text-gray-600">건수</th>
+              <th className="px-1 py-0.5 text-center font-bold text-gray-600">금액</th>
               <th className="px-1 py-0.5 text-center border-l border-gray-300">대건</th>
               <th className="px-1 py-0.5 text-center">대금</th>
               <th className="px-1 py-0.5 text-center">숙건</th>
               <th className="px-1 py-0.5 text-center">숙금</th>
+              <th className="px-1 py-0.5 text-center font-bold text-gray-600">건수</th>
+              <th className="px-1 py-0.5 text-center font-bold text-gray-600">금액</th>
               <th className="px-1 py-0.5 text-center border-l border-gray-300">대건</th>
               <th className="px-1 py-0.5 text-center">대금</th>
               <th className="px-1 py-0.5 text-center">숙건</th>
               <th className="px-1 py-0.5 text-center">숙금</th>
+              <th className="px-1 py-0.5 text-center font-bold text-gray-600">건수</th>
+              <th className="px-1 py-0.5 text-center font-bold text-gray-600">금액</th>
             </tr>
           </thead>
           <tbody>
@@ -493,14 +505,20 @@ function ReconTable({
               <NumTd v={subtotal.inputDA} />
               <NumTd v={subtotal.inputSC} />
               <NumTd v={subtotal.inputSA} />
+              <NumTd v={subtotal.inputDC + subtotal.inputSC} />
+              <NumTd v={subtotal.inputDA + subtotal.inputSA} />
               <NumTd v={subtotal.actualDC} />
               <NumTd v={subtotal.actualDA} />
               <NumTd v={subtotal.actualSC} />
               <NumTd v={subtotal.actualSA} />
+              <NumTd v={subtotal.actualDC + subtotal.actualSC} />
+              <NumTd v={subtotal.actualDA + subtotal.actualSA} />
               <DiffTd v={subtotal.actualDC - subtotal.inputDC} />
               <DiffTd v={subtotal.actualDA - subtotal.inputDA} />
               <DiffTd v={subtotal.actualSC - subtotal.inputSC} />
               <DiffTd v={subtotal.actualSA - subtotal.inputSA} />
+              <DiffTd v={(subtotal.actualDC + subtotal.actualSC) - (subtotal.inputDC + subtotal.inputSC)} />
+              <DiffTd v={(subtotal.actualDA + subtotal.actualSA) - (subtotal.inputDA + subtotal.inputSA)} />
               <td />
             </tr>
           </tbody>
@@ -554,6 +572,8 @@ function ReconRow({
       <NumTd v={isRefund ? 0 : input.daesilAmount} dim={isRefund} />
       <NumTd v={isRefund ? 0 : input.sukbakCount} dim={isRefund} />
       <NumTd v={isRefund ? 0 : input.sukbakAmount} dim={isRefund} />
+      <NumTd v={isRefund ? 0 : input.daesilCount + input.sukbakCount} dim={isRefund} />
+      <NumTd v={isRefund ? 0 : input.daesilAmount + input.sukbakAmount} dim={isRefund} />
       {/* Actual (editable) */}
       <EditableNumCell
         value={actual.daesilCount}
@@ -571,11 +591,25 @@ function ReconRow({
         value={actual.sukbakAmount}
         onCommit={(v) => onUpdate(def.channel, def.reconType, 'sukbakAmount', v)}
       />
+      <NumTd v={actual.daesilCount + actual.sukbakCount} />
+      <NumTd v={actual.daesilAmount + actual.sukbakAmount} />
       {/* Diff (auto) */}
-      <DiffTd v={actual.daesilCount - (isRefund ? 0 : input.daesilCount)} />
-      <DiffTd v={actual.daesilAmount - (isRefund ? 0 : input.daesilAmount)} />
-      <DiffTd v={actual.sukbakCount - (isRefund ? 0 : input.sukbakCount)} />
-      <DiffTd v={actual.sukbakAmount - (isRefund ? 0 : input.sukbakAmount)} />
+      {(() => {
+        const iDC = isRefund ? 0 : input.daesilCount;
+        const iDA = isRefund ? 0 : input.daesilAmount;
+        const iSC = isRefund ? 0 : input.sukbakCount;
+        const iSA = isRefund ? 0 : input.sukbakAmount;
+        return (
+          <>
+            <DiffTd v={actual.daesilCount - iDC} />
+            <DiffTd v={actual.daesilAmount - iDA} />
+            <DiffTd v={actual.sukbakCount - iSC} />
+            <DiffTd v={actual.sukbakAmount - iSA} />
+            <DiffTd v={(actual.daesilCount + actual.sukbakCount) - (iDC + iSC)} />
+            <DiffTd v={(actual.daesilAmount + actual.sukbakAmount) - (iDA + iSA)} />
+          </>
+        );
+      })()}
       {/* Memo */}
       <EditableMemoCell
         value={actual.memo}
