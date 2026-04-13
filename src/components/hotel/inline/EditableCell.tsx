@@ -245,23 +245,26 @@ export function TextCell(props: TextCellProps) {
         if (value !== '') onChange('');
         return;
     }
-    // Korean IME keydown (keyCode 229 / key === 'Process'): open the
-    // editor with the caret at the end so compositionstart/end can
-    // append the composed glyph to the existing value.
+    // Any printable character (Korean IME or ASCII): enter edit mode.
+    // The div is NOT an IME-compatible element, so on Korean keyboards
+    // keyCode=229 may NOT fire — the raw ASCII key fires instead
+    // (e.g. 'r' for 'ㄱ'). We must NOT append the raw key because it
+    // would insert English letters when the user intended Korean.
+    //
+    // Strategy: just open the editor and let the user type into the
+    // input element (which IS IME-compatible). The first keystroke
+    // opens the cell; the user's next keystroke goes straight into
+    // the input where IME works correctly. Existing content is
+    // selected so the first typed character replaces it (Excel
+    // behavior: typing on a selected cell replaces its content).
     if (e.key === 'Process' || e.keyCode === 229) {
-      enterByTypingRef.current = true;
-      imeEntryRef.current = true;
       onRequestEdit?.();
       return;
     }
-    // ASCII / printable → append the typed character to the existing
-    // value immediately and enter edit mode with caret at end.
-    // preventDefault stops the browser from re-inserting the char
-    // into the freshly mounted input (which would duplicate it).
     if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
       e.preventDefault();
       enterByTypingRef.current = true;
-      onChange((value ?? '') + e.key);
+      onChange(e.key);
       onRequestEdit?.();
     }
   };
@@ -930,20 +933,14 @@ export function SelectCell<V extends string | number = string>(
         return;
       }
     }
-    // Korean IME keydown fires with keyCode 229 / key === 'Process'.
-    // We cannot seed the draft with the composed character because it
-    // doesn't exist yet. Open edit mode with an empty draft and let
-    // the input receive compositionstart/compositionend.
+    // Korean IME or any printable character: open the dropdown editor.
+    // Same reasoning as TextCell — div elements don't support IME,
+    // so we must not seed the draft with the raw ASCII key.
     if (e.key === 'Process' || e.keyCode === 229) {
-      enterByTypingRef.current = true;
-      imeEntryRef.current = true;
       setDraft('');
       onRequestEdit?.();
       return;
     }
-    // ASCII / printable single-character keys → seed the draft with
-    // the typed character and preventDefault so the browser does NOT
-    // re-insert the same character into the freshly mounted input.
     if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
       e.preventDefault();
       enterByTypingRef.current = true;
