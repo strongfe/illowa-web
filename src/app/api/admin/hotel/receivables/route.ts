@@ -32,16 +32,20 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const { sale_id, resolved_payment_method, resolved_memo } = await req.json();
+  const { sale_id, resolved_payment_method, resolved_memo, unresolve } = await req.json();
   if (!sale_id) return NextResponse.json({ error: 'sale_id required' }, { status: 400 });
+
+  const updates = unresolve
+    ? { resolved_at: null, resolved_payment_method: null, resolved_memo: '' }
+    : {
+        resolved_at: new Date().toISOString(),
+        resolved_payment_method,
+        resolved_memo: resolved_memo || '',
+      };
 
   const { data, error } = await supabase
     .from('sales')
-    .update({
-      resolved_at: new Date().toISOString(),
-      resolved_payment_method,
-      resolved_memo: resolved_memo || '',
-    })
+    .update(updates)
     .eq('id', sale_id)
     .select()
     .single();
