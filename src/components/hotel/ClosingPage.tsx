@@ -212,8 +212,15 @@ export default function ClosingPage() {
     fetchData();
   }, [fetchData]);
 
+  // Filter out reservation rows before computing input data
+  const displaySales = sales.filter((s) => {
+    if (s.payment_timing && s.payment_timing !== '현장') return false;
+    if (s.channel === '예약') return false;
+    return true;
+  });
+
   // Compute input data from sales
-  const inputMap = computeInputData(sales);
+  const inputMap = computeInputData(displaySales);
 
   // Build actual data map from recon records
   const actualMap = new Map<string, ActualData>();
