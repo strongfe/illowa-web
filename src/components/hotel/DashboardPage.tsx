@@ -195,7 +195,13 @@ export default function DashboardPage() {
       const res = await fetch(`/api/admin/hotel/dashboard-weekly?start=${fs}&end=${fe}`);
       if (res.ok) {
         const data = await res.json();
-        setSales(data.sales ?? []);
+        setSales(
+          (data.sales ?? []).filter((s: Sale) => {
+            if (s.payment_timing && s.payment_timing !== '현장') return false;
+            if (s.channel === '예약') return false;
+            return true;
+          }),
+        );
         setDailyRecords(data.dailyData ?? []);
       }
     } finally {
