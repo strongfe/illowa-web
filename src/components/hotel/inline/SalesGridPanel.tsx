@@ -1230,7 +1230,7 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
   const commitRow = useCallback(
     async (rowIdx: number) => {
       if (inFlightRef.current.has(rowIdx)) return;
-      const row = rowsRef.current[rowIdx];
+      let row = rowsRef.current[rowIdx];
       if (!row) return;
 
       // ── Branch A: update existing row (PATCH via PUT route) ──
@@ -1372,6 +1372,11 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
       }
 
       // ── Branch B: create brand new row (POST) ──
+      // OTA panels (야놀자/여기어때) don't have a channel column,
+      // so auto-fill channel from the panel title before checking.
+      if (variant === 'ota' && !row.draft.channel) {
+        row = { ...row, draft: { ...row.draft, channel: title } };
+      }
       // New rows only leave the client once all required fields are
       // filled in; partial rows stay local (with the gold dirty dot)
       // until the user supplies the missing pieces. We silently skip
