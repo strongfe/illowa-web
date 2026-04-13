@@ -8,7 +8,6 @@ import { useState } from 'react';
 const MAIN_NAV = [
   { href: '/admin/hotel/sales', label: '판매 입력', icon: '📝' },
   { href: '/admin/hotel/bookings', label: '연박 현황', icon: '🛏️' },
-  { href: '/admin/hotel/receivables', label: '미수 관리', icon: '💰' },
   { href: '/admin/hotel/reservations', label: '예약 현황', icon: '📅' },
 ];
 
