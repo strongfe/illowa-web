@@ -1386,29 +1386,15 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
       if (variant === 'ota' && !row.draft.channel) {
         row = { ...row, draft: { ...row.draft, channel: title } };
       }
-      // 행이 정말 비어 있으면(아무 셀도 안 건드림) 조용히 종료 —
-      // 빈 새 행에 dirty 플래그 없이 머무르는 정상적인 상태다.
-      const d0 = row.draft;
-      const looksEmpty =
-        !d0.guest_name.trim() &&
-        d0.amount === 0 &&
-        !d0.room_type &&
-        d0.check_in_time == null &&
-        d0.check_out_time == null &&
-        !d0.room_number.trim() &&
-        !d0.payment_method &&
-        !d0.memo.trim() &&
-        !d0.car_number.trim() &&
-        !d0.extra_amount &&
-        !d0.extra_payment_method;
-      if (looksEmpty) return;
-      // 사용자가 무언가 입력했는데 필수 필드(채널/타입/금액)가 빠져 있으면,
-      // 조용히 사라지지 않도록 runValidation을 먼저 호출해 필드 오류를
-      // 빨간 테두리로 표시한 뒤 POST를 건너뛴다. 이전엔 isRowReadyForCreate
-      // 가 false면 그냥 return해서 사용자가 "저장됐다"고 착각 후 새로고침
-      // 시 데이터가 사라지는 사례가 발생했음.
-      if (!runValidation(rowIdx)) return;
+      // New rows only leave the client once all required fields are
+      // filled in; partial rows stay local (with the gold dirty dot)
+      // until the user supplies the missing pieces. We silently skip
+      // the POST until the staff has typed enough — no red border —
+      // because "아직 작성 중"이 정상적인 중간 상태다.
       if (!isRowReadyForCreate(row.draft)) return;
+      // Once the row is ready for create, run the full validator so
+      // room conflicts (cross-panel) also block the POST.
+      if (!runValidation(rowIdx)) return;
 
       const body = buildCreateBody(row.draft, saleDate, saleType);
 
