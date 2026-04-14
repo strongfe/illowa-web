@@ -1271,7 +1271,14 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
       if (row.original) {
         if (row.dirty.size === 0) return;
 
-        // If all key fields are empty, delete the row from DB instead of updating.
+        // Auto-delete only when EVERY field of the draft is empty.
+        // Previously this checked only the "key" fields, so clearing
+        // 성명/금액 alone (while channel·결제·메모 still held data)
+        // was enough to silently DELETE the row from the DB. Korean
+        // IME edge cases during fast typing made that misfire much
+        // more likely. Now we require the row to be fully blank so
+        // accidental deletes are not possible — only an intentional
+        // wipe of every cell triggers the delete path.
         const d = row.draft;
         const isAllEmpty =
           d.guest_name.trim() === '' &&
@@ -1280,7 +1287,12 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
           d.check_in_time === null &&
           d.check_out_time === null &&
           d.room_number.trim() === '' &&
-          d.extra_amount === 0;
+          d.extra_amount === 0 &&
+          (d.channel ?? '').trim() === '' &&
+          (d.payment_method ?? '').trim() === '' &&
+          (d.memo ?? '').trim() === '' &&
+          (d.car_number ?? '').trim() === '' &&
+          (d.extra_payment_method ?? '').trim() === '';
 
         if (isAllEmpty && isDeletableRow(rowIdx)) {
           inFlightRef.current.add(rowIdx);
