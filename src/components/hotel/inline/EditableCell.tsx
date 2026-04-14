@@ -180,6 +180,11 @@ export function TextCell(props: TextCellProps) {
   const proxyRef = useRef<HTMLInputElement>(null);
   const composingRef = useRef(false);
   const enterByTypingRef = useRef(false);
+  // Accumulates typed characters across a display-mode typing session
+  // so IME composition is never interrupted by a mid-typing remount.
+  // Replaces the previous "flush first char → switch to edit mode" flow
+  // which broke the 2nd character's composition (홍길동 → 홍ㅣㄹ동).
+  const typedRef = useRef<string>('');
 
   // Imperatively focus the right element when state flips
   useEffect(() => {
@@ -203,13 +208,19 @@ export function TextCell(props: TextCellProps) {
         el.value = '';
         el.focus();
       }
+      // Reset the typing accumulator — a fresh focus starts a fresh
+      // replacement session.
+      typedRef.current = '';
       scrollFocusedIntoView(wrapRef.current);
+    } else {
+      typedRef.current = '';
     }
   }, [isFocused, isEditing, readOnly]);
 
   // The proxy input catches typed characters (with proper IME) in
-  // display mode. When the user types, we transfer the composed text
-  // into the real value, clear the proxy, and enter edit mode.
+  // display mode. We accumulate them into typedRef and push the full
+  // string via onChange on every commit, staying in display mode so
+  // the proxy input is never unmounted mid-composition.
   const handleProxyInput = () => {
     const el = proxyRef.current;
     if (!el) return;
@@ -217,9 +228,8 @@ export function TextCell(props: TextCellProps) {
     const typed = el.value;
     if (!typed) return;
     el.value = '';
-    enterByTypingRef.current = true;
-    onChange(typed);
-    onRequestEdit?.();
+    typedRef.current += typed;
+    onChange(typedRef.current);
   };
 
   const handleProxyKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -243,6 +253,7 @@ export function TextCell(props: TextCellProps) {
       case 'Delete':
       case 'Backspace':
         e.preventDefault();
+        typedRef.current = '';
         if (value !== '') onChange('');
         return;
     }
