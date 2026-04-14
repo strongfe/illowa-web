@@ -128,6 +128,19 @@ function computeInputData(
         row.sukbakCount += 1;
         row.sukbakAmount += s.amount;
       }
+      // OTA 행의 추금액도 해당 채널에 반영
+      const epm = s.extra_payment_method;
+      const ea = s.extra_amount || 0;
+      if (epm && ea > 0) {
+        const eRow = result.get(epm);
+        if (eRow) {
+          if (s.sale_type === '대실') {
+            eRow.daesilAmount += ea;
+          } else {
+            eRow.sukbakAmount += ea;
+          }
+        }
+      }
     }
   }
 
