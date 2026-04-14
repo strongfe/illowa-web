@@ -186,45 +186,82 @@ function computeChannelRevenue(sales: Sale[]): {
   cardSub: RevenueRow;
   grandTotal: RevenueRow;
 } {
-  // Each sale is claimed by the FIRST matching group so there are
-  // no double-counts. Priority: OTA > direct > card.
-  const claimed = new Set<string>();
-
-  // OTA rows — match by channel OR payment_method against all aliases
-  const ota: RevenueRow[] = OTA_ENTRIES.map((entry) => {
-    const group = sales.filter((s) => {
-      if (claimed.has(s.id)) return false;
-      return matchesOtaEntry(s, entry.aliases);
+  // Build a flat list of "revenue entries" — each sale produces 1 or 2
+  // entries: the primary (amount + payment_method/channel) and an
+  // optional extra (extra_amount + extra_payment_method).
+  interface RevEntry {
+    saleId: string;
+    channel: string;
+    paymentMethod: string;
+    amount: number;
+    isExtra: boolean;
+  }
+  const entries: RevEntry[] = [];
+  for (const s of sales) {
+    entries.push({
+      saleId: s.id,
+      channel: s.channel,
+      paymentMethod: s.payment_method || '',
+      amount: s.amount,
+      isExtra: false,
     });
-    for (const s of group) claimed.add(s.id);
-    return {
-      label: entry.label,
-      count: group.length,
-      amount: group.reduce((acc, r) => acc + r.amount, 0),
-    };
+    if (s.extra_amount && s.extra_payment_method) {
+      entries.push({
+        saleId: s.id,
+        channel: s.channel,
+        paymentMethod: s.extra_payment_method,
+        amount: s.extra_amount,
+        isExtra: true,
+      });
+    }
+  }
+
+  // Each entry is claimed by the FIRST matching group so there are
+  // no double-counts. Priority: OTA > direct > card.
+  const claimed = new Set<number>(); // index into entries[]
+
+  // OTA rows — match by channel OR payment_method against aliases
+  const ota: RevenueRow[] = OTA_ENTRIES.map((entry) => {
+    let count = 0;
+    let amount = 0;
+    entries.forEach((e, idx) => {
+      if (claimed.has(idx)) return;
+      const matches = entry.aliases.some(
+        (a) => e.channel === a || e.paymentMethod === a,
+      );
+      if (!matches) return;
+      claimed.add(idx);
+      amount += e.amount;
+      if (!e.isExtra) count += 1;
+    });
+    return { label: entry.label, count, amount };
   });
 
-  // Remaining (unclaimed) sales go to direct or card rows
-  const remaining = sales.filter((s) => !claimed.has(s.id));
-
-  // Direct rows — payment_method 기준
+  // Remaining (unclaimed) entries → direct + card by paymentMethod
   const direct: RevenueRow[] = DIRECT_LIST.map((pm) => {
-    const group = remaining.filter((s) => s.payment_method === pm);
-    return {
-      label: pm,
-      count: group.length,
-      amount: group.reduce((acc, r) => acc + r.amount, 0),
-    };
+    let count = 0;
+    let amount = 0;
+    entries.forEach((e, idx) => {
+      if (claimed.has(idx)) return;
+      if (e.paymentMethod !== pm) return;
+      claimed.add(idx);
+      amount += e.amount;
+      if (!e.isExtra) count += 1;
+    });
+    return { label: pm, count, amount };
   });
 
-  // Card rows — payment_method 기준
   const card: RevenueRow[] = CARD_LIST.map((pm) => {
-    const group = remaining.filter((s) => s.payment_method === pm);
-    return {
-      label: pm,
-      count: group.length,
-      amount: group.reduce((acc, r) => acc + r.amount, 0),
-    };
+    let count = 0;
+    let amount = 0;
+    entries.forEach((e, idx) => {
+      if (claimed.has(idx)) return;
+      if (e.paymentMethod !== pm) return;
+      claimed.add(idx);
+      amount += e.amount;
+      if (!e.isExtra) count += 1;
+    });
+    return { label: pm, count, amount };
   });
 
   const sum = (rows: RevenueRow[]) => ({
@@ -236,7 +273,6 @@ function computeChannelRevenue(sales: Sale[]): {
   const directSum = sum(direct);
   const cardSum = sum(card);
 
-  // Grand total: amount + extra_amount (Q3 옵션 C)
   const grandAmount = sales.reduce(
     (acc, r) => acc + r.amount + (r.extra_amount || 0),
     0,
