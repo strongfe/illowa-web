@@ -1001,18 +1001,13 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
   const colCount = columns.length;
 
   // For OTA panels, pre-fill channel on empty rows so validation
-  // and create logic always has the channel ready. For 기타 panels
-  // pre-fill '워킹' as the most common default so staff don't have to
-  // pick the channel for every new row.
+  // and create logic always has the channel ready.
   const buildRow = useCallback(
     (sale: Sale | null): RowState => {
       const state = buildRowState(sale);
       if (!sale && variant === 'ota') {
         state.draft = { ...state.draft, channel: title };
         state.snapshot = { ...state.snapshot, channel: title };
-      } else if (!sale && variant === 'etc') {
-        state.draft = { ...state.draft, channel: '워킹' };
-        state.snapshot = { ...state.snapshot, channel: '워킹' };
       }
       return state;
     },
