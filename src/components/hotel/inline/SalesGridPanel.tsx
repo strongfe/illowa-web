@@ -1764,28 +1764,8 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
   // Car number auto-fill: debounce timer per row
   const carLookupTimerRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
 
-  // Auto-save: debounce timer per row. Triggers commitRow ~1.2s after
-  // the user stops typing on a dirty row, so refreshing the page or
-  // closing the tab without ever moving focus to another row no longer
-  // loses data. (Previously commitRow was only fired by focusCell on
-  // a row change; users who typed and refreshed immediately lost the
-  // last row entirely.)
-  const autoSaveTimerRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
-  const commitRowRef = useRef<((rowIdx: number) => Promise<void>) | null>(null);
-  const scheduleAutoSave = useCallback((rowIdx: number) => {
-    const timers = autoSaveTimerRef.current;
-    if (timers[rowIdx]) clearTimeout(timers[rowIdx]);
-    timers[rowIdx] = setTimeout(() => {
-      delete timers[rowIdx];
-      commitRowRef.current?.(rowIdx);
-    }, 1200);
-  }, []);
-
   const setField = useCallback(
     <K extends keyof RowDraft>(rowIdx: number, key: K, value: RowDraft[K]) => {
-      // Schedule an auto-save for this row — caught up to 1.2s after
-      // the user stops typing.
-      scheduleAutoSave(rowIdx);
       setRows((prev) => {
         const cur = prev[rowIdx];
         if (cur.draft[key] === value) return prev;
@@ -1859,14 +1839,8 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
         return next;
       });
     },
-    [scheduleAutoSave],
+    [],
   );
-
-  // Keep commitRowRef in sync so the auto-save timer can call the
-  // latest commitRow without stale-closure bugs.
-  useEffect(() => {
-    commitRowRef.current = commitRow;
-  }, [commitRow]);
 
   // Booking UUID check — still needed by pasteFromClipboard to
   // skip multi-night rows during paste operations.
