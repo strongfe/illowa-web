@@ -185,6 +185,11 @@ export function TextCell(props: TextCellProps) {
   // Replaces the previous "flush first char → switch to edit mode" flow
   // which broke the 2nd character's composition (홍길동 → 홍ㅣㄹ동).
   const typedRef = useRef<string>('');
+  // Live IME composition text so the in-progress (yet-to-commit) last
+  // character is visible in the cell. Cleared on compositionEnd /
+  // focus loss. Without this the final character of a Korean word
+  // (대한민국 → 대한민) only appears after the user leaves the cell.
+  const [composingText, setComposingText] = useState('');
 
   // Imperatively focus the right element when state flips
   useEffect(() => {
@@ -211,9 +216,11 @@ export function TextCell(props: TextCellProps) {
       // Reset the typing accumulator — a fresh focus starts a fresh
       // replacement session.
       typedRef.current = '';
+      setComposingText('');
       scrollFocusedIntoView(wrapRef.current);
     } else {
       typedRef.current = '';
+      setComposingText('');
     }
   }, [isFocused, isEditing, readOnly]);
 
@@ -318,9 +325,14 @@ export function TextCell(props: TextCellProps) {
         />
       ) : (
         <>
-          <span className={`truncate w-full ${value ? (textClassName ?? '') : 'text-gray-300'}`}>
-            {value || placeholder || ''}
-          </span>
+          {(() => {
+            const display = (value ?? '') + composingText;
+            return (
+              <span className={`truncate w-full ${display ? (textClassName ?? '') : 'text-gray-300'}`}>
+                {display || placeholder || ''}
+              </span>
+            );
+          })()}
           {/* Hidden proxy input for IME-compatible keystroke capture */}
           {isFocused && !readOnly && (
             <input
@@ -329,9 +341,16 @@ export function TextCell(props: TextCellProps) {
               className="absolute inset-0 w-full h-full opacity-0 cursor-default"
               tabIndex={-1}
               onInput={handleProxyInput}
-              onCompositionStart={() => { composingRef.current = true; }}
+              onCompositionStart={(e) => {
+                composingRef.current = true;
+                setComposingText(e.data || '');
+              }}
+              onCompositionUpdate={(e) => {
+                setComposingText(e.data || '');
+              }}
               onCompositionEnd={() => {
                 composingRef.current = false;
+                setComposingText('');
                 // Flush composed text after composition ends
                 handleProxyInput();
               }}
@@ -339,6 +358,7 @@ export function TextCell(props: TextCellProps) {
               onBlur={(e) => {
                 // Prevent proxy blur from firing when switching to edit input
                 if (e.relatedTarget === inputRef.current) return;
+                setComposingText('');
               }}
             />
           )}
