@@ -1271,75 +1271,14 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
       if (row.original) {
         if (row.dirty.size === 0) return;
 
-        // Auto-delete only when EVERY field of the draft is empty.
-        // Previously this checked only the "key" fields, so clearing
-        // 성명/금액 alone (while channel·결제·메모 still held data)
-        // was enough to silently DELETE the row from the DB. Korean
-        // IME edge cases during fast typing made that misfire much
-        // more likely. Now we require the row to be fully blank so
-        // accidental deletes are not possible — only an intentional
-        // wipe of every cell triggers the delete path.
-        const d = row.draft;
-        const isAllEmpty =
-          d.guest_name.trim() === '' &&
-          d.amount === 0 &&
-          (d.room_type === null || d.room_type === ('' as RoomType)) &&
-          d.check_in_time === null &&
-          d.check_out_time === null &&
-          d.room_number.trim() === '' &&
-          d.extra_amount === 0 &&
-          (d.channel ?? '').trim() === '' &&
-          (d.payment_method ?? '').trim() === '' &&
-          (d.memo ?? '').trim() === '' &&
-          (d.car_number ?? '').trim() === '' &&
-          (d.extra_payment_method ?? '').trim() === '';
-
-        if (isAllEmpty && isDeletableRow(rowIdx)) {
-          inFlightRef.current.add(rowIdx);
-          setRows((prev) => {
-            const next = prev.slice();
-            next[rowIdx] = { ...prev[rowIdx], saving: true, error: null };
-            return next;
-          });
-          try {
-            const res = await fetch(
-              `/api/admin/hotel/sales?id=${row.original.id}`,
-              { method: 'DELETE' },
-            );
-            if (!res.ok) {
-              const body2 = await res.json().catch(() => ({}));
-              throw new Error(body2.error || '삭제 실패');
-            }
-            // Remove row, shift up, append empty at bottom
-            setRows((prev) => {
-              const next = prev.slice();
-              next.splice(rowIdx, 1);
-              next.push(buildRow(null));
-              return next;
-            });
-            setMounted((prev) => {
-              const next = new Set<string>();
-              for (const key of prev) {
-                const r = parseInt(key.split(':')[0], 10);
-                if (r < rowIdx) next.add(key);
-              }
-              return next;
-            });
-            setFocused(null);
-            setEditing(null);
-            onRowSavedRef.current?.(null);
-          } catch (err) {
-            const msg = err instanceof Error ? err.message : '삭제 실패';
-            setRows((prev) => {
-              const next = prev.slice();
-              next[rowIdx] = { ...prev[rowIdx], saving: false, error: msg };
-              return next;
-            });
-          } finally {
-            inFlightRef.current.delete(rowIdx);
-          }
-          return;
-        }
+        // NOTE: 자동 삭제 경로는 제거되었습니다.
+        // 이전에는 commit 시점에 draft의 핵심 필드가 비어 있으면
+        // 자동으로 DELETE를 호출했지만, 한글 IME · 빠른 타이핑 ·
+        // typedRef replace 동작이 결합되면 사용자가 의도하지 않은
+        // 행 삭제가 일어나는 사례가 있었습니다. 안전을 위해 자동
+        // 삭제는 비활성화하고, 행 삭제는 명시적인 Del-Del 시퀀스
+        // (handleDeleteKey)나 모달 등 명시적 UX를 통해서만 일어나야
+        // 합니다.
 
         if (!runValidation(rowIdx)) return;
         const body = buildPatchBody(row.original.id, row.draft, row.dirty);
