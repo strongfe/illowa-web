@@ -915,7 +915,7 @@ export interface SalesGridPanelProps {
    * the page-level summary stays in sync without waiting for the
    * 30 s refresh.
    */
-  onRowSaved?: (saved: Sale) => void;
+  onRowSaved?: (saved: Sale | null) => void;
   /**
    * Booking lookup map for displaying "12-15(퇴)3박" in the memo
    * column of multi-night rows. Keyed by booking_id.
@@ -1315,7 +1315,7 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
             });
             setFocused(null);
             setEditing(null);
-            onRowSavedRef.current?.(null as unknown as Sale);
+            onRowSavedRef.current?.(null);
           } catch (err) {
             const msg = err instanceof Error ? err.message : '삭제 실패';
             setRows((prev) => {
@@ -1656,7 +1656,7 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
             setFocused(null);
             setEditing(null);
             // Notify sibling panels
-            onRowSavedRef.current?.(null as unknown as Sale);
+            onRowSavedRef.current?.(null);
           })
           .catch((err) => {
             setRows((prev) => {

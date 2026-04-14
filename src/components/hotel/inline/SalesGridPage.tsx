@@ -215,7 +215,8 @@ export default function SalesGridPage() {
   // (대실/숙박/합계) updates immediately without a full refetch.
   // Preserves chronological order by replacing existing ids in
   // place and appending truly new rows to the end.
-  const handleRowSaved = useCallback((saved: Sale) => {
+  const handleRowSaved = useCallback((saved: Sale | null) => {
+    if (!saved) return;
     setSales((prev) => {
       const idx = prev.findIndex((s) => s.id === saved.id);
       if (idx >= 0) {
