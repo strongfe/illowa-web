@@ -1001,13 +1001,18 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
   const colCount = columns.length;
 
   // For OTA panels, pre-fill channel on empty rows so validation
-  // and create logic always has the channel ready.
+  // and create logic always has the channel ready. For 기타 panels
+  // pre-fill '워킹' as the most common default so staff don't have to
+  // pick the channel for every new row.
   const buildRow = useCallback(
     (sale: Sale | null): RowState => {
       const state = buildRowState(sale);
       if (!sale && variant === 'ota') {
         state.draft = { ...state.draft, channel: title };
         state.snapshot = { ...state.snapshot, channel: title };
+      } else if (!sale && variant === 'etc') {
+        state.draft = { ...state.draft, channel: '워킹' };
+        state.snapshot = { ...state.snapshot, channel: '워킹' };
       }
       return state;
     },
@@ -2227,6 +2232,23 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
       const inEditable =
         tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
 
+      // Shift+Delete: 행 삭제 (저장된 행만). 1회 누르면 빨간 표시 +
+      // 3초 안에 한 번 더 누르면 실제 삭제. 셀 편집 중에는 무시.
+      if (
+        e.shiftKey &&
+        !e.ctrlKey &&
+        !e.metaKey &&
+        !e.altKey &&
+        (e.key === 'Delete' || e.key === 'Del')
+      ) {
+        if (inEditable) return;
+        const focusedPos = focusedFullRef.current;
+        if (focusedPos == null) return;
+        e.preventDefault();
+        handleDeleteKeyRef.current?.(focusedPos.row);
+        return;
+      }
+
       const ctrl = e.ctrlKey || e.metaKey;
       if (!ctrl) return;
 
@@ -2256,6 +2278,14 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
   }, [copyToClipboard, pasteFromClipboard, undoOne, selectAll]);
+
+  // Stable ref so the keydown handler can call the latest handleDeleteKey
+  // without re-creating the document listener every time pendingDeleteRow
+  // changes.
+  const handleDeleteKeyRef = useRef<((rowIdx: number) => void) | null>(null);
+  useEffect(() => {
+    handleDeleteKeyRef.current = handleDeleteKey;
+  }, [handleDeleteKey]);
 
   // Compute total content width for the inner scroll container.
   const totalWidth = useMemo(
