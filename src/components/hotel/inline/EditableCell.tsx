@@ -803,6 +803,7 @@ export function SelectCell<V extends string | number = string>(
 
   const wrapRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const proxyRef = useRef<HTMLInputElement>(null);
   const composingRef = useRef(false);
   const enterByTypingRef = useRef(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -829,37 +830,76 @@ export function SelectCell<V extends string | number = string>(
     }
   }
 
-  // True when edit mode was entered via Korean IME (keyCode 229).
-  const imeEntryRef = useRef(false);
-
   useEffect(() => {
     if (readOnly) return;
     if (isEditing) {
-      const doFocus = () => {
-        const el = inputRef.current;
-        if (el && document.activeElement !== el) {
-          el.focus();
-          if (enterByTypingRef.current) {
-            const len = el.value.length;
-            el.setSelectionRange(len, len);
-            enterByTypingRef.current = false;
-          } else {
-            el.select();
-          }
+      const el = inputRef.current;
+      if (el && document.activeElement !== el) {
+        el.focus();
+        if (enterByTypingRef.current) {
+          const len = el.value.length;
+          el.setSelectionRange(len, len);
+          enterByTypingRef.current = false;
+        } else {
+          el.select();
         }
-      };
-      if (imeEntryRef.current) {
-        imeEntryRef.current = false;
-        requestAnimationFrame(doFocus);
-      } else {
-        doFocus();
       }
     } else if (isFocused) {
-      const el = wrapRef.current;
-      if (el && document.activeElement !== el) el.focus();
+      const el = proxyRef.current;
+      if (el && document.activeElement !== el) {
+        el.value = '';
+        el.focus();
+      }
       scrollFocusedIntoView(wrapRef.current);
     }
   }, [isFocused, isEditing, readOnly]);
+
+  // Proxy input: catches typed characters with proper IME in display mode
+  const handleProxyInput = () => {
+    const el = proxyRef.current;
+    if (!el) return;
+    const typed = el.value;
+    if (!typed) return;
+    el.value = '';
+    enterByTypingRef.current = true;
+    setDraft(typed);
+    onRequestEdit?.();
+  };
+
+  const handleProxyKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (readOnly) return;
+    if (composingRef.current || e.nativeEvent.isComposing || e.keyCode === 229) return;
+    switch (e.key) {
+      case 'F2':
+      case 'Enter':
+      case ' ':
+        e.preventDefault(); onRequestEdit?.(); return;
+      case 'Tab':
+        e.preventDefault(); onTab?.(e.shiftKey); return;
+      case 'ArrowUp':    e.preventDefault(); onMove?.('up');    return;
+      case 'ArrowDown':  e.preventDefault(); onMove?.('down');  return;
+      case 'ArrowLeft':  e.preventDefault(); onMove?.('left');  return;
+      case 'ArrowRight': e.preventDefault(); onMove?.('right'); return;
+      case 'Delete':
+      case 'Backspace':
+        e.preventDefault();
+        onClear?.();
+        return;
+    }
+    // ASCII quick-key match (S/D/P etc.)
+    if (enableQuickKey && /^[a-zA-Z0-9]$/.test(e.key)) {
+      const k = e.key.toLowerCase();
+      const match = options.find(
+        (o) => !o.disabled && o.label.toLowerCase().startsWith(k),
+      );
+      if (match) {
+        e.preventDefault();
+        if (proxyRef.current) proxyRef.current.value = '';
+        onChange(match.value);
+        return;
+      }
+    }
+  };
 
   /**
    * Resolve the current draft string to an option value.
@@ -900,54 +940,8 @@ export function SelectCell<V extends string | number = string>(
     return true;
   }, [draft, value, options, onChange, onClear, onCommit]);
 
-  const handleDisplayKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (readOnly) return;
-    if (isEditing) return;
-    switch (e.key) {
-      case 'F2':
-      case 'Enter':
-      case ' ':
-        e.preventDefault(); onRequestEdit?.(); return;
-      case 'Tab':
-        e.preventDefault(); onTab?.(e.shiftKey); return;
-      case 'ArrowUp':    e.preventDefault(); onMove?.('up');    return;
-      case 'ArrowDown':  e.preventDefault(); onMove?.('down');  return;
-      case 'ArrowLeft':  e.preventDefault(); onMove?.('left');  return;
-      case 'ArrowRight': e.preventDefault(); onMove?.('right'); return;
-      case 'Delete':
-      case 'Backspace':
-        e.preventDefault();
-        onClear?.();
-        return;
-    }
-    // ASCII single-letter prefix match (타입 column: S/D/P/GS/GD/PT).
-    // Resolves immediately in display mode without opening the dropdown.
-    if (enableQuickKey && /^[a-zA-Z0-9]$/.test(e.key)) {
-      const k = e.key.toLowerCase();
-      const match = options.find(
-        (o) => !o.disabled && o.label.toLowerCase().startsWith(k),
-      );
-      if (match) {
-        e.preventDefault();
-        onChange(match.value);
-        return;
-      }
-    }
-    // Korean IME or any printable character: open the dropdown editor.
-    // Same reasoning as TextCell — div elements don't support IME,
-    // so we must not seed the draft with the raw ASCII key.
-    if (e.key === 'Process' || e.keyCode === 229) {
-      setDraft('');
-      onRequestEdit?.();
-      return;
-    }
-    if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
-      e.preventDefault();
-      enterByTypingRef.current = true;
-      setDraft(e.key);
-      onRequestEdit?.();
-    }
-  };
+  // handleDisplayKeyDown is no longer needed — the proxy input handles
+  // all keystrokes in display mode, including IME composition.
 
   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (composingRef.current || e.nativeEvent.isComposing || e.keyCode === 229) {
@@ -1050,12 +1044,11 @@ export function SelectCell<V extends string | number = string>(
   return (
     <div
       ref={wrapRef}
-      tabIndex={readOnly ? -1 : 0}
+      tabIndex={-1}
       role="gridcell"
       aria-label={ariaLabel}
       aria-readonly={readOnly || undefined}
       onClick={() => !readOnly && onRequestEdit?.()}
-      onKeyDown={handleDisplayKeyDown}
       className={buildContainerClass({
         isFocused, isEditing, readOnly,
         error: effectiveError, isSaving, justSaved, align,
@@ -1112,9 +1105,26 @@ export function SelectCell<V extends string | number = string>(
           )}
         </div>
       ) : (
-        <span className={currentLabel ? '' : 'text-gray-300'}>
-          {currentLabel || placeholder || ''}
-        </span>
+        <>
+          <span className={currentLabel ? '' : 'text-gray-300'}>
+            {currentLabel || placeholder || ''}
+          </span>
+          {isFocused && !readOnly && (
+            <input
+              ref={proxyRef}
+              type="text"
+              className="absolute inset-0 w-full h-full opacity-0 cursor-default"
+              tabIndex={-1}
+              onInput={handleProxyInput}
+              onCompositionStart={() => { composingRef.current = true; }}
+              onCompositionEnd={() => {
+                composingRef.current = false;
+                handleProxyInput();
+              }}
+              onKeyDown={handleProxyKeyDown}
+            />
+          )}
+        </>
       )}
       {isSaving && <SavingSpinner />}
       {effectiveError && isFocused && <ErrorTooltip message={effectiveError} />}
