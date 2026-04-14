@@ -213,6 +213,7 @@ export function TextCell(props: TextCellProps) {
   const handleProxyInput = () => {
     const el = proxyRef.current;
     if (!el) return;
+    if (composingRef.current) return;
     const typed = el.value;
     if (!typed) return;
     el.value = '';
@@ -858,6 +859,7 @@ export function SelectCell<V extends string | number = string>(
   const handleProxyInput = () => {
     const el = proxyRef.current;
     if (!el) return;
+    if (composingRef.current) return;
     const typed = el.value;
     if (!typed) return;
     el.value = '';
