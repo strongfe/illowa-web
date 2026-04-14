@@ -1096,63 +1096,39 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
   // practice React re-mounts the panel on date changes because the
   // props cascade from SalesGridPage, so the escape hatch rarely
   // triggers.
-  // Sync the local row state with the incoming sales prop.
-  //
-  // ⚠ 근본 원인 노트:
-  // 이전 구현은 sales 배열의 reference equality와 slot index를 함께
-  // 사용해 재구축을 시도했습니다. 부모(SalesGridPage)가 저장 응답을
-  // append하거나 30s 백그라운드 refetch가 새로운 객체 그래프를 내려주면
-  // 인덱스/참조 두 축이 동시에 어긋날 수 있고, 그 순간 사용자가 막
-  // 저장한 행이 protect 조건을 통과하지 못하면 buildRow(undefined)로
-  // 빈 행으로 덮여 'DB는 멀쩡한데 화면에서 사라지는' 증상으로 이어졌습니다.
-  // (실제 DB DELETE는 더 이상 일어나지 않음 — commitRow의 자동삭제를
-  // 제거했고, handleDeleteKey는 dead code입니다.)
-  //
-  // 안전 정책:
-  //   • cur.original이 있는 행(이미 DB에 존재하는 행)은 sales prop
-  //     변동과 무관하게 무조건 그대로 둡니다. 사용자가 화면에서
-  //     본 행은 어떤 race가 일어나도 사라지지 않습니다.
-  //   • dirty / saving / focused / 방금-저장(savedAt) 행도 보존.
-  //   • 빈 slot만 sales[i]로 채워 신규 외부 행(다른 패널 저장,
-  //     refetch로 들어온 신규 행)이 보이도록 합니다.
-  //   • 서버에서 외부적으로 행이 사라진 경우(다른 클라이언트가 삭제)
-  //     이 패널은 즉시 반영하지 않고 사용자가 새로고침할 때까지
-  //     로컬 사본을 유지합니다 — 데이터 손실을 막는 쪽이 우선.
   const [prevSales, setPrevSales] = useState(sales);
   if (sales !== prevSales) {
     setPrevSales(sales);
     setRows((prevRows) => {
       const next: RowState[] = new Array(ROW_COUNT);
       const focusedRow = focusedRowRef.current;
-      // Track which incoming sale ids are already represented locally
-      // so we can append truly new server rows into empty slots.
-      const localIds = new Set<string>();
-      for (const r of prevRows) {
-        if (r?.original) localIds.add(r.original.id);
-      }
-      const incomingNewRows: Sale[] = [];
-      for (const s of sales) {
-        if (!localIds.has(s.id)) incomingNewRows.push(s);
-      }
-      let newRowCursor = 0;
       for (let i = 0; i < ROW_COUNT; i++) {
         const cur = prevRows[i];
-        // (a) 보존: dirty / saving / focused / 방금 저장 / 이미 DB에 있는 행
+        // 1. Protect dirty / saving / focused / recently-edited rows.
+        //    The focused row may have pending keystrokes that haven't
+        //    been flushed into dirty yet, so always preserve it.
+        //    Also protect rows with a savedAt timestamp (just saved,
+        //    green flash still visible) to avoid visual jitter.
+        if (cur && (cur.dirty.size > 0 || cur.saving || i === focusedRow || cur.savedAt !== null)) {
+          next[i] = cur;
+          continue;
+        }
+        // 2. Otherwise pull the matching server row by slot index.
+        //    If the saved data for this slot matches what the row
+        //    already holds we avoid churning state (keeps `mounted`
+        //    cells rendered).
+        const incoming = sales[i] ?? null;
         if (
           cur &&
-          (cur.dirty.size > 0 ||
-            cur.saving ||
-            i === focusedRow ||
-            cur.savedAt !== null ||
-            cur.original !== null)
+          cur.original &&
+          incoming &&
+          cur.original.id === incoming.id &&
+          cur.original === incoming
         ) {
           next[i] = cur;
           continue;
         }
-        // (b) 빈 slot — 다음 신규 server row가 있으면 채우고, 없으면 빈 행
-        const fill = incomingNewRows[newRowCursor] ?? null;
-        if (fill) newRowCursor++;
-        next[i] = buildRow(fill);
+        next[i] = buildRow(incoming);
       }
       return next;
     });
