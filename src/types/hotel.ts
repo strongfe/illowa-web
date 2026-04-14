@@ -117,7 +117,7 @@ export interface Receivable {
 // ── 채널 / 결제수단 ──
 export const CHANNELS = ['야놀자', '여기어때', '호텔스토리', '꿀스테이', '워킹', '연장', '예약', '비씨'] as const;
 export const OTA_CHANNELS = ['야놀자', '여기어때'] as const;
-export const OTHER_CHANNELS = ['워킹', '연장', '예약'] as const;
+export const OTHER_CHANNELS = ['워킹', '연장'] as const;
 
 export const PAYMENT_METHODS = [
   '국민', '신한', '비씨', '현대', '삼성', '농협', '하나', '롯데', '현금', '계좌', '호스', '미수',
