@@ -2314,7 +2314,7 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
 
   // Sticky (frozen) columns: keep # and everything up through 성명
   // pinned so horizontal scroll never hides the row identity.
-  const { stickyCount, stickyLefts } = useMemo(() => {
+  const { stickyCount, stickyLefts, stickyWidth } = useMemo(() => {
     const idx = columns.findIndex((c) => c.key === 'guest_name');
     const count = idx >= 0 ? idx + 1 : 0;
     const lefts: number[] = [];
@@ -2323,8 +2323,38 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
       lefts.push(acc);
       acc += columns[i].width;
     }
-    return { stickyCount: count, stickyLefts: lefts };
+    return { stickyCount: count, stickyLefts: lefts, stickyWidth: acc };
   }, [columns]);
+
+  // Horizontal scroll container — we adjust scrollLeft manually when
+  // focus changes so that non-sticky cells are never hidden behind the
+  // frozen # / 성명 columns on the left. The browser's native
+  // scrollIntoView({inline:'nearest'}) can't see sticky overlays and
+  // leaves cells stranded under them.
+  const scrollRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!focused) return;
+    const sc = scrollRef.current;
+    if (!sc) return;
+    const cell = sc.querySelector<HTMLElement>(
+      `[data-row="${focused.row}"][data-col="${focused.col}"]`,
+    );
+    if (!cell) return;
+    // Sticky columns are always visible — snap the container back to
+    // the left so the rest of the row becomes visible again.
+    if (focused.col < stickyCount) {
+      sc.scrollLeft = 0;
+      return;
+    }
+    const scRect = sc.getBoundingClientRect();
+    const cellRect = cell.getBoundingClientRect();
+    const leftBound = scRect.left + stickyWidth;
+    if (cellRect.left < leftBound) {
+      sc.scrollLeft += cellRect.left - leftBound;
+    } else if (cellRect.right > scRect.right) {
+      sc.scrollLeft += cellRect.right - scRect.right;
+    }
+  }, [focused, stickyCount, stickyWidth]);
 
   // Subtotal — always reflects the live draft so new rows and edits
   // show up immediately. A row counts as "filled" if any key field
@@ -2389,7 +2419,7 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
           are sized to fit 4× at typical panel widths, and any slight
           overflow is hidden with CSS. Browsers still let keyboard focus
           scroll into view via scrollIntoView(inline:'nearest'). */}
-      <div className="overflow-x-hidden">
+      <div ref={scrollRef} className="overflow-x-hidden">
         <div style={{ minWidth: totalWidth }}>
           {/* Column headers */}
           <div className="flex bg-gray-100 text-[10px] text-gray-600 border-b border-gray-200 relative">
