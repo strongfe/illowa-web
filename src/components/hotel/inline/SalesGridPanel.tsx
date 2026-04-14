@@ -2312,6 +2312,20 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
     [columns],
   );
 
+  // Sticky (frozen) columns: keep # and everything up through 성명
+  // pinned so horizontal scroll never hides the row identity.
+  const { stickyCount, stickyLefts } = useMemo(() => {
+    const idx = columns.findIndex((c) => c.key === 'guest_name');
+    const count = idx >= 0 ? idx + 1 : 0;
+    const lefts: number[] = [];
+    let acc = 28;
+    for (let i = 0; i < count; i++) {
+      lefts.push(acc);
+      acc += columns[i].width;
+    }
+    return { stickyCount: count, stickyLefts: lefts };
+  }, [columns]);
+
   // Subtotal — always reflects the live draft so new rows and edits
   // show up immediately. A row counts as "filled" if any key field
   // has content (amount, guest name, or room number). This matches
@@ -2380,14 +2394,15 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
           {/* Column headers */}
           <div className="flex bg-gray-100 text-[10px] text-gray-600 border-b border-gray-200 relative">
             <div
-              className="shrink-0 px-1 py-1 text-center whitespace-nowrap"
-              style={{ width: 28 }}
+              className="shrink-0 px-1 py-1 text-center whitespace-nowrap bg-gray-100"
+              style={{ width: 28, position: 'sticky', left: 0, zIndex: 30 }}
             >
               #
             </div>
-            {columns.map((c) => {
+            {columns.map((c, idx) => {
               const filterable = c.key === 'payment_method' || c.key === 'channel' || c.key === 'extra_payment_method';
               const isFiltered = columnFilter?.key === c.key;
+              const stickyLeft = idx < stickyCount ? stickyLefts[idx] : null;
               return (
                 <FilterableHeader
                   key={c.key}
@@ -2397,6 +2412,7 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
                   filterValue={isFiltered ? columnFilter!.value : null}
                   rows={rows}
                   onFilter={(val) => setColumnFilter(val ? { key: c.key, value: val } : null)}
+                  stickyLeft={stickyLeft}
                 />
               );
             })}
@@ -2445,6 +2461,8 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
                   draft={row.draft}
                   hasOriginal={row.original !== null}
                   columns={columns}
+                  stickyCount={stickyCount}
+                  stickyLefts={stickyLefts}
                   focusedCol={focusedCol}
                   editingCol={editingCol}
                   mounted={mounted}
@@ -2515,6 +2533,10 @@ interface GridRowProps {
   draft: RowDraft;
   hasOriginal: boolean;
   columns: ColumnDef[];
+  /** How many leading columns are pinned (frozen) via position:sticky. */
+  stickyCount: number;
+  /** Left offset (in px) for each sticky column, index-aligned with columns. */
+  stickyLefts: number[];
   focusedCol: number | null;
   editingCol: number | null;
   mounted: Set<string>;
@@ -2566,6 +2588,8 @@ const GridRow = React.memo(function GridRow(props: GridRowProps) {
     draft,
     hasOriginal,
     columns,
+    stickyCount,
+    stickyLefts,
     focusedCol,
     editingCol,
     mounted,
@@ -2612,13 +2636,23 @@ const GridRow = React.memo(function GridRow(props: GridRowProps) {
     ? ''
     : 'bg-white';
 
+  // Solid bg class applied to sticky (frozen) cells so scrolled content
+  // behind them is not visible. Mirrors the row tint but always opaque.
+  const stickyBgClass = isPendingDelete
+    ? 'bg-red-50'
+    : isDeleting
+    ? 'bg-red-100'
+    : justSaved
+    ? 'bg-green-50'
+    : 'bg-white';
+
   return (
     <div
       className={`flex border-b ${isPendingDelete ? 'border-red-300' : 'border-gray-100'} ${rowTint} hover:bg-gray-50/50 transition-colors`}
     >
       <div
-        className="shrink-0 px-1 text-center text-[11px] leading-6"
-        style={{ width: 28 }}
+        className={`shrink-0 px-1 text-center text-[11px] leading-6 ${stickyBgClass}`}
+        style={{ width: 28, position: 'sticky', left: 0, zIndex: 20 }}
         title={isPendingDelete ? '한 번 더 Del 키를 누르면 삭제됩니다' : errorMessage ?? undefined}
       >
         {isPendingDelete ? (
@@ -2661,11 +2695,15 @@ const GridRow = React.memo(function GridRow(props: GridRowProps) {
               selRightEdge ? 'border-r-2 border-r-blue-500' : '',
             ].join(' ')
           : '';
+        const isSticky = colIdx < stickyCount;
+        const stickyStyle = isSticky
+          ? { position: 'sticky' as const, left: stickyLefts[colIdx], zIndex: 10 }
+          : undefined;
         return (
           <div
             key={col.key}
-            className={`shrink-0 ${selClass}`}
-            style={{ width: col.width }}
+            className={`shrink-0 ${selClass} ${isSticky ? stickyBgClass : ''}`}
+            style={{ width: col.width, ...stickyStyle }}
             data-row={rowIdx}
             data-col={colIdx}
             onMouseDown={(e) => onCellMouseDown(rowIdx, colIdx, e)}
@@ -2854,6 +2892,7 @@ function FilterableHeader({
   filterValue,
   rows,
   onFilter,
+  stickyLeft,
 }: {
   col: ColumnDef;
   filterable: boolean;
@@ -2861,6 +2900,7 @@ function FilterableHeader({
   filterValue: string | null;
   rows: RowState[];
   onFilter: (value: string | null) => void;
+  stickyLeft: number | null;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -2898,9 +2938,15 @@ function FilterableHeader({
           ? 'text-center'
           : 'text-left'
       } ${filterable ? 'cursor-pointer hover:bg-gray-200' : ''} ${
-        isFiltered ? 'bg-blue-100 text-blue-700 font-bold' : ''
+        isFiltered ? 'bg-blue-100 text-blue-700 font-bold' : stickyLeft !== null ? 'bg-gray-100' : ''
       }`}
-      style={{ width: col.width, overflow: open ? 'visible' : 'hidden' }}
+      style={{
+        width: col.width,
+        overflow: open ? 'visible' : 'hidden',
+        ...(stickyLeft !== null
+          ? { position: 'sticky', left: stickyLeft, zIndex: 25 }
+          : {}),
+      }}
       onClick={filterable ? () => {
         if (isFiltered) {
           onFilter(null);
