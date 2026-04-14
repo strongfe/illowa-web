@@ -2891,7 +2891,7 @@ function FilterableHeader({
   return (
     <div
       ref={ref}
-      className={`shrink-0 px-1 py-1 whitespace-nowrap overflow-hidden relative ${
+      className={`shrink-0 px-1 py-1 whitespace-nowrap relative ${
         col.align === 'right'
           ? 'text-right'
           : col.align === 'center'
@@ -2900,7 +2900,7 @@ function FilterableHeader({
       } ${filterable ? 'cursor-pointer hover:bg-gray-200' : ''} ${
         isFiltered ? 'bg-blue-100 text-blue-700 font-bold' : ''
       }`}
-      style={{ width: col.width }}
+      style={{ width: col.width, overflow: open ? 'visible' : 'hidden' }}
       onClick={filterable ? () => {
         if (isFiltered) {
           onFilter(null);
@@ -2913,7 +2913,13 @@ function FilterableHeader({
       {col.header}
       {isFiltered && ' ✕'}
       {open && !isFiltered && uniqueValues.length > 0 && (
-        <div className="absolute left-0 top-full z-[9999] bg-white border border-gray-300 rounded shadow-lg py-1 min-w-[80px]">
+        <div
+          className="fixed z-[9999] bg-white border border-gray-300 rounded shadow-lg py-1 min-w-[80px]"
+          style={{
+            top: (ref.current?.getBoundingClientRect().bottom ?? 0) + 2,
+            left: ref.current?.getBoundingClientRect().left ?? 0,
+          }}
+        >
           {uniqueValues.map((v) => (
             <div
               key={v}
