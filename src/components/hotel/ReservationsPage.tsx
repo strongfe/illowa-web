@@ -10,19 +10,19 @@ function fmt(n: number) {
 }
 
 function todayStr() {
-  return new Date().toISOString().split('T')[0];
+  const _d = new Date(); return `${_d.getFullYear()}-${String(_d.getMonth()+1).padStart(2,'0')}-${String(_d.getDate()).padStart(2,'0')}`;
 }
 
 function tomorrowStr() {
   const d = new Date();
   d.setDate(d.getDate() + 1);
-  return d.toISOString().split('T')[0];
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
 function endOfWeekStr() {
   const d = new Date();
   d.setDate(d.getDate() + (7 - d.getDay()));
-  return d.toISOString().split('T')[0];
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
 export default function ReservationsPage() {

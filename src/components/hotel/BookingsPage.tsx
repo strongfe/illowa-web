@@ -31,19 +31,19 @@ type BookingStatus = '투숙중' | '오늘퇴실' | '예정' | '퇴실완료' | 
 type StatusFilter = '전체' | '투숙중' | '예정' | '완료';
 
 function todayStr(): string {
-  return new Date().toISOString().split('T')[0];
+  const _d = new Date(); return `${_d.getFullYear()}-${String(_d.getMonth()+1).padStart(2,'0')}-${String(_d.getDate()).padStart(2,'0')}`;
 }
 
 function startOfWeekStr(): string {
   const d = new Date();
   d.setDate(d.getDate() - d.getDay()); // 일요일 시작
-  return d.toISOString().split('T')[0];
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
 function endOfWeekStr(): string {
   const d = new Date();
   d.setDate(d.getDate() + (6 - d.getDay())); // 토요일 끝
-  return d.toISOString().split('T')[0];
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
 function fmt(n: number): string {
@@ -208,7 +208,7 @@ export default function BookingsPage() {
         const d = new Date(b.check_in_date + 'T00:00:00');
         const end = new Date(b.check_out_date + 'T00:00:00');
         while (d < end) {
-          dates.push(d.toISOString().split('T')[0]);
+          dates.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`);
           d.setDate(d.getDate() + 1);
         }
         // Fetch each date's sales in parallel

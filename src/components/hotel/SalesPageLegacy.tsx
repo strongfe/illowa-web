@@ -7,7 +7,11 @@ import { OTA_CHANNELS, OTHER_CHANNELS, PAYMENT_METHODS, ROOM_TYPE_CAPACITY } fro
 const ROOM_TYPES: RoomType[] = ['GS', 'GD', 'S', 'D', 'P', 'PT'];
 
 function today() {
-  return new Date().toISOString().split('T')[0];
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${dd}`;
 }
 
 function fmt(n: number) {
@@ -746,7 +750,10 @@ export function SaleModal({ saleDate, rooms, editSale, defaults, onClose, onSave
     const dates: { date: string; day: string }[] = [];
     const d = new Date(checkInDate + 'T00:00:00');
     for (let i = 0; i < nights; i++) {
-      dates.push({ date: d.toISOString().split('T')[0], day: dayNames[d.getDay()] });
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      dates.push({ date: `${y}-${m}-${dd}`, day: dayNames[d.getDay()] });
       d.setDate(d.getDate() + 1);
     }
 

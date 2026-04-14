@@ -12,7 +12,7 @@ function fmt(n: number): string {
 }
 
 function todayStr(): string {
-  return new Date().toISOString().split('T')[0];
+  const _d = new Date(); return `${_d.getFullYear()}-${String(_d.getMonth()+1).padStart(2,'0')}-${String(_d.getDate()).padStart(2,'0')}`;
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -109,7 +109,7 @@ export default function InvoicesPage() {
       const d = new Date(dateFrom + 'T00:00:00');
       const end = new Date(dateTo + 'T00:00:00');
       while (d <= end) {
-        dates.push(d.toISOString().split('T')[0]);
+        dates.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`);
         d.setDate(d.getDate() + 1);
       }
       const allSales: Sale[] = [];

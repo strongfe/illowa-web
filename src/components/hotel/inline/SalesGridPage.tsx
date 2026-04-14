@@ -31,7 +31,7 @@ import { ROOM_TYPE_CAPACITY } from '@/types/hotel';
 const ROOM_TYPES: RoomType[] = ['GS', 'GD', 'S', 'D', 'P', 'PT'];
 
 function todayStr() {
-  return new Date().toISOString().split('T')[0];
+  const _d = new Date(); return `${_d.getFullYear()}-${String(_d.getMonth()+1).padStart(2,'0')}-${String(_d.getDate()).padStart(2,'0')}`;
 }
 
 function fmt(n: number) {
