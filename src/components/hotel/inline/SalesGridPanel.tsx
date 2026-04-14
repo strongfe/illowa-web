@@ -1051,6 +1051,12 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
     () => new Set(),
   );
 
+  // ── Column filter (결재/구분) ──
+  const [columnFilter, setColumnFilter] = useState<{
+    key: keyof RowDraft;
+    value: string;
+  } | null>(null);
+
   // ── Row deletion (Del × 2) ──
   // pendingDeleteRow: row index awaiting 2nd Del press, or null.
   const [pendingDeleteRow, setPendingDeleteRow] = useState<number | null>(null);
@@ -2372,28 +2378,28 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
       <div className="overflow-x-hidden">
         <div style={{ minWidth: totalWidth }}>
           {/* Column headers */}
-          <div className="flex bg-gray-100 text-[10px] text-gray-600 border-b border-gray-200">
+          <div className="flex bg-gray-100 text-[10px] text-gray-600 border-b border-gray-200 relative">
             <div
               className="shrink-0 px-1 py-1 text-center whitespace-nowrap"
               style={{ width: 28 }}
             >
               #
             </div>
-            {columns.map((c) => (
-              <div
-                key={c.key}
-                className={`shrink-0 px-1 py-1 whitespace-nowrap overflow-hidden ${
-                  c.align === 'right'
-                    ? 'text-right'
-                    : c.align === 'center'
-                    ? 'text-center'
-                    : 'text-left'
-                }`}
-                style={{ width: c.width }}
-              >
-                {c.header}
-              </div>
-            ))}
+            {columns.map((c) => {
+              const filterable = c.key === 'payment_method' || c.key === 'channel' || c.key === 'extra_payment_method';
+              const isFiltered = columnFilter?.key === c.key;
+              return (
+                <FilterableHeader
+                  key={c.key}
+                  col={c}
+                  filterable={filterable}
+                  isFiltered={isFiltered}
+                  filterValue={isFiltered ? columnFilter!.value : null}
+                  rows={rows}
+                  onFilter={(val) => setColumnFilter(val ? { key: c.key, value: val } : null)}
+                />
+              );
+            })}
           </div>
 
           {/* Rows — collapsed view caps visible rows (7 for 대실,
@@ -2414,6 +2420,12 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
             // every row only needs a cheap containment check.
             const selRect = selection ? rectFromSelection(selection) : null;
             return rows.map((row, rowIdx) => {
+              // Column filter: hide rows that don't match
+              const filterHidden = columnFilter
+                ? (row.draft[columnFilter.key] as string)?.trim() !== columnFilter.value &&
+                  // Always show empty rows so the user can add new data
+                  (row.original !== null || row.dirty.size > 0)
+                : false;
               const focusedCol = focused?.row === rowIdx ? focused.col : null;
               const editingCol = editing?.row === rowIdx ? editing.col : null;
               const flags = computeRowFlags(row.original);
@@ -2423,6 +2435,9 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
                 selRect !== null &&
                 rowIdx >= selRect.r0 &&
                 rowIdx <= selRect.r1;
+              if (filterHidden) {
+                return <div key={rowIdx} style={{ display: 'none' }} />;
+              }
               return (
                 <GridRow
                   key={rowIdx}
@@ -2823,6 +2838,97 @@ function LightweightCell({
         <span className={`truncate w-full ${textClassName ?? ''}`}>
           {display}
         </span>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// FilterableHeader — clickable column header with dropdown filter
+// ─────────────────────────────────────────────────────────────
+
+function FilterableHeader({
+  col,
+  filterable,
+  isFiltered,
+  filterValue,
+  rows,
+  onFilter,
+}: {
+  col: ColumnDef;
+  filterable: boolean;
+  isFiltered: boolean;
+  filterValue: string | null;
+  rows: RowState[];
+  onFilter: (value: string | null) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Collect unique values from filled rows
+  const uniqueValues = useMemo(() => {
+    if (!filterable) return [];
+    const vals = new Set<string>();
+    for (const r of rows) {
+      const v = (r.draft[col.key] as string)?.trim();
+      if (v) vals.add(v);
+    }
+    return Array.from(vals).sort();
+  }, [filterable, rows, col.key]);
+
+  // Close on outside click
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  return (
+    <div
+      ref={ref}
+      className={`shrink-0 px-1 py-1 whitespace-nowrap overflow-hidden relative ${
+        col.align === 'right'
+          ? 'text-right'
+          : col.align === 'center'
+          ? 'text-center'
+          : 'text-left'
+      } ${filterable ? 'cursor-pointer hover:bg-gray-200' : ''} ${
+        isFiltered ? 'bg-blue-100 text-blue-700 font-bold' : ''
+      }`}
+      style={{ width: col.width }}
+      onClick={filterable ? () => {
+        if (isFiltered) {
+          onFilter(null);
+        } else if (uniqueValues.length > 0) {
+          setOpen(!open);
+        }
+      } : undefined}
+      title={isFiltered ? `필터: ${filterValue} (클릭하여 해제)` : filterable ? `${col.header} 필터` : undefined}
+    >
+      {col.header}
+      {isFiltered && ' ✕'}
+      {open && !isFiltered && uniqueValues.length > 0 && (
+        <div className="absolute left-0 top-full z-[9999] bg-white border border-gray-300 rounded shadow-lg py-1 min-w-[80px]">
+          {uniqueValues.map((v) => (
+            <div
+              key={v}
+              className="px-3 py-1.5 text-xs text-gray-700 hover:bg-[#C9A84C]/20 cursor-pointer"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onFilter(v);
+                setOpen(false);
+              }}
+            >
+              {v}
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
