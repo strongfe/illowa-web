@@ -1076,6 +1076,11 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
   // a stale closure of the focused cell.
   const focusedFullRef = useRef<FocusPos | null>(null);
   focusedFullRef.current = focused;
+  // Mirror of `editing` so the document keydown handler can tell apart
+  // "user is in display mode but proxy input is focused (Shift+Del OK)"
+  // from "user is actively editing a cell (Shift+Del must be ignored)".
+  const editingRef = useRef<FocusPos | null>(null);
+  editingRef.current = editing;
   // Lazy-mount tracking. Once a (row, col) is added it is never removed
   // until the row is saved (req. #4). A non-empty set means the user
   // has started interacting with at least one cell in this panel and
@@ -2234,6 +2239,8 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
 
       // Shift+Delete: 행 삭제 (저장된 행만). 1회 누르면 빨간 표시 +
       // 3초 안에 한 번 더 누르면 실제 삭제. 셀 편집 중에는 무시.
+      // 표시 모드의 proxy input은 inEditable로 잡히지만 실제 편집은
+      // editingRef로 판별해야 하므로 여기서는 editingRef만 본다.
       if (
         e.shiftKey &&
         !e.ctrlKey &&
@@ -2241,10 +2248,11 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
         !e.altKey &&
         (e.key === 'Delete' || e.key === 'Del')
       ) {
-        if (inEditable) return;
+        if (editingRef.current != null) return;
         const focusedPos = focusedFullRef.current;
         if (focusedPos == null) return;
         e.preventDefault();
+        e.stopPropagation();
         handleDeleteKeyRef.current?.(focusedPos.row);
         return;
       }
