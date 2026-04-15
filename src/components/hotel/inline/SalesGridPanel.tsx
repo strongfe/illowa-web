@@ -1203,26 +1203,8 @@ export default function SalesGridPanel(props: SalesGridPanelProps) {
       // so skip the channel-required error for them.
       if (variant === 'ota' && errs.channel) delete errs.channel;
 
-      // Room conflict — only check for rows that already exist on the
-      // server (original !== null) so they have a stable id. New rows
-      // (original === null) skip this check because:
-      //  1. They have no server id yet, so they can't match the
-      //     occupiedRooms map's owner id.
-      //  2. During fast typing, the save for the previous row may
-      //     still be in flight → occupiedRooms hasn't refreshed →
-      //     false-positive conflicts.
-      // The server-side unique constraint catches real conflicts.
-      const rn = row.draft.room_number?.trim();
-      if (rn && row.original) {
-        const map = occupiedRoomsRef.current;
-        if (map) {
-          const selfId = row.original.id;
-          const ownerId = map.get(rn);
-          if (ownerId != null && ownerId !== selfId) {
-            errs.room_number = '호실 중복';
-          }
-        }
-      }
+      // 호실 중복 검사는 운영 정책상 허용하기로 하여 제거됨.
+      // (같은 날 같은 호실에 여러 행이 생길 수 있음 — 레거시 모달과 동일 동작)
 
       const hasErrors = Object.keys(errs).length > 0;
       setRows((prev) => {
