@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { DAESIL_START_TIMES, BOOKABLE_DAYS, CANCEL_POLICY } from '@/data/reserveConfig';
 import {
-  RESERVE_ROOMS, PHONE_RE, WEEK, addDays, daesilHoursOn, fmtDay, formatPhone, isSellable,
+  RESERVE_ROOMS, PHONE_RE, WEEK, addDays, daesilSlot, fmtDay, fmtDuration, formatPhone, isPastTime, isSellable,
   nightsBetween, priceOf, todayKST, won,
   type AvailabilityItem, type Mode, type PayMethod, type ReservationRequest, type ReserveRoom,
 } from '@/lib/reserveCore';
@@ -40,7 +40,7 @@ export default function ReserveApp() {
   const [mode, setMode] = useState<Mode>('stay');
   const [checkIn, setCheckIn] = useState(today);
   const [checkOut, setCheckOut] = useState(addDays(today, 1));
-  const [daesilTime, setDaesilTime] = useState('14:00');
+  const [pickedTime, setDaesilTime] = useState('14:00');
   const [calendarOpen, setCalendarOpen] = useState(false);
 
   const [step, setStep] = useState<Step>('list');
@@ -75,10 +75,15 @@ export default function ReserveApp() {
   const nights = mode === 'stay' ? nightsBetween(checkIn, checkOut) : 0;
   const price = (r: ReserveRoom) => priceOf(r, mode, checkIn, checkOut);
 
-  // 대실: 대실 요금이 있는 타입만 / 숙박: 연박은 2박 이상, 당일특가는 오늘 입실만
-  const visibleRooms = RESERVE_ROOMS.filter((r) => isSellable(r, mode, checkIn, checkOut, today));
+  // 오늘 대실이면 이미 지난 시각은 못 고른다 → 고른 시각이 지났으면 가장 빠른 가능 시각으로
+  const openTimes = DAESIL_START_TIMES.filter((t) => !isPastTime(checkIn, t, today));
+  const daesilTime = openTimes.includes(pickedTime) ? pickedTime : openTimes[0] ?? pickedTime;
+  const daesilClosedToday = mode === 'daesil' && openTimes.length === 0;
 
-  const daesilHours = daesilHoursOn(checkIn);
+  // 대실: 그 시각에 입실 가능한 타입만 / 숙박: 연박은 2박 이상 / 당일특가는 오늘만
+  const visibleRooms = daesilClosedToday
+    ? []
+    : RESERVE_ROOMS.filter((r) => isSellable(r, mode, checkIn, checkOut, today, mode === 'daesil' ? daesilTime : null));
 
   const summary = {
     mode,
@@ -86,7 +91,6 @@ export default function ReserveApp() {
     checkOut,
     nights,
     daesilTime,
-    daesilHours,
   };
 
   const submit = async (data: FormData): Promise<string | null> => {
@@ -167,7 +171,7 @@ export default function ReserveApp() {
               : fmtDay(checkIn)}
           </span>
           <span className="text-sm text-neutral-500">
-            {mode === 'stay' ? `${nights}박` : `${daesilTime} 입실 · 최대 ${daesilHours}시간`}
+            {mode === 'stay' ? `${nights}박` : daesilClosedToday ? '오늘 대실 마감' : `${daesilTime} 입실`}
           </span>
           <span className="ml-auto text-xs text-[#9a7b2c] font-medium">변경</span>
         </button>
@@ -178,9 +182,10 @@ export default function ReserveApp() {
             {DAESIL_START_TIMES.map((t) => (
               <button
                 key={t}
+                disabled={!openTimes.includes(t)}
                 onClick={() => setDaesilTime(t)}
-                className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm border ${
-                  daesilTime === t
+                className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm border disabled:text-neutral-300 disabled:border-neutral-200 ${
+                  daesilTime === t && !daesilClosedToday
                     ? 'bg-neutral-900 text-white border-neutral-900'
                     : 'bg-[#fff] text-neutral-700 border-neutral-300'
                 }`}
@@ -204,7 +209,7 @@ export default function ReserveApp() {
               mode={mode}
               price={price(r)}
               nights={nights}
-              daesilHours={daesilHours}
+              daesilInfo={daesilInfo(r, checkIn, daesilTime)}
               remaining={remaining}
               soldOut={soldOut}
               onSelect={() => {
@@ -215,6 +220,14 @@ export default function ReserveApp() {
             />
           );
         })}
+        {daesilClosedToday && (
+          <p className="rounded-lg bg-[#fff] p-6 text-center text-sm text-neutral-600">
+            오늘 대실 예약은 마감되었습니다. 다른 날짜를 선택해 주세요.
+          </p>
+        )}
+        {mode === 'daesil' && !daesilClosedToday && (
+          <p className="text-xs text-neutral-500">선택한 입실 시간에 이용 가능한 객실만 보여 드립니다.</p>
+        )}
         {avail.error && !loading && (
           <p className="rounded-lg bg-red-50 p-3 text-center text-sm text-red-600">{avail.error}</p>
         )}
@@ -272,7 +285,7 @@ function PrototypeNotice() {
   if (LIVE) return null;
   return (
     <div className="bg-amber-50 text-amber-800 text-xs px-4 py-2 border-b border-amber-200">
-      테스트 운영 중입니다. 대실 요금은 임시값이며, 신청 내용은 호텔에서 확인 후 확정됩니다.
+      테스트 운영 중입니다. 신청 내용은 호텔에서 확인 후 확정됩니다.
     </div>
   );
 }
@@ -282,13 +295,13 @@ function PrototypeNotice() {
 // ─────────────────────────────────────────────────────────────
 
 function RoomCard({
-  room, mode, price, nights, daesilHours, remaining, soldOut, onSelect,
+  room, mode, price, nights, daesilInfo, remaining, soldOut, onSelect,
 }: {
   room: ReserveRoom;
   mode: Mode;
   price: number;
   nights: number;
-  daesilHours: number;
+  daesilInfo: string;
   remaining: number | null; // null = 확인 중
   soldOut: boolean;
   onSelect: () => void;
@@ -353,7 +366,7 @@ function RoomCard({
             ) : (
               <>
                 <p className="font-semibold text-neutral-800">대실</p>
-                <p>최대 {daesilHours}시간 이용</p>
+                <p>{daesilInfo}</p>
               </>
             )}
           </div>
@@ -516,8 +529,13 @@ type Summary = {
   checkOut: string;
   nights: number;
   daesilTime: string;
-  daesilHours: number;
 };
+
+/** 대실 이용 시간 안내: '14:00~20:00 (6시간)' */
+function daesilInfo(room: ReserveRoom, checkIn: string, time: string) {
+  const slot = daesilSlot(room, checkIn, time);
+  return slot ? `${time}~${slot.end} 이용 (${fmtDuration(slot.minutes)})` : '';
+}
 
 function UsageLines({ room, summary }: { room: ReserveRoom; summary: Summary }) {
   return (
@@ -528,7 +546,7 @@ function UsageLines({ room, summary }: { room: ReserveRoom; summary: Summary }) 
       <dd>
         {summary.mode === 'stay'
           ? `${fmtDay(summary.checkIn)} ~ ${fmtDay(summary.checkOut)} (${summary.nights}박)`
-          : `${fmtDay(summary.checkIn)} ${summary.daesilTime} 입실 · 최대 ${summary.daesilHours}시간`}
+          : `${fmtDay(summary.checkIn)} ${daesilInfo(room, summary.checkIn, summary.daesilTime)}`}
       </dd>
     </dl>
   );

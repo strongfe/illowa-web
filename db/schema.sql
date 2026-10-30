@@ -51,3 +51,6 @@ CREATE TABLE IF NOT EXISTS sms_log (
   reservation_id BIGINT,
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- 2026-10-30: 대실 퇴실 시각 (입실 시각 + 이용 시간, 퇴실 마감 넘지 않음)
+ALTER TABLE web_reservations ADD COLUMN IF NOT EXISTS daesil_end TEXT;

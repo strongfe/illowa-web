@@ -7,7 +7,7 @@
 // ═══════════════════════════════════════════════════════════════
 
 import {
-  RESERVE_ROOMS, DAESIL_START_TIMES, DAESIL_HOURS, BOOKABLE_DAYS, type ReserveRoom,
+  RESERVE_ROOMS, DAESIL_START_TIMES, DAESIL_MIN_MINUTES, BOOKABLE_DAYS, SAT_OPEN, type DaesilPlan, type ReserveRoom,
 } from '@/data/reserveConfig';
 
 export type Mode = 'stay' | 'daesil';
@@ -43,10 +43,25 @@ export const addDays = (k: string, n: number) => {
 export const nightsBetween = (a: string, b: string) =>
   Math.round((utc(b).getTime() - utc(a).getTime()) / 86400000);
 export const dayOfWeek = (k: string) => utc(k).getUTCDay();
-export const isWeekend = (k: string) => [0, 5, 6].includes(dayOfWeek(k)); // 금·토·일
+/** 대실 주말 = 토·일 (금요일은 평일 요금) */
+export const isDaesilWeekend = (k: string) => [0, 6].includes(dayOfWeek(k));
 
+const kstNow = () => new Date(Date.now() + 9 * 3600 * 1000);
 /** 한국 시간 기준 오늘 */
-export const todayKST = () => keyOf(new Date(Date.now() + 9 * 3600 * 1000));
+export const todayKST = () => keyOf(kstNow());
+/** 한국 시간 기준 지금 (자정부터 분) */
+export const nowMinutesKST = () => {
+  const d = kstNow();
+  return d.getUTCHours() * 60 + d.getUTCMinutes();
+};
+
+const toMin = (t: string) => {
+  const [h, m] = t.split(':').map(Number);
+  return h * 60 + m;
+};
+const toTime = (min: number) => `${pad(Math.floor(min / 60))}:${pad(min % 60)}`;
+export const fmtDuration = (min: number) =>
+  min % 60 === 0 ? `${min / 60}시간` : `${Math.floor(min / 60)}시간 ${min % 60}분`;
 
 export const WEEK = ['일', '월', '화', '수', '목', '금', '토'];
 export const fmtDay = (k: string) => {
@@ -70,21 +85,38 @@ export function stayNightPrice(room: ReserveRoom, k: string) {
   return room.stayPrice.weekday;
 }
 
+/** 그날의 대실 조건 (요금·입실 가능 시간·최대 이용 시간) */
+export function daesilPlan(room: ReserveRoom, k: string): DaesilPlan | null {
+  if (!room.daesil) return null;
+  const p = isDaesilWeekend(k) ? room.daesil.weekend : room.daesil.weekday;
+  const satOpen = dayOfWeek(k) === 6 ? SAT_OPEN[room.key] : undefined;
+  return satOpen ? { ...p, open: satOpen } : p;
+}
+
+/** 이 시각에 입실하면 언제까지 쓸 수 있나. 입실 가능 시간 밖이면 null */
+export function daesilSlot(room: ReserveRoom, k: string, time: string) {
+  const p = daesilPlan(room, k);
+  if (!p) return null;
+  const start = toMin(time);
+  const close = p.close * 60;
+  if (start < p.open * 60 || close - start < DAESIL_MIN_MINUTES) return null;
+  const end = Math.min(start + p.hours * 60, close);
+  return { end: toTime(end), minutes: end - start, plan: p };
+}
+
 export function priceOf(room: ReserveRoom, mode: Mode, checkIn: string, checkOut: string) {
-  if (mode === 'daesil') {
-    if (!room.daesilPrice) return 0;
-    return isWeekend(checkIn) ? room.daesilPrice.weekend : room.daesilPrice.weekday;
-  }
+  if (mode === 'daesil') return daesilPlan(room, checkIn)?.price ?? 0;
   return occupiedDates('stay', checkIn, checkOut).reduce((sum, k) => sum + stayNightPrice(room, k), 0);
 }
 
-export const daesilHoursOn = (k: string) => (isWeekend(k) ? DAESIL_HOURS.weekend : DAESIL_HOURS.weekday);
-
-/** 이 조건에서 노출(판매)되는 타입인가 */
-export function isSellable(room: ReserveRoom, mode: Mode, checkIn: string, checkOut: string, today: string) {
-  if (mode === 'daesil') return !!room.daesilPrice;
+/** 이 조건에서 노출(판매)되는 타입인가. 대실은 입실 시각(daesilTime)까지 본다 */
+export function isSellable(
+  room: ReserveRoom, mode: Mode, checkIn: string, checkOut: string, today: string, daesilTime?: string | null,
+) {
+  if (room.todayOnly && checkIn !== today) return false;
+  if (mode === 'daesil') return !!room.daesil && (!daesilTime || !!daesilSlot(room, checkIn, daesilTime));
   const nights = nightsBetween(checkIn, checkOut);
-  return nights >= room.minNights && (!room.todayOnly || checkIn === today);
+  return nights >= room.minNights;
 }
 
 export const findRoom = (key: string) => RESERVE_ROOMS.find((r) => r.key === key) ?? null;
@@ -105,6 +137,10 @@ export function validateDates(mode: Mode, checkIn: string, checkOut: string, tod
 
 export const isDaesilTime = (t: unknown): t is string =>
   typeof t === 'string' && DAESIL_START_TIMES.includes(t);
+
+/** 오늘 대실이면 이미 지난 입실 시각은 고를 수 없다 */
+export const isPastTime = (checkIn: string, time: string, today: string) =>
+  checkIn === today && toMin(time) <= nowMinutesKST();
 
 export const PHONE_RE = /^01[016789]-?\d{3,4}-?\d{4}$/;
 export const normalizePhone = (p: string) => p.replace(/\D/g, '');

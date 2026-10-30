@@ -48,7 +48,7 @@ export default function AllotmentPage() {
   }, [load]);
 
   const dates = useMemo(() => Array.from({ length: DAYS }, (_, i) => addDays(from, i)), [from]);
-  const rooms = RESERVE_ROOMS.filter((r) => (mode === 'daesil' ? !!r.daesilPrice : true));
+  const rooms = RESERVE_ROOMS.filter((r) => (mode === 'daesil' ? !!r.daesil : true));
   const byKey = useMemo(() => new Map((cells ?? []).map((c) => [cellKey(c.date, c.roomKey), c])), [cells]);
 
   const setQty = (date: string, roomKey: string, qty: number) =>

@@ -21,6 +21,7 @@ interface Row {
   check_out: string;
   daesil_time: string | null;
   daesil_hours: number | null;
+  daesil_end: string | null;
   guest_name: string;
   phone: string;
   visit: 'walk' | 'car';
@@ -144,7 +145,7 @@ export default function WebReservePage() {
             <div className="mt-2 text-[15px]">
               <b>{r.room_name}</b>{' '}
               {r.mode === 'daesil'
-                ? `대실 ${fmtDay(r.check_in)} ${r.daesil_time} 입실 (최대 ${r.daesil_hours}시간)`
+                ? `대실 ${fmtDay(r.check_in)} ${r.daesil_time}~${r.daesil_end ?? ''}`
                 : `숙박 ${fmtDay(r.check_in)} ~ ${fmtDay(r.check_out)} ${nightsBetween(r.check_in, r.check_out)}박`}
             </div>
             <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-700">

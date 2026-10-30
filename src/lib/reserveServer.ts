@@ -3,8 +3,8 @@ import type postgres from 'postgres';
 import { db } from '@/lib/db';
 import { sendSms, hotelNotifyPhones } from '@/lib/sms';
 import {
-  RESERVE_ROOMS, PAY_LABELS, addDays, daesilHoursOn, findRoom, fmtDay, isDaesilTime, isSellable,
-  nightsBetween, normalizePhone, occupiedDates, priceOf, todayKST, validateDates, won, PHONE_RE,
+  RESERVE_ROOMS, PAY_LABELS, addDays, daesilSlot, findRoom, fmtDay, fmtDuration, isDaesilTime, isPastTime,
+  isSellable, nightsBetween, normalizePhone, occupiedDates, priceOf, todayKST, validateDates, won, PHONE_RE,
   type AvailabilityItem, type Mode, type ReservationRequest, type ReservationStatus,
 } from '@/lib/reserveCore';
 
@@ -24,6 +24,7 @@ export interface ReservationRow {
   check_out: string;
   daesil_time: string | null;
   daesil_hours: number | null;
+  daesil_end: string | null;
   guest_name: string;
   phone: string;
   visit: 'walk' | 'car';
@@ -68,6 +69,7 @@ async function remainingMap(sql: Sql, mode: Mode, dates: string[], roomKeys: str
 
 export async function getAvailability(mode: Mode, checkIn: string, checkOut: string): Promise<AvailabilityItem[]> {
   const today = todayKST();
+  // 대실은 시각과 무관하게 그날 대실 판매 타입 전부의 잔여를 돌려준다 (시각 필터는 화면에서)
   const rooms = RESERVE_ROOMS.filter((r) => isSellable(r, mode, checkIn, checkOut, today));
   if (rooms.length === 0) return [];
   const remaining = await remainingMap(db(), mode, occupiedDates(mode, checkIn, checkOut), rooms.map((r) => r.key));
@@ -102,8 +104,13 @@ export async function createReservation(input: Partial<ReservationRequest>, ip: 
   if (!room) throw new ReserveError('객실을 다시 선택해 주세요');
   const dateErr = validateDates(mode, checkIn, checkOut, today);
   if (dateErr) throw new ReserveError(dateErr);
-  if (!isSellable(room, mode, checkIn, checkOut, today)) throw new ReserveError('선택하신 조건에서 판매하지 않는 객실입니다');
-  if (mode === 'daesil' && !isDaesilTime(input.daesilTime)) throw new ReserveError('대실 입실 시간을 선택해 주세요');
+  if (mode === 'daesil') {
+    if (!isDaesilTime(input.daesilTime)) throw new ReserveError('대실 입실 시간을 선택해 주세요');
+    if (isPastTime(checkIn, input.daesilTime, today)) throw new ReserveError('이미 지난 입실 시간입니다. 다른 시간을 선택해 주세요');
+  }
+  if (!isSellable(room, mode, checkIn, checkOut, today, input.daesilTime)) {
+    throw new ReserveError('선택하신 날짜·시간에는 판매하지 않는 객실입니다');
+  }
   if (!guestName) throw new ReserveError('예약자 이름을 입력해 주세요');
   if (!PHONE_RE.test(phoneRaw)) throw new ReserveError('휴대폰 번호를 정확히 입력해 주세요');
   if (visit === 'car' && room.walkOnly) throw new ReserveError('이 객실은 도보 방문 전용입니다');
@@ -113,7 +120,9 @@ export async function createReservation(input: Partial<ReservationRequest>, ip: 
   const phone = normalizePhone(phoneRaw);
   const amount = priceOf(room, mode, checkIn, checkOut);
   const daesilTime = mode === 'daesil' ? (input.daesilTime as string) : null;
-  const daesilHours = mode === 'daesil' ? daesilHoursOn(checkIn) : null;
+  const slot = daesilTime ? daesilSlot(room, checkIn, daesilTime) : null;
+  const daesilHours = slot ? slot.plan.hours : null;
+  const daesilEnd = slot ? slot.end : null;
 
   const row = await db().begin(async (tx) => {
     // 같은 타입 예약끼리는 한 줄로 세워서 마지막 1실을 두 명이 동시에 잡지 못하게 한다.
@@ -127,10 +136,10 @@ export async function createReservation(input: Partial<ReservationRequest>, ip: 
       const code = `IW${checkIn.replace(/-/g, '').slice(2)}-${crypto.randomInt(1000, 10000)}`;
       const [r] = await tx<ReservationRow[]>`
         INSERT INTO web_reservations
-          (code, mode, room_key, room_name, check_in, check_out, daesil_time, daesil_hours,
+          (code, mode, room_key, room_name, check_in, check_out, daesil_time, daesil_hours, daesil_end,
            guest_name, phone, visit, car_no, request, pay_method, amount, ip)
         VALUES
-          (${code}, ${mode}, ${room.key}, ${room.name}, ${checkIn}, ${checkOut}, ${daesilTime}, ${daesilHours},
+          (${code}, ${mode}, ${room.key}, ${room.name}, ${checkIn}, ${checkOut}, ${daesilTime}, ${daesilHours}, ${daesilEnd},
            ${guestName}, ${phone}, ${visit}, ${carNo}, ${request}, ${payMethod}, ${amount}, ${ip})
         ON CONFLICT (code) DO NOTHING
         RETURNING *
@@ -162,11 +171,17 @@ export async function createReservation(input: Partial<ReservationRequest>, ip: 
   return row;
 }
 
+const minutesBetween = (a: string | null, b: string | null) => {
+  if (!a || !b) return 0;
+  const m = (t: string) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5));
+  return m(b) - m(a);
+};
+
 const formatPhoneForText = (p: string) => p.replace(/^(\d{3})(\d{3,4})(\d{4})$/, '$1-$2-$3');
 
-export function usageText(r: Pick<ReservationRow, 'mode' | 'room_name' | 'check_in' | 'check_out' | 'daesil_time' | 'daesil_hours'>) {
+export function usageText(r: Pick<ReservationRow, 'mode' | 'room_name' | 'check_in' | 'check_out' | 'daesil_time' | 'daesil_end'>) {
   return r.mode === 'daesil'
-    ? `${r.room_name} 대실 ${fmtDay(r.check_in)} ${r.daesil_time} 입실 (최대 ${r.daesil_hours}시간)`
+    ? `${r.room_name} 대실 ${fmtDay(r.check_in)} ${r.daesil_time}~${r.daesil_end} (${fmtDuration(minutesBetween(r.daesil_time, r.daesil_end))})`
     : `${r.room_name} 숙박 ${fmtDay(r.check_in)}~${fmtDay(r.check_out)} ${nightsBetween(r.check_in, r.check_out)}박`;
 }
 
@@ -241,7 +256,7 @@ export interface AllotmentCell {
 export async function getAllotments(mode: Mode, from: string, days: number): Promise<AllotmentCell[]> {
   const sql = db();
   const to = addDays(from, days - 1);
-  const keys = RESERVE_ROOMS.filter((r) => (mode === 'daesil' ? !!r.daesilPrice : true)).map((r) => r.key);
+  const keys = RESERVE_ROOMS.filter((r) => (mode === 'daesil' ? !!r.daesil : true)).map((r) => r.key);
   const allotRows = await sql<{ stay_date: string; room_key: string; qty: number }[]>`
     SELECT stay_date, room_key, qty FROM web_allotments
     WHERE mode = ${mode} AND stay_date BETWEEN ${from} AND ${to}
