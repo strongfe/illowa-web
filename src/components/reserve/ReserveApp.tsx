@@ -47,6 +47,8 @@ export default function ReserveApp() {
   const [room, setRoom] = useState<ReserveRoom | null>(null);
   const [code, setCode] = useState('');
   const [finalAmount, setFinalAmount] = useState(0);
+  const [bank, setBank] = useState<string | null>(null);
+  const [deadline, setDeadline] = useState<string | null>(null);
 
   // 남은 객실 수 — 조건이 바뀔 때마다 서버에 묻는다
   const query = `mode=${mode}&checkIn=${checkIn}&checkOut=${checkOut}`;
@@ -110,6 +112,8 @@ export default function ReserveApp() {
       }
       setCode(j.code);
       setFinalAmount(j.amount);
+      setBank(j.bankAccount ?? null);
+      setDeadline(j.payDeadline ?? null);
       setStep('done');
       window.scrollTo(0, 0);
       return null;
@@ -119,7 +123,7 @@ export default function ReserveApp() {
   };
 
   if (step === 'done' && room) {
-    return <DoneView room={room} price={finalAmount} summary={summary} code={code} />;
+    return <DoneView room={room} price={finalAmount} summary={summary} code={code} bank={bank} deadline={deadline} />;
   }
 
   if (step === 'form' && room) {
@@ -569,7 +573,7 @@ function FormView({
     : ([['walk', '도보', Footprints], ['car', '차량', Car]] as const);
   const [carNo, setCarNo] = useState('');
   const [request, setRequest] = useState('');
-  const [pay, setPay] = useState<PayMethod>('onsite');
+  const [pay, setPay] = useState<PayMethod>('transfer');
   const [agree, setAgree] = useState({ policy: false, privacy: false });
   const [tried, setTried] = useState(false);
   const [sending, setSending] = useState(false);
@@ -677,8 +681,7 @@ function FormView({
         <section className="mt-2 bg-[#fff] px-4 py-4 space-y-2">
           <h2 className="mb-1 text-[16px] font-bold">결제 방법</h2>
           {([
-            ['onsite', '현장 결제', '입실 시 프런트에서 카드·현금으로 결제'],
-            ['transfer', '무통장 입금', '입금 계좌는 확정 문자로 안내드립니다'],
+            ['transfer', '무통장 입금', '신청하시면 입금 계좌를 바로 안내드립니다. 2시간 안에 입금해 주시면 확인 후 예약이 확정됩니다'],
           ] as const).map(([v, label, desc]) => (
             <label
               key={v}
@@ -764,8 +767,8 @@ function FormView({
 // ─────────────────────────────────────────────────────────────
 
 function DoneView({
-  room, price, summary, code,
-}: { room: ReserveRoom; price: number; summary: Summary; code: string }) {
+  room, price, summary, code, bank, deadline,
+}: { room: ReserveRoom; price: number; summary: Summary; code: string; bank: string | null; deadline: string | null }) {
   return (
     <Shell>
       <TopBar title="예약 신청 완료" backHref="/" />
@@ -774,11 +777,21 @@ function DoneView({
         <CheckCircle2 size={56} className="mx-auto text-[#C9A84C]" />
         <h2 className="mt-4 text-[20px] font-bold">예약 신청이 접수되었습니다</h2>
         <p className="mt-2 text-[14px] leading-6 text-neutral-600">
-          호텔에서 확인 후 <b>예약 확정 문자</b>를 보내드립니다.
+          아래 계좌로 입금해 주시면, 확인 후 <b>예약 확정 문자</b>를 보내드립니다.
           <br />
-          문자를 받으시면 예약이 확정됩니다.
+          입금 계좌는 문자로도 보내드렸습니다.
         </p>
       </div>
+      {bank && (
+        <section className="mx-4 mb-3 rounded-xl border-2 border-[#C9A84C] bg-[#C9A84C]/5 p-4">
+          <p className="text-sm text-neutral-500">입금 계좌</p>
+          <p className="mt-1 text-[16px] font-bold">{bank}</p>
+          {deadline && (
+            <p className="mt-2 text-[14px] font-semibold text-red-600">입금 기한: {deadline}까지 (지나면 자동 취소)</p>
+          )}
+          <p className="mt-1 text-xs text-neutral-500">입금자명은 예약자 이름으로 부탁드립니다.</p>
+        </section>
+      )}
       <section className="mx-4 rounded-xl border border-neutral-200 p-4">
         <div className="mb-3 flex items-center justify-between border-b border-neutral-100 pb-3">
           <span className="text-sm text-neutral-500">예약번호</span>
@@ -786,13 +799,13 @@ function DoneView({
         </div>
         <UsageLines room={room} summary={summary} />
         <div className="mt-3 flex items-center justify-between border-t border-neutral-100 pt-3">
-          <span className="text-sm text-neutral-500">결제 예정 금액</span>
+          <span className="text-sm text-neutral-500">입금하실 금액</span>
           <span className="text-[18px] font-bold">{won(price)}</span>
         </div>
       </section>
       <div className="mx-4 mt-4 flex items-start gap-2 rounded-lg bg-neutral-100 p-3 text-[13px] text-neutral-600">
         <Clock size={16} className="mt-0.5 shrink-0" />
-        <span>확정 문자가 30분 안에 오지 않으면 호텔로 전화 주세요. 031-464-9661</span>
+        <span>입금 후 확정 문자가 오지 않으면 호텔로 전화 주세요. 031-464-9661</span>
       </div>
       <div className="p-4">
         <Link href="/" className="block w-full rounded-lg bg-[#111] py-3.5 text-center text-[15px] font-semibold text-white">

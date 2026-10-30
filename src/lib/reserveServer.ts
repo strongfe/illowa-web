@@ -2,6 +2,7 @@ import crypto from 'node:crypto';
 import type postgres from 'postgres';
 import { db } from '@/lib/db';
 import { sendSms, hotelNotifyPhones } from '@/lib/sms';
+import { TRANSFER_DEADLINE_MINUTES } from '@/data/reserveConfig';
 import {
   RESERVE_ROOMS, PAY_LABELS, addDays, daesilSlot, findRoom, fmtDay, fmtDuration, isDaesilTime, isPastTime,
   isSellable, nightsBetween, normalizePhone, occupiedDates, priceOf, todayKST, validateDates, won, PHONE_RE,
@@ -35,6 +36,8 @@ export interface ReservationRow {
   status: ReservationStatus;
   admin_memo: string;
   created_at: string;
+  /** 무통장 입금 기한 (한국 시간 'MM/DD HH:MM') */
+  pay_deadline: string;
 }
 
 /** 날짜별·타입별 남은 객실 = 배정량 − 점유 중인 예약 수 (여러 박이면 가장 적은 날 기준) */
@@ -68,6 +71,7 @@ async function remainingMap(sql: Sql, mode: Mode, dates: string[], roomKeys: str
 }
 
 export async function getAvailability(mode: Mode, checkIn: string, checkOut: string): Promise<AvailabilityItem[]> {
+  await expireUnpaid();
   const today = todayKST();
   // 대실은 시각과 무관하게 그날 대실 판매 타입 전부의 잔여를 돌려준다 (시각 필터는 화면에서)
   const rooms = RESERVE_ROOMS.filter((r) => isSellable(r, mode, checkIn, checkOut, today));
@@ -99,7 +103,9 @@ export async function createReservation(input: Partial<ReservationRequest>, ip: 
   const visit = input.visit === 'car' ? 'car' : 'walk';
   const carNo = visit === 'car' ? clean(input.carNo, 20) : '';
   const request = clean(input.request, 300);
-  const payMethod = input.payMethod === 'transfer' ? 'transfer' : 'onsite';
+  // 현장 결제는 2026-10-30 폐지. 카드 결제는 PG 연동 후 추가 예정.
+  if (input.payMethod !== 'transfer') throw new ReserveError('결제 방법을 다시 선택해 주세요');
+  const payMethod = 'transfer' as const;
 
   if (!room) throw new ReserveError('객실을 다시 선택해 주세요');
   const dateErr = validateDates(mode, checkIn, checkOut, today);
@@ -124,6 +130,7 @@ export async function createReservation(input: Partial<ReservationRequest>, ip: 
   const daesilHours = slot ? slot.plan.hours : null;
   const daesilEnd = slot ? slot.end : null;
 
+  await expireUnpaid();
   const row = await db().begin(async (tx) => {
     // 같은 타입 예약끼리는 한 줄로 세워서 마지막 1실을 두 명이 동시에 잡지 못하게 한다.
     await tx`SELECT pg_advisory_xact_lock(hashtext(${`${mode}:${room.key}`}))`;
@@ -142,7 +149,7 @@ export async function createReservation(input: Partial<ReservationRequest>, ip: 
           (${code}, ${mode}, ${room.key}, ${room.name}, ${checkIn}, ${checkOut}, ${daesilTime}, ${daesilHours}, ${daesilEnd},
            ${guestName}, ${phone}, ${visit}, ${carNo}, ${request}, ${payMethod}, ${amount}, ${ip})
         ON CONFLICT (code) DO NOTHING
-        RETURNING *
+        RETURNING *, to_char((created_at + make_interval(mins => ${TRANSFER_DEADLINE_MINUTES})) AT TIME ZONE 'Asia/Seoul', 'MM/DD HH24:MI') AS pay_deadline
       `;
       if (r) return r;
     }
@@ -154,14 +161,14 @@ export async function createReservation(input: Partial<ReservationRequest>, ip: 
   await Promise.all([
     sendSms(
       row.phone,
-      `[일로와호텔] 예약 신청이 접수되었습니다.\n예약번호 ${row.code}\n${usage}\n금액 ${won(row.amount)} (${PAY_LABELS[row.pay_method]})\n호텔 확인 후 확정 문자를 보내드립니다. 문의 ${HOTEL_TEL}`,
+      `[일로와호텔] 예약 신청이 접수되었습니다.\n예약번호 ${row.code}\n${usage}\n입금하실 금액 ${won(row.amount)}\n입금 계좌: ${bankAccount()}\n입금 기한: ${row.pay_deadline}까지 (지나면 자동 취소)\n입금자명은 예약자 이름으로 부탁드립니다.\n입금이 확인되면 확정 문자를 보내드립니다. 문의 ${HOTEL_TEL}`,
       'request_guest',
       row.id,
     ),
     ...hotelNotifyPhones().map((p) =>
       sendSms(
         p,
-        `[홈페이지 예약신청] ${row.guest_name} ${formatPhoneForText(row.phone)}\n${usage}\n${won(row.amount)} ${PAY_LABELS[row.pay_method]}${row.visit === 'car' ? ` / 차량 ${row.car_no}` : ''}\n관리자 화면에서 확정해 주세요.`,
+        `[홈페이지 예약신청] ${row.guest_name} ${formatPhoneForText(row.phone)}\n${usage}\n${won(row.amount)} ${PAY_LABELS[row.pay_method]}${row.visit === 'car' ? ` / 차량 ${row.car_no}` : ''}\n입금 확인 후 관리자 화면에서 확정해 주세요.`,
         'request_hotel',
         row.id,
       ),
@@ -170,6 +177,9 @@ export async function createReservation(input: Partial<ReservationRequest>, ip: 
 
   return row;
 }
+
+/** 무통장 입금 계좌 (Railway 환경변수 RESERVE_BANK_ACCOUNT) */
+export const bankAccount = () => process.env.RESERVE_BANK_ACCOUNT || '호텔(031-464-9661)로 문의해 주세요';
 
 const minutesBetween = (a: string | null, b: string | null) => {
   if (!a || !b) return 0;
@@ -190,9 +200,10 @@ export function usageText(r: Pick<ReservationRow, 'mode' | 'room_name' | 'check_
 // ─────────────────────────────────────────────────────────────
 
 export async function listReservations(from: string, to: string, status: string | null) {
+  await expireUnpaid();
   const sql = db();
   return sql<ReservationRow[]>`
-    SELECT * FROM web_reservations
+    SELECT *, to_char((created_at + make_interval(mins => ${TRANSFER_DEADLINE_MINUTES})) AT TIME ZONE 'Asia/Seoul', 'MM/DD HH24:MI') AS pay_deadline FROM web_reservations
     WHERE check_in BETWEEN ${from} AND ${to}
       ${status ? sql`AND status = ${status}` : sql``}
     ORDER BY check_in, created_at
@@ -216,16 +227,15 @@ export async function updateReservation(id: number, next: { status?: Reservation
       admin_memo = ${next.adminMemo ?? before.admin_memo},
       updated_at = now()
     WHERE id = ${id}
-    RETURNING *
+    RETURNING *, to_char((created_at + make_interval(mins => ${TRANSFER_DEADLINE_MINUTES})) AT TIME ZONE 'Asia/Seoul', 'MM/DD HH24:MI') AS pay_deadline
   `;
 
   if (next.status && next.status !== before.status) {
     const usage = usageText(after);
     if (next.status === 'confirmed') {
-      const bank = process.env.RESERVE_BANK_ACCOUNT;
       const payLine =
         after.pay_method === 'transfer'
-          ? `입금 계좌: ${bank || '호텔로 문의해 주세요'}\n입금자명은 예약자 이름으로 부탁드립니다.`
+          ? '입금이 확인되었습니다. 감사합니다.'
           : '결제는 입실 시 프런트에서 해 주세요.';
       await sendSms(
         after.phone,
@@ -254,6 +264,7 @@ export interface AllotmentCell {
 }
 
 export async function getAllotments(mode: Mode, from: string, days: number): Promise<AllotmentCell[]> {
+  await expireUnpaid();
   const sql = db();
   const to = addDays(from, days - 1);
   const keys = RESERVE_ROOMS.filter((r) => (mode === 'daesil' ? !!r.daesil : true)).map((r) => r.key);
@@ -299,4 +310,34 @@ export async function saveAllotments(mode: Mode, items: { date: string; roomKey:
       `;
     }
   });
+}
+
+// ─────────────────────────────────────────────────────────────
+// 무통장 입금 기한 초과 자동 취소
+//
+// 신청 후 TRANSFER_DEADLINE_MINUTES 안에 직원이 입금 확인(확정)을 하지 않으면
+// 취소하고 객실을 돌려준다. 서버 시작 시 5분 간격 타이머(instrumentation.ts)와
+// 조회·예약 직전에 함께 돈다. UPDATE … RETURNING 이라 같은 건이 두 번 처리되지 않는다.
+// ─────────────────────────────────────────────────────────────
+
+export async function expireUnpaid() {
+  const expired = await db()<ReservationRow[]>`
+    UPDATE web_reservations SET
+      status = 'cancelled',
+      admin_memo = CASE WHEN admin_memo = '' THEN '입금 기한 초과 자동 취소'
+                        ELSE admin_memo || ' / 입금 기한 초과 자동 취소' END,
+      updated_at = now()
+    WHERE status = 'pending' AND pay_method = 'transfer'
+      AND created_at < now() - make_interval(mins => ${TRANSFER_DEADLINE_MINUTES})
+    RETURNING *
+  `;
+  for (const r of expired) {
+    void sendSms(
+      r.phone,
+      `[일로와호텔] 입금 기한이 지나 예약이 자동 취소되었습니다.\n예약번호 ${r.code}\n${usageText(r)}\n이미 입금하셨다면 호텔로 연락 주세요. ${HOTEL_TEL}`,
+      'expired',
+      r.id,
+    );
+  }
+  return expired.length;
 }

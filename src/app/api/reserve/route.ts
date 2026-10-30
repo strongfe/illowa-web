@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createReservation, ReserveError } from '@/lib/reserveServer';
+import { bankAccount, createReservation, ReserveError } from '@/lib/reserveServer';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,7 +34,13 @@ export async function POST(req: NextRequest) {
 
   try {
     const r = await createReservation(body, ip);
-    return NextResponse.json({ ok: true, code: r.code, amount: r.amount });
+    return NextResponse.json({
+      ok: true,
+      code: r.code,
+      amount: r.amount,
+      bankAccount: r.pay_method === 'transfer' ? bankAccount() : null,
+      payDeadline: r.pay_method === 'transfer' ? r.pay_deadline : null,
+    });
   } catch (e) {
     if (e instanceof ReserveError) return NextResponse.json({ error: e.message }, { status: e.status });
     console.error('[reserve]', e);

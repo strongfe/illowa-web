@@ -32,6 +32,7 @@ interface Row {
   status: ReservationStatus;
   admin_memo: string;
   created_at: string;
+  pay_deadline: string;
 }
 
 const TABS: { key: ReservationStatus | 'all'; label: string }[] = [
@@ -139,6 +140,9 @@ export default function WebReservePage() {
             <div className="flex flex-wrap items-center gap-2">
               <span className={`rounded px-2 py-0.5 text-xs font-semibold ${BADGE[r.status]}`}>{STATUS_LABELS[r.status]}</span>
               <span className="font-mono text-sm text-gray-500">{r.code}</span>
+              {r.status === 'pending' && r.pay_method === 'transfer' && (
+                <span className="text-xs font-semibold text-red-600">입금 기한 {r.pay_deadline}</span>
+              )}
               <span className="ml-auto text-xs text-gray-400">신청 {fmtCreated(r.created_at)}</span>
             </div>
 
@@ -160,10 +164,10 @@ export default function WebReservePage() {
               {r.status === 'pending' && (
                 <button
                   disabled={busy === r.id}
-                  onClick={() => update(r, { status: 'confirmed' }, `${r.guest_name}님 예약을 확정하고 확정 문자를 보낼까요?`)}
+                  onClick={() => update(r, { status: 'confirmed' }, `${r.guest_name}님 예약을 확정하고 확정 문자를 보낼까요?${r.pay_method === 'transfer' ? ' (입금을 확인하셨나요?)' : ''}`)}
                   className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
                 >
-                  확정 + 문자
+                  {r.pay_method === 'transfer' ? '입금 확인 · 확정 + 문자' : '확정 + 문자'}
                 </button>
               )}
               {(r.status === 'pending' || r.status === 'confirmed') && (

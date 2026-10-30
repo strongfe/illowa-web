@@ -42,6 +42,7 @@
     "company_name": "Empresa",
     "representative": "Representante",
     "business_number": "N.º de registro comercial",
+    "ecommerce_number": "N.º de registro de vendas a distância",
     "address": "Endereço",
     "phone": "Telefone",
     "email": "E-mail",

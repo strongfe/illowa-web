@@ -24,7 +24,7 @@ export default function Footer() {
                     <h2 className="font-cormorant text-2xl text-gold font-light mb-4 tracking-widest uppercase">{t('brand')}</h2>
                     <p className="font-noto-kr text-gray text-xs leading-relaxed">
                         {t('company_name')} : {contactData.business_name} &nbsp;|&nbsp; {t('representative')} : {contactData.representative}<br />
-                        {t('business_number')} : {contactData.business_number}<br />
+                        {t('business_number')} : {contactData.business_number} &nbsp;|&nbsp; {t('ecommerce_number')} : {contactData.ecommerce_number}<br />
                         {t('address')} : {contactData.address}<br />
                         {t('phone')} : {contactData.phone} &nbsp;|&nbsp; {t('email')} : {contactData.email}
                     </p>

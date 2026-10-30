@@ -42,6 +42,7 @@
     "company_name": "Perusahaan",
     "representative": "Perwakilan",
     "business_number": "Nomor registrasi bisnis",
+    "ecommerce_number": "Nomor pendaftaran penjualan online",
     "address": "Alamat",
     "phone": "Telepon",
     "email": "Email",

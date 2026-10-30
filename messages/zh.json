@@ -42,6 +42,7 @@
     "company_name": "商号",
     "representative": "代表",
     "business_number": "营业执照号",
+    "ecommerce_number": "通信销售业申报号",
     "address": "地址",
     "phone": "电话",
     "email": "邮箱",
