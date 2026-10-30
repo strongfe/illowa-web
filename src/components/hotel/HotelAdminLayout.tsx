@@ -6,6 +6,8 @@ import { useState } from 'react';
 
 // Main nav — always visible
 const MAIN_NAV = [
+  { href: '/admin/hotel/web-reserve', label: '홈페이지 예약', icon: '🌐' },
+  { href: '/admin/hotel/allotment', label: '판매 객실 수', icon: '🔢' },
   { href: '/admin/hotel/sales', label: '판매 입력', icon: '📝' },
   { href: '/admin/hotel/bookings', label: '연박 현황', icon: '🛏️' },
   { href: '/admin/hotel/reservations', label: '예약 현황', icon: '📅' },

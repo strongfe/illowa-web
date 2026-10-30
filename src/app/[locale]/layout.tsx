@@ -6,6 +6,7 @@ import { routing } from '@/i18n/routing';
 import ChatWidget from '@/components/ChatWidget';
 import TouristGuideModal from '@/components/TouristGuideModal';
 import StickyBookingBar from '@/components/StickyBookingBar';
+import HideOnPath from '@/components/HideOnPath';
 
 type Locale = (typeof routing.locales)[number];
 
@@ -228,9 +229,11 @@ export default async function LocaleLayout({ children, params }: Props) {
   return (
     <NextIntlClientProvider locale={resolvedLocale} messages={messages}>
       {children}
-      <StickyBookingBar />
-      <TouristGuideModal />
-      <ChatWidget />
+      <HideOnPath segment="reserve">
+        <StickyBookingBar />
+        <TouristGuideModal />
+        <ChatWidget />
+      </HideOnPath>
     </NextIntlClientProvider>
   );
 }

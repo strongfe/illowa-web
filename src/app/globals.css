@@ -26,6 +26,9 @@
 }
 
 @layer utilities {
+  .no-scrollbar { scrollbar-width: none; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+
   .fade-in {
     opacity: 0;
     transform: translateY(24px);
