@@ -2899,6 +2899,9 @@ function FilterableHeader({
   stickyLeft: number | null;
 }) {
   const [open, setOpen] = useState(false);
+  // 드롭다운 위치는 렌더 중이 아니라 여는 시점(이벤트 핸들러)에서 잰다.
+  // 렌더 중 ref.current 를 읽으면 직전 커밋 시점의 레이아웃을 쓰게 된다.
+  const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
   const ref = useRef<HTMLDivElement>(null);
 
   // Collect unique values from filled rows
@@ -2947,6 +2950,10 @@ function FilterableHeader({
         if (isFiltered) {
           onFilter(null);
         } else if (uniqueValues.length > 0) {
+          if (!open) {
+            const r = ref.current?.getBoundingClientRect();
+            setMenuPos(r ? { top: r.bottom + 2, left: r.left } : null);
+          }
           setOpen(!open);
         }
       } : undefined}
@@ -2954,13 +2961,10 @@ function FilterableHeader({
     >
       {col.header}
       {isFiltered && ' ✕'}
-      {open && !isFiltered && uniqueValues.length > 0 && (
+      {open && menuPos && !isFiltered && uniqueValues.length > 0 && (
         <div
           className="fixed z-[9999] bg-white border border-gray-300 rounded shadow-lg py-1 min-w-[80px]"
-          style={{
-            top: (ref.current?.getBoundingClientRect().bottom ?? 0) + 2,
-            left: ref.current?.getBoundingClientRect().left ?? 0,
-          }}
+          style={{ top: menuPos.top, left: menuPos.left }}
         >
           {uniqueValues.map((v) => (
             <div

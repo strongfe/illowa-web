@@ -114,7 +114,7 @@ export default function AuditPage() {
       setTotal(data.total);
     }
     setLoading(false);
-  }, [page, tableFilter, actionFilter, dateFilter]);
+  }, [page, tableFilter, actionFilter, dateFilter, recordFilter]);
 
   useEffect(() => { fetchLogs(); }, [fetchLogs]);
   useEffect(() => { setPage(1); }, [tableFilter, actionFilter, dateFilter, recordFilter]);
