@@ -42,6 +42,7 @@
     "company_name": "Компания",
     "representative": "Представитель",
     "business_number": "Регистрационный номер",
+    "ecommerce_number": "Номер регистрации интернет-торговли",
     "address": "Адрес",
     "phone": "Телефон",
     "email": "Email",

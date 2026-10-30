@@ -42,6 +42,7 @@
     "company_name": "Company",
     "representative": "Representative",
     "business_number": "Business Registration No.",
+    "ecommerce_number": "Mail-order Business Report No.",
     "address": "Address",
     "phone": "Phone",
     "email": "Email",
