@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import Script from 'next/script';
 import { headers } from 'next/headers';
 import { hasLocale } from 'next-intl';
-import { Analytics } from '@vercel/analytics/react';
 import { routing } from '@/i18n/routing';
 import './globals.css';
 
@@ -173,7 +172,6 @@ export default async function RootLayout({
         )}
 
         {children}
-        <Analytics />
 
         {/* ── Google Tag Manager ── */}
         {GTM_ID && (
