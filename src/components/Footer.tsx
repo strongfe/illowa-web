@@ -46,6 +46,7 @@ export default function Footer() {
                     <div className="flex gap-4 mt-2">
                         <Link href={{ pathname: '/terms' }} locale={locale} className="hover:text-white transition-colors">{t('terms')}</Link>
                         <Link href={{ pathname: '/privacy' }} locale={locale} className="hover:text-white transition-colors">{t('privacy')}</Link>
+                        <Link href={{ pathname: '/refund' }} locale={locale} className="hover:text-white transition-colors">{t('refund')}</Link>
                         <Link href={{ pathname: '/cookies' }} locale={locale} className="hover:text-white transition-colors">{t('cookies')}</Link>
                     </div>
                 </div>

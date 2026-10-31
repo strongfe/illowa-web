@@ -2,12 +2,12 @@ import type { MetadataRoute } from 'next';
 
 const siteUrl = 'https://illowa-hotel.com';
 const locales = ['ko', 'en', 'ja', 'zh', 'ru', 'es', 'fr', 'pt', 'id', 'hi'] as const;
-const legalPaths = ['terms', 'privacy', 'cookies'] as const;
+const legalPaths = ['terms', 'privacy', 'cookies', 'refund'] as const;
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date();
 
-  const baseEntries: MetadataRoute.Sitemap = ['/', '/terms', '/privacy', '/cookies'].map((path) => ({
+  const baseEntries: MetadataRoute.Sitemap = ['/', '/terms', '/privacy', '/cookies', '/refund'].map((path) => ({
     url: `${siteUrl}${path}`,
     lastModified,
   }));

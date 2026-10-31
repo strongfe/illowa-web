@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { routing } from '@/i18n/routing';
 
-export type LegalPageKey = 'terms' | 'privacy' | 'cookies';
+export type LegalPageKey = 'terms' | 'privacy' | 'cookies' | 'refund';
 
 const localeTags: Record<(typeof routing.locales)[number], string> = {
   ko: 'ko-KR',
@@ -30,6 +30,10 @@ const legalMeta = {
       title: '쿠키 정책 | 일로와호텔',
       description: '일로와호텔 쿠키 정책입니다. 쿠키 사용 목적, 유형, 거부 방법을 안내합니다.',
     },
+    refund: {
+      title: '취소·환불 정책 | 일로와호텔',
+      description: '일로와호텔 홈페이지 직접 예약의 취소·환불 정책입니다. 취소 가능 기한과 환불 기준을 안내합니다.',
+    },
   },
   en: {
     terms: {
@@ -43,6 +47,10 @@ const legalMeta = {
     cookies: {
       title: 'Cookie Policy | Illowa Hotel',
       description: 'Cookie Policy for Illowa Hotel, including cookie usage purposes, categories, and opt-out options.',
+    },
+    refund: {
+      title: 'Cancellation & Refund Policy | Illowa Hotel',
+      description: 'Cancellation and refund policy for bookings made directly on the Illowa Hotel website.',
     },
   },
 } as const;
