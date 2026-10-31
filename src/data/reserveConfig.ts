@@ -115,6 +115,9 @@ export const DAESIL_START_TIMES = Array.from({ length: 13 }, (_, i) => {
 /** 퇴실 마감까지 최소 이용 시간 (분) — 이보다 짧게 남으면 그 시각엔 팔지 않는다 */
 export const DAESIL_MIN_MINUTES = 120;
 
+/** 온라인 결제창을 연 동안 객실을 잡아 두는 시간 (분). 결제를 마치지 않으면 풀린다 */
+export const CARD_HOLD_MINUTES = 20;
+
 /** 무통장 입금 기한 (분). 이 안에 입금 확인(확정)이 안 되면 자동 취소 */
 export const TRANSFER_DEADLINE_MINUTES = 120;
 

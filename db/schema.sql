@@ -54,3 +54,17 @@ CREATE TABLE IF NOT EXISTS sms_log (
 
 -- 2026-10-30: 대실 퇴실 시각 (입실 시각 + 이용 시간, 퇴실 마감 넘지 않음)
 ALTER TABLE web_reservations ADD COLUMN IF NOT EXISTS daesil_end TEXT;
+
+-- 2026-10-30: 온라인 결제(토스페이먼츠). 결제창을 연 동안은 'awaiting_payment' 로 객실을 잡아 둔다.
+ALTER TABLE web_reservations DROP CONSTRAINT IF EXISTS web_reservations_pay_method_check;
+ALTER TABLE web_reservations ADD CONSTRAINT web_reservations_pay_method_check
+  CHECK (pay_method IN ('onsite', 'transfer', 'card'));
+ALTER TABLE web_reservations DROP CONSTRAINT IF EXISTS web_reservations_status_check;
+ALTER TABLE web_reservations ADD CONSTRAINT web_reservations_status_check
+  CHECK (status IN ('awaiting_payment', 'pending', 'confirmed', 'cancelled', 'no_show'));
+ALTER TABLE web_reservations ADD COLUMN IF NOT EXISTS payment_key TEXT;          -- 토스 paymentKey
+ALTER TABLE web_reservations ADD COLUMN IF NOT EXISTS payment_method TEXT;       -- 카드 / 간편결제 / 계좌이체 …
+ALTER TABLE web_reservations ADD COLUMN IF NOT EXISTS paid_at TIMESTAMPTZ;
+ALTER TABLE web_reservations ADD COLUMN IF NOT EXISTS refunded_at TIMESTAMPTZ;
+-- 토스에 넘기는 주문번호. 예약번호(추측 가능)와 별개로 무작위 꼬리를 붙여 남이 결제를 건드리지 못하게 한다.
+ALTER TABLE web_reservations ADD COLUMN IF NOT EXISTS toss_order_id TEXT UNIQUE;

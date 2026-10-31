@@ -27,12 +27,15 @@ interface Row {
   visit: 'walk' | 'car';
   car_no: string;
   request: string;
-  pay_method: 'onsite' | 'transfer';
+  pay_method: 'onsite' | 'transfer' | 'card';
   amount: number;
   status: ReservationStatus;
   admin_memo: string;
   created_at: string;
   pay_deadline: string;
+  payment_method: string | null;
+  paid_at: string | null;
+  refunded_at: string | null;
 }
 
 const TABS: { key: ReservationStatus | 'all'; label: string }[] = [
@@ -42,6 +45,7 @@ const TABS: { key: ReservationStatus | 'all'; label: string }[] = [
 ];
 
 const BADGE: Record<ReservationStatus, string> = {
+  awaiting_payment: 'bg-blue-100 text-blue-700',
   pending: 'bg-amber-100 text-amber-800',
   confirmed: 'bg-green-100 text-green-800',
   cancelled: 'bg-gray-200 text-gray-600',
@@ -155,7 +159,11 @@ export default function WebReservePage() {
             <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-700">
               <span>{r.guest_name}</span>
               <a href={`tel:${r.phone}`} className="text-blue-600 underline">{fmtPhone(r.phone)}</a>
-              <span>{won(r.amount)} · {PAY_LABELS[r.pay_method]}</span>
+              <span>
+                {won(r.amount)} · {PAY_LABELS[r.pay_method]}
+                {r.pay_method === 'card' && r.payment_method && ` (${r.payment_method})`}
+                {r.pay_method === 'card' && (r.refunded_at ? ' · 환불됨' : r.paid_at ? ' · 결제 완료' : '')}
+              </span>
               <span>{r.visit === 'car' ? `차량 ${r.car_no}` : '도보'}</span>
             </div>
             {r.request && <p className="mt-2 rounded bg-gray-50 p-2 text-sm text-gray-700">요청: {r.request}</p>}
@@ -173,10 +181,12 @@ export default function WebReservePage() {
               {(r.status === 'pending' || r.status === 'confirmed') && (
                 <button
                   disabled={busy === r.id}
-                  onClick={() => update(r, { status: 'cancelled' }, `${r.guest_name}님 예약을 취소하고 취소 문자를 보낼까요?`)}
+                  onClick={() => update(r, { status: 'cancelled' }, r.pay_method === 'card'
+                    ? `${r.guest_name}님 예약을 취소하고 ${won(r.amount)} 전액 환불 + 취소 문자를 보낼까요?`
+                    : `${r.guest_name}님 예약을 취소하고 취소 문자를 보낼까요?`)}
                   className="rounded-lg border border-gray-300 px-4 py-2 text-sm disabled:opacity-50"
                 >
-                  취소 + 문자
+                  {r.pay_method === 'card' && r.paid_at && !r.refunded_at ? '취소 + 환불 + 문자' : '취소 + 문자'}
                 </button>
               )}
               {r.status === 'confirmed' && r.check_in <= today && (

@@ -2,15 +2,16 @@ import crypto from 'node:crypto';
 import type postgres from 'postgres';
 import { db } from '@/lib/db';
 import { sendSms, hotelNotifyPhones } from '@/lib/sms';
-import { TRANSFER_DEADLINE_MINUTES } from '@/data/reserveConfig';
+import { cancelPayment, confirmPayment, tossEnabled } from '@/lib/toss';
+import { CARD_HOLD_MINUTES, TRANSFER_DEADLINE_MINUTES } from '@/data/reserveConfig';
 import {
   RESERVE_ROOMS, PAY_LABELS, addDays, daesilSlot, findRoom, fmtDay, fmtDuration, isDaesilTime, isPastTime,
   isSellable, nightsBetween, normalizePhone, occupiedDates, priceOf, todayKST, validateDates, won, PHONE_RE,
   type AvailabilityItem, type Mode, type ReservationRequest, type ReservationStatus,
 } from '@/lib/reserveCore';
 
-// 객실을 차지하는 상태 (취소·노쇼는 객실을 돌려준다)
-const HOLDING: ReservationStatus[] = ['pending', 'confirmed'];
+// 객실을 차지하는 상태 (취소·노쇼는 객실을 돌려준다). 결제 중인 건도 잠시 잡아 둔다.
+const HOLDING: ReservationStatus[] = ['awaiting_payment', 'pending', 'confirmed'];
 const HOTEL_TEL = '031-464-9661';
 
 type Sql = postgres.Sql | postgres.TransactionSql;
@@ -31,11 +32,16 @@ export interface ReservationRow {
   visit: 'walk' | 'car';
   car_no: string;
   request: string;
-  pay_method: 'onsite' | 'transfer';
+  pay_method: 'onsite' | 'transfer' | 'card';
   amount: number;
   status: ReservationStatus;
   admin_memo: string;
   created_at: string;
+  payment_key: string | null;
+  toss_order_id: string | null;
+  payment_method: string | null;
+  paid_at: string | null;
+  refunded_at: string | null;
   /** 무통장 입금 기한 (한국 시간 'MM/DD HH:MM') */
   pay_deadline: string;
 }
@@ -103,9 +109,12 @@ export async function createReservation(input: Partial<ReservationRequest>, ip: 
   const visit = input.visit === 'car' ? 'car' : 'walk';
   const carNo = visit === 'car' ? clean(input.carNo, 20) : '';
   const request = clean(input.request, 300);
-  // 현장 결제는 2026-10-30 폐지. 카드 결제는 PG 연동 후 추가 예정.
-  if (input.payMethod !== 'transfer') throw new ReserveError('결제 방법을 다시 선택해 주세요');
-  const payMethod = 'transfer' as const;
+  // 현장 결제는 2026-10-30 폐지. 온라인 결제(card)는 토스 키가 있을 때만.
+  const payMethod =
+    input.payMethod === 'transfer' ? 'transfer' : input.payMethod === 'card' && tossEnabled() ? 'card' : null;
+  if (!payMethod) throw new ReserveError('결제 방법을 다시 선택해 주세요');
+  // 온라인 결제는 결제를 마칠 때까지 'awaiting_payment' (객실만 잡아 둠, 문자 없음)
+  const status: ReservationStatus = payMethod === 'card' ? 'awaiting_payment' : 'pending';
 
   if (!room) throw new ReserveError('객실을 다시 선택해 주세요');
   const dateErr = validateDates(mode, checkIn, checkOut, today);
@@ -141,13 +150,14 @@ export async function createReservation(input: Partial<ReservationRequest>, ip: 
 
     for (let attempt = 0; attempt < 5; attempt++) {
       const code = `IW${checkIn.replace(/-/g, '').slice(2)}-${crypto.randomInt(1000, 10000)}`;
+      const tossOrderId = payMethod === 'card' ? `${code}-${crypto.randomBytes(8).toString('hex')}` : null;
       const [r] = await tx<ReservationRow[]>`
         INSERT INTO web_reservations
           (code, mode, room_key, room_name, check_in, check_out, daesil_time, daesil_hours, daesil_end,
-           guest_name, phone, visit, car_no, request, pay_method, amount, ip)
+           guest_name, phone, visit, car_no, request, pay_method, amount, status, toss_order_id, ip)
         VALUES
           (${code}, ${mode}, ${room.key}, ${room.name}, ${checkIn}, ${checkOut}, ${daesilTime}, ${daesilHours}, ${daesilEnd},
-           ${guestName}, ${phone}, ${visit}, ${carNo}, ${request}, ${payMethod}, ${amount}, ${ip})
+           ${guestName}, ${phone}, ${visit}, ${carNo}, ${request}, ${payMethod}, ${amount}, ${status}, ${tossOrderId}, ${ip})
         ON CONFLICT (code) DO NOTHING
         RETURNING *, to_char((created_at + make_interval(mins => ${TRANSFER_DEADLINE_MINUTES})) AT TIME ZONE 'Asia/Seoul', 'MM/DD HH24:MI') AS pay_deadline
       `;
@@ -155,6 +165,9 @@ export async function createReservation(input: Partial<ReservationRequest>, ip: 
     }
     throw new ReserveError('잠시 후 다시 시도해 주세요', 500);
   });
+
+  // 온라인 결제는 결제 승인(confirmCardPayment) 때 문자를 보낸다.
+  if (row.pay_method === 'card') return row;
 
   // 문자는 예약 저장 뒤에 보낸다. 실패해도 예약은 유지된다.
   const usage = usageText(row);
@@ -215,6 +228,24 @@ export async function updateReservation(id: number, next: { status?: Reservation
   const [before] = await sql<ReservationRow[]>`SELECT * FROM web_reservations WHERE id = ${id}`;
   if (!before) throw new ReserveError('예약을 찾을 수 없습니다', 404);
 
+  const isCard = before.pay_method === 'card';
+  if (isCard && next.status && next.status !== before.status) {
+    if (before.status === 'awaiting_payment') throw new ReserveError('결제가 진행 중인 예약입니다. 잠시 후 다시 확인해 주세요', 409);
+    if (before.status === 'cancelled') throw new ReserveError('환불된 온라인 결제 예약은 되살릴 수 없습니다. 새로 예약해 주세요', 409);
+    if (next.status === 'pending') throw new ReserveError('온라인 결제 예약은 확인 대기로 돌릴 수 없습니다', 409);
+  }
+
+  // 온라인 결제 예약을 취소하면 먼저 토스에서 전액 환불한다. 환불이 실패하면 취소하지 않는다.
+  let refunded = false;
+  if (isCard && next.status === 'cancelled' && before.payment_key && !before.refunded_at) {
+    const r = await cancelPayment(before.payment_key, '호텔 사정에 의한 예약 취소');
+    if (!r.ok && r.data.code !== 'ALREADY_CANCELED_PAYMENT') {
+      throw new ReserveError(`환불에 실패했습니다: ${r.data.message ?? r.status}. 토스페이먼츠 상점관리자에서 확인해 주세요`, 502);
+    }
+    await sql`UPDATE web_reservations SET refunded_at = now() WHERE id = ${id}`;
+    refunded = true;
+  }
+
   // 취소했던 예약을 되살릴 때는 객실이 남아 있는지 다시 확인한다.
   if (next.status && HOLDING.includes(next.status) && !HOLDING.includes(before.status)) {
     const remaining = await remainingMap(sql, before.mode, occupiedDates(before.mode, before.check_in, before.check_out), [before.room_key]);
@@ -244,9 +275,10 @@ export async function updateReservation(id: number, next: { status?: Reservation
         after.id,
       );
     } else if (next.status === 'cancelled') {
+      const refundLine = refunded ? `\n결제하신 ${won(after.amount)}은 전액 환불됩니다 (카드사에 따라 3~7일).` : '';
       await sendSms(
         after.phone,
-        `[일로와호텔] 예약이 취소되었습니다.\n예약번호 ${after.code}\n${usage}\n문의 ${HOTEL_TEL}`,
+        `[일로와호텔] 예약이 취소되었습니다.\n예약번호 ${after.code}\n${usage}${refundLine}\n문의 ${HOTEL_TEL}`,
         'cancelled',
         after.id,
       );
@@ -339,5 +371,107 @@ export async function expireUnpaid() {
       r.id,
     );
   }
+
+  // 온라인 결제창을 열고 끝내지 않은 건: 객실만 풀어 준다 (결제 전이라 문자 없음)
+  await db()`
+    UPDATE web_reservations SET status = 'cancelled', admin_memo = '결제 미완료', updated_at = now()
+    WHERE status = 'awaiting_payment'
+      AND created_at < now() - make_interval(mins => ${CARD_HOLD_MINUTES})
+  `;
   return expired.length;
+}
+
+// ─────────────────────────────────────────────────────────────
+// 온라인 결제 (토스페이먼츠 결제위젯)
+//
+// 1. 예약 신청(card) → 'awaiting_payment' 로 객실을 CARD_HOLD_MINUTES 동안 잡는다.
+// 2. 손님이 결제창에서 인증 → successUrl 로 돌아옴 → confirmCardPayment()
+// 3. 서버에 저장된 금액과 같을 때만 토스 승인 API 호출 → 'confirmed' + 확정 문자
+// 행 잠금(FOR UPDATE) 안에서 승인하므로, 그 사이 만료 처리가 끼어들지 못한다.
+// ─────────────────────────────────────────────────────────────
+
+type ConfirmOutcome = { row: ReservationRow; fresh: boolean } | { error: string; status: number };
+
+export async function confirmCardPayment(orderId: string, paymentKey: string, amount: number) {
+  // 취소로 바꾸는 UPDATE 가 롤백되지 않도록 트랜잭션 안에서는 throw 하지 않고 결과로 돌려준다.
+  const result = await db().begin(async (tx): Promise<ConfirmOutcome> => {
+    const [r] = await tx<ReservationRow[]>`
+      SELECT * FROM web_reservations WHERE toss_order_id = ${orderId} AND pay_method = 'card' FOR UPDATE
+    `;
+    if (!r) return { error: '예약을 찾을 수 없습니다', status: 404 };
+    if (r.status === 'confirmed' && r.payment_key === paymentKey) return { row: r, fresh: false }; // 새로고침
+    if (r.status !== 'awaiting_payment') {
+      return { error: '결제 가능 시간이 지나 예약이 취소되었습니다. 결제는 진행되지 않았으니 다시 예약해 주세요', status: 409 };
+    }
+    if (r.amount !== amount) {
+      await tx`UPDATE web_reservations SET status = 'cancelled', admin_memo = '결제 금액 불일치', updated_at = now() WHERE id = ${r.id}`;
+      return { error: '결제 금액이 예약 금액과 달라 결제를 진행하지 않았습니다. 다시 예약해 주세요', status: 400 };
+    }
+
+    const toss = await confirmPayment(paymentKey, orderId, r.amount);
+    if (!toss.ok) {
+      await tx`
+        UPDATE web_reservations SET status = 'cancelled', admin_memo = ${`결제 승인 실패: ${toss.data.code ?? toss.status}`}, updated_at = now()
+        WHERE id = ${r.id}
+      `;
+      return { error: toss.data.message ?? '결제 승인에 실패했습니다', status: 402 };
+    }
+    // 가상계좌처럼 승인 뒤에도 입금 전(WAITING_FOR_DEPOSIT)인 결제는 받지 않는다.
+    // 지원하지 않는 결제수단이 켜져 있어도 입금 전 예약이 확정되지 않게 하는 안전장치.
+    if (toss.data.status !== 'DONE') {
+      await cancelPayment(paymentKey, '지원하지 않는 결제 방식').catch((e) => console.error('[confirmCardPayment] 취소 실패', orderId, e));
+      await tx`
+        UPDATE web_reservations SET status = 'cancelled', admin_memo = ${`지원하지 않는 결제 상태: ${toss.data.status ?? '?'}`}, updated_at = now()
+        WHERE id = ${r.id}
+      `;
+      return { error: '이 결제 방식은 지원하지 않습니다. 카드나 간편결제로 다시 예약해 주세요', status: 400 };
+    }
+
+    try {
+      const [row] = await tx<ReservationRow[]>`
+        UPDATE web_reservations SET
+          status = 'confirmed', payment_key = ${paymentKey}, payment_method = ${toss.data.method ?? null},
+          paid_at = now(), updated_at = now()
+        WHERE id = ${r.id}
+        RETURNING *
+      `;
+      return { row, fresh: true };
+    } catch (e) {
+      // 돈은 빠져나갔는데 예약 저장이 실패한 경우 — 바로 환불한다.
+      console.error('[confirmCardPayment] 승인 후 저장 실패, 환불 시도', orderId, e);
+      await cancelPayment(paymentKey, '시스템 오류로 예약 저장 실패').catch((err) => console.error('[confirmCardPayment] 환불 실패', orderId, err));
+      throw e;
+    }
+  });
+
+  if ('error' in result) throw new ReserveError(result.error, result.status);
+  if (result.fresh) {
+    const row = result.row;
+    const usage = usageText(row);
+    await Promise.all([
+      sendSms(
+        row.phone,
+        `[일로와호텔] 결제가 완료되어 예약이 확정되었습니다.\n예약번호 ${row.code}\n${usage}\n결제 ${won(row.amount)} (${row.payment_method ?? '온라인 결제'})\n문의 ${HOTEL_TEL}`,
+        'confirmed',
+        row.id,
+      ),
+      ...hotelNotifyPhones().map((p) =>
+        sendSms(
+          p,
+          `[홈페이지 예약·결제완료] ${row.guest_name} ${formatPhoneForText(row.phone)}\n${usage}\n${won(row.amount)} ${row.payment_method ?? '온라인 결제'}${row.visit === 'car' ? ` / 차량 ${row.car_no}` : ''}\n자동 확정되었습니다.`,
+          'request_hotel',
+          row.id,
+        ),
+      ),
+    ]);
+  }
+  return result.row;
+}
+
+/** 손님이 결제창을 닫거나 실패했을 때: 잡아 둔 객실을 바로 풀어 준다 */
+export async function abandonCardPayment(orderId: string) {
+  await db()`
+    UPDATE web_reservations SET status = 'cancelled', admin_memo = '결제 취소·실패', updated_at = now()
+    WHERE toss_order_id = ${orderId} AND pay_method = 'card' AND status = 'awaiting_payment'
+  `;
 }

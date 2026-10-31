@@ -11,16 +11,17 @@ import {
 } from '@/data/reserveConfig';
 
 export type Mode = 'stay' | 'daesil';
-export type PayMethod = 'onsite' | 'transfer';
-export type ReservationStatus = 'pending' | 'confirmed' | 'cancelled' | 'no_show';
+export type PayMethod = 'onsite' | 'transfer' | 'card';
+export type ReservationStatus = 'awaiting_payment' | 'pending' | 'confirmed' | 'cancelled' | 'no_show';
 
 export const STATUS_LABELS: Record<ReservationStatus, string> = {
+  awaiting_payment: '결제 중',
   pending: '확인 대기',
   confirmed: '확정',
   cancelled: '취소',
   no_show: '노쇼',
 };
-export const PAY_LABELS: Record<PayMethod, string> = { onsite: '현장 결제', transfer: '무통장 입금' };
+export const PAY_LABELS: Record<PayMethod, string> = { onsite: '현장 결제', transfer: '무통장 입금', card: '온라인 결제' };
 
 // ── 날짜 ──
 const pad = (n: number) => String(n).padStart(2, '0');

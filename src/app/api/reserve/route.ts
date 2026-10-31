@@ -40,6 +40,9 @@ export async function POST(req: NextRequest) {
       amount: r.amount,
       bankAccount: r.pay_method === 'transfer' ? bankAccount() : null,
       payDeadline: r.pay_method === 'transfer' ? r.pay_deadline : null,
+      // 온라인 결제: 결제창에 넘길 정보 (orderId 는 추측할 수 없는 별도 주문번호)
+      orderId: r.toss_order_id,
+      orderName: r.pay_method === 'card' ? `일로와호텔 ${r.room_name} ${r.mode === 'daesil' ? '대실' : '숙박'}` : null,
     });
   } catch (e) {
     if (e instanceof ReserveError) return NextResponse.json({ error: e.message }, { status: e.status });

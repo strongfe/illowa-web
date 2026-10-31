@@ -11,7 +11,10 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
+import { useLocale } from 'next-intl';
+import type { TossPaymentsWidgets } from '@tosspayments/tosspayments-sdk';
 import { Link } from '@/i18n/routing';
+import TossWidget, { TOSS_CLIENT_KEY } from '@/components/reserve/TossWidget';
 import {
   ArrowLeft, CalendarDays, Car, ChevronLeft, ChevronRight, Clock, Footprints, Moon, Sun, X, CheckCircle2,
 } from 'lucide-react';
@@ -23,6 +26,8 @@ import {
 } from '@/lib/reserveCore';
 
 type Step = 'list' | 'form' | 'done';
+/** 예약 신청 결과: 오류 / 온라인 결제로 이어가기 / (무통장) 완료 */
+type SubmitResult = { error?: string; card?: { orderId: string; orderName: string; amount: number } };
 type FormData = Omit<ReservationRequest, 'mode' | 'roomKey' | 'checkIn' | 'checkOut' | 'daesilTime'>;
 
 // 달력 칸 만들기용 (브라우저 로컬 날짜)
@@ -34,6 +39,11 @@ const fromKey = (k: string) => {
 };
 
 const LIVE = process.env.NEXT_PUBLIC_RESERVE_LIVE === 'true';
+
+const PAY_OPTIONS = [
+  ['card', '온라인 결제', '카드 · 카카오페이 · 네이버페이 · 토스페이 등. 결제하면 바로 예약이 확정됩니다'],
+  ['transfer', '무통장 입금', '신청하시면 입금 계좌를 바로 안내드립니다. 2시간 안에 입금해 주시면 확인 후 예약이 확정됩니다'],
+] as const;
 
 export default function ReserveApp() {
   const today = useMemo(() => todayKST(), []);
@@ -95,8 +105,8 @@ export default function ReserveApp() {
     daesilTime,
   };
 
-  const submit = async (data: FormData): Promise<string | null> => {
-    if (!room) return '객실을 다시 선택해 주세요';
+  const submit = async (data: FormData): Promise<SubmitResult> => {
+    if (!room) return { error: '객실을 다시 선택해 주세요' };
     try {
       const res = await fetch('/api/reserve', {
         method: 'POST',
@@ -108,17 +118,19 @@ export default function ReserveApp() {
       const j = await res.json();
       if (!res.ok) {
         if (res.status === 409) setReload((n) => n + 1); // 마감됐으면 남은 객실 다시 조회
-        return j.error ?? '예약 신청에 실패했습니다';
+        return { error: j.error ?? '예약 신청에 실패했습니다' };
       }
+      // 온라인 결제: 객실을 잡아 두었으니 결제창으로 넘어간다 (FormView 가 처리)
+      if (j.orderId) return { card: { orderId: j.orderId, orderName: j.orderName, amount: j.amount } };
       setCode(j.code);
       setFinalAmount(j.amount);
       setBank(j.bankAccount ?? null);
       setDeadline(j.payDeadline ?? null);
       setStep('done');
       window.scrollTo(0, 0);
-      return null;
+      return {};
     } catch {
-      return '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요';
+      return { error: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요' };
     }
   };
 
@@ -563,7 +575,7 @@ function FormView({
   price: number;
   summary: Summary;
   onBack: () => void;
-  onSubmit: (data: FormData) => Promise<string | null>;
+  onSubmit: (data: FormData) => Promise<SubmitResult>;
 }) {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -573,7 +585,9 @@ function FormView({
     : ([['walk', '도보', Footprints], ['car', '차량', Car]] as const);
   const [carNo, setCarNo] = useState('');
   const [request, setRequest] = useState('');
-  const [pay, setPay] = useState<PayMethod>('transfer');
+  const [pay, setPay] = useState<PayMethod>(TOSS_CLIENT_KEY ? 'card' : 'transfer');
+  const [widgets, setWidgets] = useState<TossPaymentsWidgets | null>(null);
+  const locale = useLocale();
   const [agree, setAgree] = useState({ policy: false, privacy: false });
   const [tried, setTried] = useState(false);
   const [sending, setSending] = useState(false);
@@ -593,8 +607,12 @@ function FormView({
     setTried(true);
     setServerError('');
     if (!valid || sending) return;
+    if (pay === 'card' && !widgets) {
+      setServerError('결제창을 불러오는 중입니다. 잠시 후 다시 눌러 주세요');
+      return;
+    }
     setSending(true);
-    const err = await onSubmit({
+    const result = await onSubmit({
       guestName: name.trim(),
       phone: phone.trim(),
       visit,
@@ -604,8 +622,35 @@ function FormView({
       agree: agree.policy && agree.privacy,
       website,
     });
+    if (result.error) {
+      setSending(false);
+      setServerError(result.error);
+      return;
+    }
+    if (result.card && widgets) {
+      // 객실을 잡아 두었으니 토스 결제창을 연다. 성공·실패 시 해당 주소로 이동한다.
+      const { orderId, orderName, amount } = result.card;
+      try {
+        if (amount !== price) await widgets.setAmount({ currency: 'KRW', value: amount });
+        await widgets.requestPayment({
+          orderId,
+          orderName,
+          successUrl: `${window.location.origin}/${locale}/reserve/complete`,
+          failUrl: `${window.location.origin}/${locale}/reserve/fail`,
+          customerName: name.trim(),
+          customerMobilePhone: phone.replace(/\D/g, ''),
+        });
+      } catch (e) {
+        // 결제창을 닫는 등 페이지 이동 없이 끝난 경우 — 잡아 둔 객실을 풀어 준다
+        void fetch('/api/reserve/abandon', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderId }),
+        });
+        setServerError(e instanceof Error && e.message ? e.message : '결제가 취소되었습니다');
+      }
+    }
     setSending(false);
-    if (err) setServerError(err);
   };
 
   const input = 'w-full rounded-lg border border-neutral-300 px-3 py-3 text-[15px] outline-none focus:border-[#C9A84C]';
@@ -680,9 +725,7 @@ function FormView({
 
         <section className="mt-2 bg-[#fff] px-4 py-4 space-y-2">
           <h2 className="mb-1 text-[16px] font-bold">결제 방법</h2>
-          {([
-            ['transfer', '무통장 입금', '신청하시면 입금 계좌를 바로 안내드립니다. 2시간 안에 입금해 주시면 확인 후 예약이 확정됩니다'],
-          ] as const).map(([v, label, desc]) => (
+          {(TOSS_CLIENT_KEY ? PAY_OPTIONS : PAY_OPTIONS.filter(([v]) => v !== 'card')).map(([v, label, desc]) => (
             <label
               key={v}
               className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3 ${
@@ -696,13 +739,7 @@ function FormView({
               </span>
             </label>
           ))}
-          <div className="flex items-start gap-3 rounded-lg border border-dashed border-neutral-300 p-3 text-neutral-400">
-            <input type="radio" disabled className="mt-1" />
-            <span>
-              <span className="block text-[15px] font-semibold">카드 · 카카오페이 · 네이버페이</span>
-              <span className="block text-xs">온라인 결제 준비 중</span>
-            </span>
-          </div>
+          {pay === 'card' && TOSS_CLIENT_KEY && <TossWidget amount={price} onReady={setWidgets} />}
         </section>
 
         <section className="mt-2 bg-[#fff] px-4 py-4">
@@ -755,7 +792,7 @@ function FormView({
           disabled={sending}
           className="w-full rounded-lg bg-[#C9A84C] py-4 text-[16px] font-bold text-white disabled:opacity-60"
         >
-          {sending ? '예약 신청 중…' : `${won(price)} 예약 신청하기`}
+          {sending ? '처리 중…' : pay === 'card' ? `${won(price)} 결제하기` : `${won(price)} 예약 신청하기`}
         </button>
       </div>
     </Shell>
