@@ -759,7 +759,10 @@ function FormView({
             </label>
             <label className="flex items-center gap-2 pl-1">
               <input type="checkbox" className="h-4 w-4 accent-[#C9A84C]" checked={agree.policy} onChange={(e) => setAgree({ ...agree, policy: e.target.checked })} />
-              <span>[필수] 취소 · 환불 규정 동의</span>
+              <span>
+                [필수] 취소 · 환불 규정 동의{' '}
+                <Link href="/refund" className="text-xs text-neutral-400 underline">보기</Link>
+              </span>
             </label>
             <label className="flex items-center gap-2 pl-1">
               <input type="checkbox" className="h-4 w-4 accent-[#C9A84C]" checked={agree.privacy} onChange={(e) => setAgree({ ...agree, privacy: e.target.checked })} />

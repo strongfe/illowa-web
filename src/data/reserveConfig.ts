@@ -11,6 +11,7 @@
 
 import roomsData from '@/data/rooms.json';
 import type { RoomType } from '@/types/hotel';
+import { REFUND_POLICY } from '@/data/refundPolicy';
 
 type RoomJson = (typeof roomsData)[keyof typeof roomsData];
 
@@ -124,13 +125,5 @@ export const TRANSFER_DEADLINE_MINUTES = 120;
 /** 예약 가능 기간 (오늘부터 N일) */
 export const BOOKABLE_DAYS = 60;
 
-// 취소·환불 규정 — 야놀자 규정과 같게 운영 (2026-10 기준)
-export const CANCEL_POLICY = [
-  '입실 1일 전까지 취소 가능 (취소 수수료 없음)',
-  '예약 후 60분 이내 취소 가능 (취소 수수료 없음, 입실 시간 전까지)',
-  '입실 시간 이후 또는 실제 입실 이후에는 취소할 수 없습니다',
-  '입실 시간이 지난 뒤 예약한 경우 취소할 수 없으나, 예약 후 15분 이내에는 취소할 수 있습니다',
-  '상품이 안내된 내용과 다르거나 약속과 다르게 제공된 경우, 입실 이후라도 취소할 수 있습니다',
-  '무통장 입금은 신청 후 2시간 안에 입금해 주세요. 기한이 지나면 예약이 자동 취소됩니다',
-  '취소는 호텔(031-464-9661)로 전화 주세요. 무통장 입금 건은 입금하신 계좌로 환불해 드립니다',
-];
+// 취소·환불 규정 — 홈페이지 환불정책 페이지(/refund)와 같은 원본을 쓴다
+export const CANCEL_POLICY = REFUND_POLICY.ko;
