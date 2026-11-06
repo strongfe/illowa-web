@@ -22,6 +22,7 @@ export async function POST(req: NextRequest) {
       amount: r.amount,
       usage: usageText(r),
       paymentMethod: r.payment_method,
+      test: r.isTest,
     });
   } catch (e) {
     if (e instanceof ReserveError) return NextResponse.json({ error: e.message }, { status: e.status });
