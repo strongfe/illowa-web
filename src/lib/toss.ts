@@ -4,15 +4,20 @@
 //
 // • 시크릿 키(TOSS_SECRET_KEY)는 서버에서만 쓴다. 결제위젯 키는 test_gsk_/live_gsk_.
 // • 인증: Basic base64("{시크릿 키}:") — 끝의 콜론을 빠뜨리면 안 된다.
+// • 테스트 모드(NEXT_PUBLIC_TOSS_USE_TEST=true): 라이브 키는 그대로 두고 TOSS_TEST_SECRET_KEY 를 쓴다.
+//   계약 전 PG 심사용 결제경로 캡처에 쓴다. 이 모드의 결제는 예약을 만들지 않고 바로 취소한다.
 // ═══════════════════════════════════════════════════════════════
 
 const API = 'https://api.tosspayments.com/v1/payments';
 
-export const tossEnabled = () => !!process.env.TOSS_SECRET_KEY;
+export const tossTestMode = () => process.env.NEXT_PUBLIC_TOSS_USE_TEST === 'true';
+const secretKey = () => (tossTestMode() ? process.env.TOSS_TEST_SECRET_KEY : process.env.TOSS_SECRET_KEY);
+
+export const tossEnabled = () => !!secretKey();
 
 function authHeader() {
-  const key = process.env.TOSS_SECRET_KEY;
-  if (!key) throw new Error('TOSS_SECRET_KEY 가 설정되지 않았습니다');
+  const key = secretKey();
+  if (!key) throw new Error('토스 시크릿 키가 설정되지 않았습니다');
   return `Basic ${Buffer.from(`${key}:`).toString('base64')}`;
 }
 

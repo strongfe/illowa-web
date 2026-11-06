@@ -2,7 +2,7 @@ import crypto from 'node:crypto';
 import type postgres from 'postgres';
 import { db } from '@/lib/db';
 import { sendSms, hotelNotifyPhones } from '@/lib/sms';
-import { cancelPayment, confirmPayment, tossEnabled } from '@/lib/toss';
+import { cancelPayment, confirmPayment, tossEnabled, tossTestMode } from '@/lib/toss';
 import { CARD_HOLD_MINUTES, TRANSFER_DEADLINE_MINUTES } from '@/data/reserveConfig';
 import {
   RESERVE_ROOMS, PAY_LABELS, addDays, daesilSlot, findRoom, fmtDay, fmtDuration, isDaesilTime, isPastTime,
@@ -390,7 +390,7 @@ export async function expireUnpaid() {
 // 행 잠금(FOR UPDATE) 안에서 승인하므로, 그 사이 만료 처리가 끼어들지 못한다.
 // ─────────────────────────────────────────────────────────────
 
-type ConfirmOutcome = { row: ReservationRow; fresh: boolean } | { error: string; status: number };
+type ConfirmOutcome = { row: ReservationRow; fresh: boolean; test?: boolean } | { error: string; status: number };
 
 export async function confirmCardPayment(orderId: string, paymentKey: string, amount: number) {
   // 취소로 바꾸는 UPDATE 가 롤백되지 않도록 트랜잭션 안에서는 throw 하지 않고 결과로 돌려준다.
@@ -425,6 +425,17 @@ export async function confirmCardPayment(orderId: string, paymentKey: string, am
         WHERE id = ${r.id}
       `;
       return { error: '이 결제 방식은 지원하지 않습니다. 카드나 간편결제로 다시 예약해 주세요', status: 400 };
+    }
+    // 테스트 모드(PG 심사 캡처용): 결제는 바로 취소하고 예약도 남기지 않는다. 문자도 보내지 않는다.
+    if (tossTestMode()) {
+      await cancelPayment(paymentKey, '심사용 테스트 결제').catch((e) => console.error('[confirmCardPayment] 테스트 취소 실패', orderId, e));
+      const [row] = await tx<ReservationRow[]>`
+        UPDATE web_reservations SET status = 'cancelled', payment_key = ${paymentKey}, refunded_at = now(),
+          admin_memo = '심사용 테스트 결제 (자동 취소)', updated_at = now()
+        WHERE id = ${r.id}
+        RETURNING *
+      `;
+      return { row, fresh: false, test: true };
     }
 
     try {
@@ -465,7 +476,7 @@ export async function confirmCardPayment(orderId: string, paymentKey: string, am
       ),
     ]);
   }
-  return result.row;
+  return Object.assign(result.row, { isTest: !!result.test });
 }
 
 /** 손님이 결제창을 닫거나 실패했을 때: 잡아 둔 객실을 바로 풀어 준다 */

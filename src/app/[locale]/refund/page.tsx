@@ -60,6 +60,11 @@ export default async function RefundPage({ params }: Props) {
               </li>
               <li>
                 {isKo
+                  ? '서비스 제공기간: 결제일로부터 최대 60일 (예약은 60일 이내의 날짜만 가능하며, 퇴실일까지 포함).'
+                  : 'Service period: up to 60 days from the payment date (bookings are only available for dates within 60 days, including check-out).'}
+              </li>
+              <li>
+                {isKo
                   ? '서비스는 예약하신 이용일에 호텔(경기도 안양시 만안구 안양로268번길 41) 현장에서 제공됩니다.'
                   : 'The service is provided on the booked date at the hotel (41, Anyang-ro 268beon-gil, Manan-gu, Anyang-si, Gyeonggi-do).'}
               </li>

@@ -12,7 +12,7 @@ import { ArrowLeft, CheckCircle2, XCircle } from 'lucide-react';
 import { Link } from '@/i18n/routing';
 import { won } from '@/lib/reserveCore';
 
-type Done = { code: string; amount: number; usage: string; paymentMethod: string | null };
+type Done = { code: string; amount: number; usage: string; paymentMethod: string | null; test?: boolean };
 
 function Frame({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -85,6 +85,19 @@ export function PaymentComplete() {
   }
 
   const d = state.done!;
+  if (d.test) {
+    return (
+      <Frame title="테스트 결제 완료">
+        <div className="px-5 py-10 text-center">
+          <CheckCircle2 size={56} className="mx-auto text-neutral-400" />
+          <h2 className="mt-4 text-[20px] font-bold">테스트 결제가 완료되었습니다</h2>
+          <p className="mt-2 text-[14px] leading-6 text-neutral-600">
+            결제 연동 확인용 테스트 결제입니다. 실제 예약·청구는 이루어지지 않았습니다.
+          </p>
+        </div>
+      </Frame>
+    );
+  }
   return (
     <Frame title="예약 확정">
       <div className="px-5 py-10 text-center">

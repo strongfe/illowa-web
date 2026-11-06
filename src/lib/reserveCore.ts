@@ -132,6 +132,8 @@ export function validateDates(mode: Mode, checkIn: string, checkOut: string, tod
     const n = nightsBetween(checkIn, checkOut);
     if (n < 1) return '퇴실일은 입실일 다음 날 이후여야 합니다';
     if (n > 14) return '14박 이하로 예약해 주세요';
+    // 서비스 제공기간(결제일 ~ 퇴실일)을 최대 BOOKABLE_DAYS 일로 맞춘다 (PG 심사 기재 항목)
+    if (checkOut > addDays(today, BOOKABLE_DAYS)) return `퇴실일은 오늘부터 ${BOOKABLE_DAYS}일 이내여야 합니다`;
   }
   return null;
 }

@@ -249,6 +249,10 @@ export default function ReserveApp() {
         )}
         <p className="text-center text-xs text-neutral-500 pt-2 pb-6">
           표시 요금은 객실 1개 기준이며, 현장 상황에 따라 객실이 배정됩니다.
+          <br />
+          서비스 제공기간: 결제일로부터 최대 {BOOKABLE_DAYS}일 (예약한 이용일에 호텔에서 제공)
+          <br />
+          <Link href="/refund" className="underline">취소·환불 정책 보기</Link>
         </p>
       </div>
 
@@ -585,7 +589,11 @@ function FormView({
     : ([['walk', '도보', Footprints], ['car', '차량', Car]] as const);
   const [carNo, setCarNo] = useState('');
   const [request, setRequest] = useState('');
-  const [pay, setPay] = useState<PayMethod>(TOSS_CLIENT_KEY ? 'card' : 'transfer');
+  // 토스 계약(카드사 심사) 완료 전에는 결제가 실패하므로 무통장 입금을 기본으로 둔다.
+  // 계약 후 NEXT_PUBLIC_CARD_DEFAULT=true 로 카드 결제를 기본값으로.
+  const [pay, setPay] = useState<PayMethod>(
+    TOSS_CLIENT_KEY && process.env.NEXT_PUBLIC_CARD_DEFAULT === 'true' ? 'card' : 'transfer',
+  );
   const [widgets, setWidgets] = useState<TossPaymentsWidgets | null>(null);
   const locale = useLocale();
   const [agree, setAgree] = useState({ policy: false, privacy: false });
@@ -606,7 +614,14 @@ function FormView({
   const handleSubmit = async () => {
     setTried(true);
     setServerError('');
-    if (!valid || sending) return;
+    if (sending) return;
+    if (!valid) {
+      // 버튼은 화면 아래에 고정이라 위쪽 칸의 오류가 안 보인다 → 알려 주고, 위쪽 칸이면 그쪽으로 올려 준다
+      const first = errors.name || errors.phone || errors.carNo || errors.agree;
+      setServerError(`${first}`);
+      if (errors.name || errors.phone || errors.carNo) window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
     if (pay === 'card' && !widgets) {
       setServerError('결제창을 불러오는 중입니다. 잠시 후 다시 눌러 주세요');
       return;

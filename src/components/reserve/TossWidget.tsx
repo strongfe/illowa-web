@@ -11,7 +11,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { ANONYMOUS, loadTossPayments, type TossPaymentsWidgets } from '@tosspayments/tosspayments-sdk';
 
-export const TOSS_CLIENT_KEY = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY ?? '';
+// 테스트 모드(NEXT_PUBLIC_TOSS_USE_TEST=true)에서는 테스트 클라이언트 키로 결제창을 띄운다 (PG 심사 캡처용)
+export const TOSS_TEST_MODE = process.env.NEXT_PUBLIC_TOSS_USE_TEST === 'true';
+export const TOSS_CLIENT_KEY =
+  (TOSS_TEST_MODE ? process.env.NEXT_PUBLIC_TOSS_TEST_CLIENT_KEY : process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY) ?? '';
 
 export default function TossWidget({
   amount,

@@ -327,9 +327,9 @@ function InvoicePopup({
 
           {/* Hotel info — left aligned */}
           <div style={{ fontSize: 11, color: '#666', lineHeight: 1.9, marginTop: 8 }}>
-            <div>상호명 : 일로와(illOwa) &nbsp;|&nbsp; 대표자 : 전대홍</div>
+            <div>상호명 : 일로와호텔 &nbsp;|&nbsp; 대표자 : 전대홍 외 2 명</div>
             <div>사업자등록번호 : 123-36-55369</div>
-            <div>주소 : 경기도 안양시 만안구 안양로268번길 41 (안양동 622-19)</div>
+            <div>주소 : 경기도 안양시 만안구 안양로268번길 41(안양동, 일로와호텔)</div>
             <div>전화 : 031-464-9661 &nbsp;|&nbsp; 이메일 : ch8773@naver.com</div>
           </div>
 

@@ -100,7 +100,7 @@ export default async function TermsPage({ params }: Props) {
               {isKo ? '상호명: 일로와호텔 / 영문명: Illowa Hotel' : 'Business Name: Illowa Hotel'}
               <br />
               {isKo
-                ? '주소: 경기도 안양시 만안구 안양로268번길 41 (안양동 622-19)'
+                ? '주소: 경기도 안양시 만안구 안양로268번길 41(안양동, 일로와호텔)'
                 : 'Address: 41, Anyang-ro 268beon-gil, Manan-gu, Anyang-si, Gyeonggi-do, Korea (Anyang-dong 622-19)'}
               <br />
               {isKo ? '대표 전화: 031-464-9661' : 'Phone: +82-31-464-9661'}
