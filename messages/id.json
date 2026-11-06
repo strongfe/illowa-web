@@ -93,6 +93,9 @@
     "title": "Galeri hotel"
   },
   "BookingCTA": {
+    "btn_direct": "Pesan langsung",
+    "sub_direct": "Pemesanan resmi ILLOWA (halaman berbahasa Korea) · Konfirmasi SMS",
+    "badge_direct": "Resmi",
     "title": "Reservasi",
     "description_line1": "Pesan lebih cepat melalui kanal yang dioptimalkan untuk tamu internasional.",
     "description_line2": "OTA dengan konversi tertinggi diprioritaskan di atas, kanal perbandingan/lokal disediakan sebagai pendukung.",

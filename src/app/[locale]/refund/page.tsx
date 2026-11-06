@@ -51,7 +51,33 @@ export default async function RefundPage({ params }: Props) {
           </section>
 
           <section>
-            <h2 className="text-lg text-white mb-2">{isKo ? '3. 문의' : '3. Contact'}</h2>
+            <h2 className="text-lg text-white mb-2">{isKo ? '3. 서비스 제공 및 배송' : '3. Service Delivery'}</h2>
+            <ul className="list-disc pl-6 space-y-1">
+              <li>
+                {isKo
+                  ? '판매 상품은 호텔 객실 이용(숙박·대실) 서비스이며, 별도로 배송되는 상품은 없습니다.'
+                  : 'We sell hotel room use (overnight stays and day use). No physical goods are shipped.'}
+              </li>
+              <li>
+                {isKo
+                  ? '서비스는 예약하신 이용일에 호텔(경기도 안양시 만안구 안양로268번길 41) 현장에서 제공됩니다.'
+                  : 'The service is provided on the booked date at the hotel (41, Anyang-ro 268beon-gil, Manan-gu, Anyang-si, Gyeonggi-do).'}
+              </li>
+              <li>
+                {isKo
+                  ? '카드·간편결제는 결제 즉시 예약이 확정되며, 무통장 입금은 입금 확인 후 확정됩니다. 확정 내용은 문자(SMS)로 안내합니다.'
+                  : 'Card and easy-pay bookings are confirmed on payment; bank transfers are confirmed once payment is received. Confirmation is sent by SMS.'}
+              </li>
+              <li>
+                {isKo
+                  ? '숙박은 입실 15:00 · 퇴실 다음 날 12:00~13:00, 대실은 객실별 이용 가능 시간 안에서 이용하실 수 있습니다. 자세한 시간은 예약 화면에 표시됩니다.'
+                  : 'Overnight stays: check-in 15:00, check-out 12:00–13:00 the next day. Day use: within the hours shown for each room on the booking page.'}
+              </li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="text-lg text-white mb-2">{isKo ? '4. 문의' : '4. Contact'}</h2>
             <p>
               {isKo
                 ? '일로와호텔 · 전화 031-464-9661 · 이메일 ch8773@naver.com · 경기도 안양시 만안구 안양로268번길 41'

@@ -3,18 +3,20 @@
 import { useState, useEffect } from 'react';
 import { useLocale } from 'next-intl';
 import linksData from '@/data/bookingLinks.json';
+import { Link } from '@/i18n/routing';
 
-const LABEL: Record<string, { book: string; call: string; tagline: string }> = {
-  ko: { book: '지금 예약하기', call: '전화 예약', tagline: '오늘 일로와에서 특별한 하루를' },
-  en: { book: 'Book Now', call: 'Call Us', tagline: 'Make today special at ILLOWA' },
-  ja: { book: '今すぐ予約', call: '電話予約', tagline: 'ILLOWAで特別な一日を' },
-  zh: { book: '立即预订', call: '电话预订', tagline: '在ILLOWA享受特别的一天' },
-  ru: { book: 'Забронировать', call: 'Позвонить', tagline: 'Особый день в ILLOWA' },
-  es: { book: 'Reservar', call: 'Llamar', tagline: 'Un día especial en ILLOWA' },
-  fr: { book: 'Réserver', call: 'Appeler', tagline: 'Une journée spéciale à ILLOWA' },
-  pt: { book: 'Reservar', call: 'Ligar', tagline: 'Um dia especial no ILLOWA' },
-  id: { book: 'Pesan Sekarang', call: 'Hubungi', tagline: 'Hari istimewa di ILLOWA' },
-  hi: { book: 'अभी बुक करें', call: 'कॉल करें', tagline: 'ILLOWA में खास दिन बिताएं' },
+// book = Booking.com 바로가기 (외부), direct = 홈페이지 직접 예약
+const LABEL: Record<string, { book: string; call: string; tagline: string; direct: string }> = {
+  ko: { book: 'Booking.com', call: '전화 예약', tagline: '오늘 일로와에서 특별한 하루를', direct: '직접 예약' },
+  en: { book: 'Booking.com', call: 'Call Us', tagline: 'Make today special at ILLOWA', direct: 'Book Direct' },
+  ja: { book: 'Booking.com', call: '電話予約', tagline: 'ILLOWAで特別な一日を', direct: '公式予約' },
+  zh: { book: 'Booking.com', call: '电话预订', tagline: '在ILLOWA享受特别的一天', direct: '官网预订' },
+  ru: { book: 'Booking.com', call: 'Позвонить', tagline: 'Особый день в ILLOWA', direct: 'Напрямую' },
+  es: { book: 'Booking.com', call: 'Llamar', tagline: 'Un día especial en ILLOWA', direct: 'Directo' },
+  fr: { book: 'Booking.com', call: 'Appeler', tagline: 'Une journée spéciale à ILLOWA', direct: 'En direct' },
+  pt: { book: 'Booking.com', call: 'Ligar', tagline: 'Um dia especial no ILLOWA', direct: 'Direto' },
+  id: { book: 'Booking.com', call: 'Hubungi', tagline: 'Hari istimewa di ILLOWA', direct: 'Langsung' },
+  hi: { book: 'Booking.com', call: 'कॉल करें', tagline: 'ILLOWA में खास दिन बिताएं', direct: 'सीधे बुक' },
 };
 
 export default function StickyBookingBar() {
@@ -60,12 +62,21 @@ export default function StickyBookingBar() {
           href={linksData.booking}
           target="_blank"
           rel="noreferrer noopener"
-          className="flex-1 md:flex-none text-center py-2.5 px-6 text-sm font-semibold tracking-wide transition-colors"
-          style={{ background: '#b8964a', color: '#000' }}
+          className="flex-1 md:flex-none text-center py-2.5 px-4 text-sm font-semibold tracking-wide border transition-colors"
+          style={{ borderColor: '#b8964a', color: '#b8964a' }}
           data-track="click_sticky_booking"
         >
           {label.book}
         </a>
+        {/* 홈페이지 직접 예약 — 가장 눈에 띄게 */}
+        <Link
+          href="/reserve"
+          className="flex-1 md:flex-none text-center py-2.5 px-5 text-sm font-semibold tracking-wide transition-colors"
+          style={{ background: '#b8964a', color: '#000' }}
+          data-track="click_sticky_direct"
+        >
+          {label.direct}
+        </Link>
       </div>
     </div>
   );

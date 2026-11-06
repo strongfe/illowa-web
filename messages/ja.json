@@ -93,6 +93,9 @@
     "title": "ホテルギャラリー"
   },
   "BookingCTA": {
+    "btn_direct": "公式サイトで予約",
+    "sub_direct": "ILLOWA公式予約（韓国語ページ）・SMSで確定案内",
+    "badge_direct": "公式",
     "title": "予約",
     "description_line1": "海外のお客様向けに最適化されたチャネルから素早く予約できます。",
     "description_line2": "上段に高転換OTAを配置し、比較・ローカルチャネルを補助導線として提供します。",

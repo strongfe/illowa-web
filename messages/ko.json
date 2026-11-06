@@ -93,6 +93,9 @@
     "title": "호텔 갤러리"
   },
   "BookingCTA": {
+    "btn_direct": "홈페이지 직접 예약",
+    "sub_direct": "일로와 공식 예약 · 확정 문자로 바로 안내",
+    "badge_direct": "공식",
     "title": "예약하기",
     "description_line1": "원하는 채널에서 편하게 예약하세요.",
     "description_line2": "해외 주요 OTA부터 국내 예약 앱까지 한 곳에서 확인할 수 있습니다.",

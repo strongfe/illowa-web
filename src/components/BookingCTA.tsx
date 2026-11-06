@@ -2,6 +2,7 @@
 
 import linksData from '@/data/bookingLinks.json';
 import { useTranslations, useLocale } from 'next-intl';
+import { Link } from '@/i18n/routing';
 
 const CHAT_LABEL: Record<string, string> = {
   ko: '💬 궁금한 점이 있으신가요?',
@@ -112,6 +113,22 @@ export default function BookingCTA() {
                         {CHAT_LABEL[locale] ?? CHAT_LABEL.en}
                     </button>
                 </div>
+
+                {/* 홈페이지 직접 예약 — OTA 채널보다 먼저 보여준다 */}
+                <Link
+                    href="/reserve"
+                    className="mb-5 block w-full rounded-xl bg-gold px-5 py-4 text-left text-black transition-colors hover:bg-gold-light"
+                    data-track="click_booking_direct"
+                    onClick={() => trackConversion('direct')}
+                >
+                    <div className="flex items-center justify-between gap-3">
+                        <span className="font-noto-kr text-base font-bold tracking-wide">{t('btn_direct')}</span>
+                        <span className="rounded-full bg-black px-2 py-1 text-[10px] font-semibold tracking-wide text-gold">
+                            {t('badge_direct')}
+                        </span>
+                    </div>
+                    <p className="mt-1 text-xs font-noto-kr opacity-80">{t('sub_direct')}</p>
+                </Link>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-6">
                     {groups.map((group) => (

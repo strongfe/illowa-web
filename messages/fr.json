@@ -93,6 +93,9 @@
     "title": "Galerie de l'hôtel"
   },
   "BookingCTA": {
+    "btn_direct": "Réserver en direct",
+    "sub_direct": "Réservation officielle ILLOWA (page en coréen) · Confirmation par SMS",
+    "badge_direct": "Officiel",
     "title": "Réservation",
     "description_line1": "Réservez rapidement via des canaux optimisés pour les voyageurs internationaux.",
     "description_line2": "Les OTA à forte conversion sont placés en priorité, puis les canaux de comparaison et locaux en appui.",

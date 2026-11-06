@@ -93,6 +93,9 @@
     "title": "Hotel Gallery"
   },
   "BookingCTA": {
+    "btn_direct": "Book Direct",
+    "sub_direct": "Official ILLOWA booking (Korean page) · SMS confirmation",
+    "badge_direct": "Official",
     "title": "Reservation",
     "description_line1": "Book through whichever channel works best for you.",
     "description_line2": "Global OTAs, price-comparison sites and local Korean platforms — all in one place.",

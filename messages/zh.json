@@ -93,6 +93,9 @@
     "title": "酒店图库"
   },
   "BookingCTA": {
+    "btn_direct": "官网直接预订",
+    "sub_direct": "ILLOWA官方预订（韩文页面）· 短信确认",
+    "badge_direct": "官方",
     "title": "立即预订",
     "description_line1": "通过面向海外客人的高转化渠道快速完成预订。",
     "description_line2": "顶部优先展示核心OTA，并提供比价与本地渠道作为辅助入口。",
