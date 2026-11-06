@@ -17,6 +17,6 @@
   { "k": "st13", "label": "스탠다드 전경",          "src": "/images/스탠다드_13.webp" },
   { "k": "dj1",  "label": "당일특가",               "src": "/images/당일특가_도보전용★랜덤배정★_1.webp" },
   { "k": "sf1",  "label": "숙소 시설",              "src": "/images/숙소시설_1.webp" },
-  { "k": "sf3",  "label": "스낵바",                 "src": "/images/숙소시설_3.webp" },
+  { "k": "sf3",  "label": "스낵바",                 "src": "/images/스낵바_2.webp" },
   { "k": "sf5",  "label": "로비 & 복도",            "src": "/images/숙소시설_5.webp" }
 ]

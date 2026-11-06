@@ -17,6 +17,6 @@
   { "k": "st13", "label": "Kamar Standar",                    "src": "/images/스탠다드_13.webp" },
   { "k": "dj1",  "label": "Promo hari ini",                   "src": "/images/당일특가_도보전용★랜덤배정★_1.webp" },
   { "k": "sf1",  "label": "Fasilitas hotel",                  "src": "/images/숙소시설_1.webp" },
-  { "k": "sf3",  "label": "Snack bar",                        "src": "/images/숙소시설_3.webp" },
+  { "k": "sf3",  "label": "Snack bar",                        "src": "/images/스낵바_2.webp" },
   { "k": "sf5",  "label": "Lobi & Koridor",                   "src": "/images/숙소시설_5.webp" }
 ]
